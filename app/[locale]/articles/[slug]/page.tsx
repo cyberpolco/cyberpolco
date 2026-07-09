@@ -1,0 +1,63 @@
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { articles as seedArticles } from "@/lib/content/articles";
+import { getArticleBySlug } from "@/lib/db/articles";
+
+export function generateStaticParams() {
+  return seedArticles.map((a) => ({ slug: a.slug }));
+}
+
+export default async function ArticleDetailPage({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en"; slug: string }>;
+}) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("articles");
+
+  const article = await getArticleBySlug(slug);
+  if (!article) notFound();
+  const content = article[locale];
+
+  return (
+    <article className="mx-auto max-w-3xl px-5 py-20 lg:px-8">
+      <Link href="/articles" className="text-sm font-semibold text-brand-red">
+        ← {t("back")}
+      </Link>
+
+      <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-brand-blue">
+        {new Date(article.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
+      </p>
+      <h1 className="mt-3 text-4xl font-bold text-brand-dark">{content.title}</h1>
+
+      <Image
+        src="/images/placeholder-article.png"
+        alt=""
+        width={700}
+        height={280}
+        className="mt-8 h-56 w-full rounded-2xl border border-black/5 bg-brand-dark-2/10 object-contain p-14 opacity-70"
+      />
+
+      <div className="prose prose-lg mt-8 max-w-none text-brand-gray">
+        {content.body.map((paragraph, i) => (
+          <p key={i} className="mb-5 leading-relaxed">
+            {paragraph}
+          </p>
+        ))}
+      </div>
+
+      <div className="mt-10 rounded-2xl bg-brand-dark-2/5 p-6 text-sm text-brand-gray">
+        {locale === "fr"
+          ? "« Votre sécurité est votre priorité, heureusement, c'est aussi la nôtre. » — L'équipe Cyber PolCo"
+          : "\"Your security is your first concern, fortunately we've made it ours.\" — The Cyber PolCo Team"}
+      </div>
+    </article>
+  );
+}

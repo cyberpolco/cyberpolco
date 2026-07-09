@@ -1,0 +1,82 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+/*
+  Display font (Infinite Justice) and heading font (Telegraf) are licensed
+  Canva/dafont assets -- add the actual .woff2 files to /public/fonts and
+  uncomment the @font-face rules below. Until then, headings fall back to a
+  bold system stack so the site looks intentional either way.
+  See README.md -> "Adding the brand fonts".
+*/
+/*
+@font-face {
+  font-family: "Telegraf";
+  src: url("/fonts/telegraf-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Infinite Justice";
+  src: url("/fonts/infinite-justice.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+*/
+
+:root {
+  --color-brand-blue: #626fda;
+  --color-brand-red: #e3484f;
+  --color-brand-yellow: #e69c3f;
+  --color-brand-dark: #0f1220;
+  --color-brand-dark-2: #2f3555;
+  --color-brand-gray: #424242;
+
+  --background: #ffffff;
+  --foreground: #0f1220;
+}
+
+@theme inline {
+  --color-brand-blue: var(--color-brand-blue);
+  --color-brand-red: var(--color-brand-red);
+  --color-brand-yellow: var(--color-brand-yellow);
+  --color-brand-dark: var(--color-brand-dark);
+  --color-brand-dark-2: var(--color-brand-dark-2);
+  --color-brand-gray: var(--color-brand-gray);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Telegraf", "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-yellow);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

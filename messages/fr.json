@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "services": "Services",
+    "about": "À propos",
+    "articles": "Articles",
+    "careers": "Carrières",
+    "contact": "Contact",
+    "getInTouch": "Nous contacter"
+  },
+  "footer": {
+    "tagline": "Votre sécurité est votre priorité, heureusement, c'est aussi la nôtre.",
+    "servicesTitle": "Services",
+    "companyTitle": "Entreprise",
+    "legalTitle": "Légal",
+    "followTitle": "Suivez-nous",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "rights": "© Cyber PolCo 2026. Tous droits réservés."
+  },
+  "home": {
+    "eyebrow": "Cybersécurité · RD Congo · Namibie",
+    "heroTitle": "Limitez le risque, maintenant.",
+    "heroSubtitle": "Cyber PolCo protège les infrastructures numériques des entreprises, institutions et particuliers en République Démocratique du Congo, en Namibie et au-delà.",
+    "ctaPrimary": "Découvrir nos services",
+    "ctaSecondary": "Parler à un expert",
+    "missionTitle": "Notre mission",
+    "missionBody": "Être un leader en cybersécurité, en offrant à nos clients une protection inégalée et une tranquillité d'esprit totale, afin qu'ils puissent se concentrer sur leurs activités principales, en toute confiance.",
+    "visionTitle": "Notre vision",
+    "visionBody": "Devenir l'organisation de référence en cybersécurité dans la région de la SADC, en établissant de nouveaux standards de sécurité numérique portés par l'excellence et l'innovation.",
+    "mapTitle": "Notre présence en Afrique",
+    "mapSubtitle": "Survolez ou touchez un pays pour en savoir plus.",
+    "mapLegendPhysical": "Présence physique",
+    "mapLegendOnline": "Présence en ligne",
+    "mapNotYet": "Pas encore",
+    "servicesTitle": "Nos services",
+    "servicesSubtitle": "Des solutions professionnelles de cybersécurité et de consulting pour entreprises, institutions et particuliers.",
+    "statsTitle": "Cyber PolCo en chiffres",
+    "articlesTitle": "Derniers articles",
+    "articlesSubtitle": "Nos analyses et conseils pour naviguer en ligne en toute sécurité.",
+    "readMore": "Lire l'article",
+    "viewAllArticles": "Voir tous les articles",
+    "finalCtaTitle": "Prêt à sécuriser votre organisation ?",
+    "finalCtaBody": "Parlons de vos besoins en cybersécurité, sensibilisation ou conformité.",
+    "finalCtaButton": "Contactez notre équipe"
+  },
+  "services": {
+    "title": "Nos services",
+    "subtitle": "Cyber PolCo propose des services professionnels de cybersécurité ainsi que du consulting spécialisé pour les entreprises, institutions et particuliers.",
+    "learnMore": "En savoir plus"
+  },
+  "about": {
+    "title": "À propos de Cyber PolCo",
+    "storyTitle": "Notre histoire",
+    "leadershipTitle": "Le leadership",
+    "sectorTitle": "Le secteur dans son ensemble"
+  },
+  "articles": {
+    "title": "Articles",
+    "subtitle": "Sensibilisation, analyses et conseils pratiques en cybersécurité.",
+    "back": "Retour aux articles"
+  },
+  "careers": {
+    "title": "Carrières",
+    "subtitle": "Rejoignez une équipe qui construit la cybersécurité de demain en Afrique centrale et australe.",
+    "noOpenings": "Aucun poste ouvert pour le moment",
+    "noOpeningsBody": "Nous ne recrutons pas actuellement. Revenez consulter cette page régulièrement pour découvrir nos prochaines opportunités.",
+    "back": "Retour aux carrières",
+    "applyTitle": "Postuler à cette offre",
+    "location": "Lieu",
+    "type": "Type de contrat"
+  },
+  "contact": {
+    "title": "Contactez-nous",
+    "subtitle": "Une question, un projet, un incident à signaler ? Notre équipe vous répond.",
+    "formName": "Nom complet",
+    "formCompany": "Entreprise",
+    "formPosition": "Poste occupé",
+    "formEmail": "Adresse e-mail professionnelle",
+    "formSubject": "Sujet",
+    "formMessage": "Message",
+    "formSubmit": "Envoyer le message",
+    "formSuccess": "Merci ! Votre message a été envoyé, nous vous répondrons rapidement.",
+    "formError": "Une erreur est survenue. Veuillez réessayer ou nous écrire directement.",
+    "officeTitle": "Nos bureaux",
+    "socialTitle": "Réseaux sociaux",
+    "whatsappTitle": "WhatsApp"
+  },
+  "legal": {
+    "lastUpdated": "Dernière mise à jour"
+  }
+}

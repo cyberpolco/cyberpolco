@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "about": "About",
+    "articles": "Articles",
+    "careers": "Careers",
+    "contact": "Contact",
+    "getInTouch": "Get in touch"
+  },
+  "footer": {
+    "tagline": "Your security is your first concern, fortunately we've made it ours.",
+    "servicesTitle": "Services",
+    "companyTitle": "Company",
+    "legalTitle": "Legal",
+    "followTitle": "Follow us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "rights": "© Cyber PolCo 2026. All rights reserved."
+  },
+  "home": {
+    "eyebrow": "Cybersecurity · DR Congo · Namibia",
+    "heroTitle": "Limit the risk, now.",
+    "heroSubtitle": "Cyber PolCo protects the digital infrastructure of businesses, institutions, and individuals across the Democratic Republic of Congo, Namibia, and beyond.",
+    "ctaPrimary": "Explore our services",
+    "ctaSecondary": "Talk to an expert",
+    "missionTitle": "Our mission",
+    "missionBody": "To be a leader in cybersecurity, offering our clients unmatched protection and total peace of mind, so they can focus on their core business with full confidence.",
+    "visionTitle": "Our vision",
+    "visionBody": "To become the reference organization for cybersecurity in the SADC region, setting new digital security standards driven by excellence and innovation.",
+    "mapTitle": "Our presence across Africa",
+    "mapSubtitle": "Hover or tap a country to learn more.",
+    "mapLegendPhysical": "Physical presence",
+    "mapLegendOnline": "Online presence",
+    "mapNotYet": "Not yet",
+    "servicesTitle": "Our services",
+    "servicesSubtitle": "Professional cybersecurity solutions and specialized consulting for businesses, institutions, and individuals.",
+    "statsTitle": "Cyber PolCo at a glance",
+    "articlesTitle": "Latest articles",
+    "articlesSubtitle": "Our insights and advice for navigating the internet safely.",
+    "readMore": "Read article",
+    "viewAllArticles": "View all articles",
+    "finalCtaTitle": "Ready to secure your organization?",
+    "finalCtaBody": "Let's talk about your cybersecurity, awareness, or compliance needs.",
+    "finalCtaButton": "Contact our team"
+  },
+  "services": {
+    "title": "Our services",
+    "subtitle": "Cyber PolCo offers professional cybersecurity services and specialized consulting for businesses, institutions, and individuals.",
+    "learnMore": "Learn more"
+  },
+  "about": {
+    "title": "About Cyber PolCo",
+    "storyTitle": "Our story",
+    "leadershipTitle": "Leadership",
+    "sectorTitle": "The sector at large"
+  },
+  "articles": {
+    "title": "Articles",
+    "subtitle": "Awareness, analysis, and practical cybersecurity advice.",
+    "back": "Back to articles"
+  },
+  "careers": {
+    "title": "Careers",
+    "subtitle": "Join a team building tomorrow's cybersecurity in Central and Southern Africa.",
+    "noOpenings": "No open positions right now",
+    "noOpeningsBody": "We aren't hiring at the moment. Check back here regularly for upcoming opportunities.",
+    "back": "Back to careers",
+    "applyTitle": "Apply for this role",
+    "location": "Location",
+    "type": "Contract type"
+  },
+  "contact": {
+    "title": "Get in touch",
+    "subtitle": "A question, a project, an incident to report? Our team is listening.",
+    "formName": "Full name",
+    "formCompany": "Company",
+    "formPosition": "Position",
+    "formEmail": "Work email address",
+    "formSubject": "Subject",
+    "formMessage": "Message",
+    "formSubmit": "Send message",
+    "formSuccess": "Thank you! Your message has been sent — we'll get back to you shortly.",
+    "formError": "Something went wrong. Please try again or email us directly.",
+    "officeTitle": "Our offices",
+    "socialTitle": "Social media",
+    "whatsappTitle": "WhatsApp"
+  },
+  "legal": {
+    "lastUpdated": "Last updated"
+  }
+}
