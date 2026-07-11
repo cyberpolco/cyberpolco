@@ -44,7 +44,13 @@ export function verifySessionToken(
   if (!token) return { valid: false };
   try {
     const decoded = Buffer.from(token, "base64url").toString("utf-8");
-    const [email, expiresAtStr, signature] = decoded.split(".");
+    // Split from the right: the signature and expiry are always the last two
+    // segments, but the email itself may contain dots.
+    const lastDot = decoded.lastIndexOf(".");
+    const secondLastDot = decoded.lastIndexOf(".", lastDot - 1);
+    const email = decoded.slice(0, secondLastDot);
+    const expiresAtStr = decoded.slice(secondLastDot + 1, lastDot);
+    const signature = decoded.slice(lastDot + 1);
     const expiresAt = Number(expiresAtStr);
     const expected = sign(`${email}.${expiresAtStr}`);
 

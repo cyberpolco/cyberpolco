@@ -13,6 +13,17 @@ async function login(formData: FormData) {
   let configError = false;
   try {
     valid = await verifyAdminCredentials(email, password);
+    if (valid) {
+      const token = createSessionToken(email);
+      const cookieStore = await cookies();
+      cookieStore.set(ADMIN_COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
+      });
+    }
   } catch {
     configError = true;
   }
@@ -24,16 +35,6 @@ async function login(formData: FormData) {
   if (!valid) {
     redirect("/admin/login?error=invalid");
   }
-
-  const token = createSessionToken(email);
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
-  });
 
   redirect("/admin/dashboard");
 }
