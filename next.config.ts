@@ -11,7 +11,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
-  "connect-src 'self' https://api.resend.com",
+  "connect-src 'self' https://api.resend.com https://cdn.jsdelivr.net",
   "frame-src https://challenges.cloudflare.com",
   "object-src 'none'",
   "base-uri 'self'",

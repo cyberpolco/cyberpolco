@@ -7,7 +7,7 @@ import {
   Geographies,
   Geography,
 } from "react-simple-maps";
-import { AFRICA_ISO3 } from "@/lib/content/africa-iso3";
+import { AFRICA_NUMERIC_TO_ISO3 } from "@/lib/content/africa-iso3";
 import { presenceCountries } from "@/lib/content/company";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -63,9 +63,9 @@ export default function AfricaMap() {
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
               geographies
-                .filter((geo) => AFRICA_ISO3.includes(geo.id as string))
+                .filter((geo) => (geo.id as string) in AFRICA_NUMERIC_TO_ISO3)
                 .map((geo) => {
-                  const iso = geo.id as string;
+                  const iso = AFRICA_NUMERIC_TO_ISO3[geo.id as string];
                   const status = statusFor(iso);
                   const fill =
                     status === "physical"
