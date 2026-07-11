@@ -111,7 +111,7 @@ export default function AfricaMap() {
 
         {tooltip && (
           <div
-            className="pointer-events-none fixed z-50 rounded-lg bg-brand-dark px-3 py-1.5 text-xs font-medium text-white shadow-xl"
+            className="pointer-events-none fixed z-[60] rounded-lg bg-brand-dark px-3 py-1.5 text-xs font-medium text-white shadow-xl"
             style={{ left: tooltip.x + 14, top: tooltip.y + 14 }}
           >
             {tooltip.text}

@@ -55,7 +55,7 @@ export default async function ContactPage({
 
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-dark">
-              Email
+              {t("emailTitle")}
             </h2>
             <a
               href={`mailto:${contactEmails.info}`}

@@ -73,7 +73,8 @@
   "contact": {
     "title": "Contactez-nous",
     "subtitle": "Une question, un projet, un incident à signaler ? Notre équipe vous répond.",
-    "formName": "Nom complet",
+    "formFirstName": "Prénom",
+    "formLastName": "Nom",
     "formCompany": "Entreprise",
     "formPosition": "Poste occupé",
     "formEmail": "Adresse e-mail professionnelle",
@@ -82,9 +83,14 @@
     "formSubmit": "Envoyer le message",
     "formSuccess": "Merci ! Votre message a été envoyé, nous vous répondrons rapidement.",
     "formError": "Une erreur est survenue. Veuillez réessayer ou nous écrire directement.",
+    "errorRequired": "Ce champ est obligatoire.",
+    "errorEmailInvalid": "Saisissez une adresse e-mail valide.",
+    "errorEmailWorkOnly": "Merci d'utiliser votre adresse e-mail professionnelle — les adresses Gmail, Outlook et Yahoo personnelles ne sont pas acceptées.",
+    "errorMessageTooShort": "Merci d'ajouter un peu plus de détails (10 caractères minimum).",
     "officeTitle": "Nos bureaux",
     "socialTitle": "Réseaux sociaux",
-    "whatsappTitle": "WhatsApp"
+    "whatsappTitle": "WhatsApp",
+    "emailTitle": "E-mail"
   },
   "legal": {
     "lastUpdated": "Dernière mise à jour"

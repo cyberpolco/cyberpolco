@@ -73,7 +73,8 @@
   "contact": {
     "title": "Get in touch",
     "subtitle": "A question, a project, an incident to report? Our team is listening.",
-    "formName": "Full name",
+    "formFirstName": "First name",
+    "formLastName": "Last name",
     "formCompany": "Company",
     "formPosition": "Position",
     "formEmail": "Work email address",
@@ -82,9 +83,14 @@
     "formSubmit": "Send message",
     "formSuccess": "Thank you! Your message has been sent — we'll get back to you shortly.",
     "formError": "Something went wrong. Please try again or email us directly.",
+    "errorRequired": "This field is required.",
+    "errorEmailInvalid": "Enter a valid email address.",
+    "errorEmailWorkOnly": "Please use your work email address — personal Gmail, Outlook, and Yahoo addresses aren't accepted.",
+    "errorMessageTooShort": "Please add a bit more detail (at least 10 characters).",
     "officeTitle": "Our offices",
     "socialTitle": "Social media",
-    "whatsappTitle": "WhatsApp"
+    "whatsappTitle": "WhatsApp",
+    "emailTitle": "Email"
   },
   "legal": {
     "lastUpdated": "Last updated"

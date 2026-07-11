@@ -54,10 +54,11 @@ export default function ApplicationForm({
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" />
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark">
+        <label htmlFor="apply-name" className="mb-1 block text-sm font-medium text-brand-dark">
           {locale === "fr" ? "Nom complet" : "Full name"}
         </label>
         <input
+          id="apply-name"
           name="name"
           required
           className="w-full rounded-lg border border-black/10 px-4 py-2.5 outline-none focus:border-brand-blue"
@@ -65,10 +66,11 @@ export default function ApplicationForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-dark">
+          <label htmlFor="apply-email" className="mb-1 block text-sm font-medium text-brand-dark">
             {t("formEmail")}
           </label>
           <input
+            id="apply-email"
             type="email"
             name="email"
             required
@@ -76,10 +78,11 @@ export default function ApplicationForm({
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-dark">
+          <label htmlFor="apply-phone" className="mb-1 block text-sm font-medium text-brand-dark">
             {locale === "fr" ? "Téléphone" : "Phone"}
           </label>
           <input
+            id="apply-phone"
             name="phone"
             required
             className="w-full rounded-lg border border-black/10 px-4 py-2.5 outline-none focus:border-brand-blue"
@@ -87,10 +90,11 @@ export default function ApplicationForm({
         </div>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark">
+        <label htmlFor="apply-cv" className="mb-1 block text-sm font-medium text-brand-dark">
           {locale === "fr" ? "CV (PDF ou DOCX, 5 Mo max)" : "CV/Resume (PDF or DOCX, max 5MB)"}
         </label>
         <input
+          id="apply-cv"
           type="file"
           name="cv"
           accept=".pdf,.docx"
@@ -99,10 +103,11 @@ export default function ApplicationForm({
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark">
+        <label htmlFor="apply-message" className="mb-1 block text-sm font-medium text-brand-dark">
           {locale === "fr" ? "Message (optionnel)" : "Message (optional)"}
         </label>
         <textarea
+          id="apply-message"
           name="message"
           rows={4}
           className="w-full rounded-lg border border-black/10 px-4 py-2.5 outline-none focus:border-brand-blue"

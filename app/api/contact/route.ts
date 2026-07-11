@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
   // endpoint once NEXT_PUBLIC_TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY are
   // configured. See README.md -> "Enabling CAPTCHA".
 
-  const { name, company, position, email, subject, message } = parsed.data;
+  const { firstName, lastName, company, position, email, subject, message } = parsed.data;
+  const name = `${firstName} ${lastName}`;
 
   const inquiry = await addInquiry({ name, company, position, email, subject, message });
 

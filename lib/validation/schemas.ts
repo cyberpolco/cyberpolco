@@ -1,10 +1,34 @@
 import { z } from "zod";
 
+// Free/personal webmail providers — the contact form requires a work email.
+export const FREE_EMAIL_DOMAINS = [
+  "gmail.com",
+  "googlemail.com",
+  "outlook.com",
+  "hotmail.com",
+  "live.com",
+  "msn.com",
+  "yahoo.com",
+  "yahoo.co.uk",
+  "ymail.com",
+];
+
+export function isFreeEmailDomain(email: string): boolean {
+  const domain = email.trim().toLowerCase().split("@")[1] ?? "";
+  return FREE_EMAIL_DOMAINS.includes(domain);
+}
+
 export const contactSchema = z.object({
-  name: z.string().trim().min(2, "Name is too short").max(120),
+  firstName: z.string().trim().min(1, "First name is required").max(80),
+  lastName: z.string().trim().min(1, "Last name is required").max(80),
   company: z.string().trim().min(1, "Company is required").max(160),
   position: z.string().trim().min(1, "Position is required").max(160),
-  email: z.string().trim().email("Invalid email address").max(200),
+  email: z
+    .string()
+    .trim()
+    .email("Invalid email address")
+    .max(200)
+    .refine((v) => !isFreeEmailDomain(v), "Please use your work email address"),
   subject: z.string().trim().min(2, "Subject is too short").max(200),
   message: z.string().trim().min(10, "Message is too short").max(5000),
   // Honeypot field — must stay empty. Bots that fill every field trip this.
