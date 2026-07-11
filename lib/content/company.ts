@@ -19,7 +19,7 @@ export const socialLinks = {
   x: "https://www.x.com/cyber_polco",
   linkedin: "https://www.linkedin.com/company/cyberpolco",
   tiktok: "https://www.tiktok.com/@cyberpolco",
-  youtube: "https://www.youtube.com/cyberpolco",
+  youtube: "https://www.youtube.com/@cyberpolco",
   github: "https://www.github.com/cyberpolco",
   whatsappChannel: "https://whatsapp.com/channel/0029VaZmU8sDZ4LfWF6YTe1G",
 };
