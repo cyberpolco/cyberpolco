@@ -1,5 +1,6 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import Image from "next/image";
+import NextLink from "next/link";
 import { Link } from "@/i18n/navigation";
 import { MessageCircle } from "lucide-react";
 import { offices } from "@/lib/content/company";
@@ -129,6 +130,7 @@ export default async function Footer() {
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-white">{t("privacy")}</Link>
             <Link href="/terms" className="hover:text-white">{t("terms")}</Link>
+            <NextLink href="/admin/dashboard" className="hover:text-white">Dashboard</NextLink>
           </div>
           <p>{t("rights")}</p>
         </div>
