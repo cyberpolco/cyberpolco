@@ -1,12 +1,12 @@
-import { store } from "./store";
-import { articles as seedArticles, type Article } from "@/lib/content/articles";
+import { eq } from "drizzle-orm";
+import { db } from "./client";
+import { articles as articlesTable } from "./schema";
+import type { Article } from "@/lib/content/articles";
 
 export type { Article };
 
-const COLLECTION = "articles";
-
 export async function getArticles(): Promise<Article[]> {
-  return store.readAll<Article>(COLLECTION, seedArticles);
+  return db.select().from(articlesTable);
 }
 
 export async function getPublishedArticles(): Promise<Article[]> {
@@ -20,22 +20,17 @@ export async function getLatestArticles(count: number): Promise<Article[]> {
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
-  const items = await getArticles();
-  return items.find((a) => a.slug === slug);
+  const [item] = await db.select().from(articlesTable).where(eq(articlesTable.slug, slug));
+  return item;
 }
 
 export async function saveArticle(article: Article): Promise<void> {
-  const items = await getArticles();
-  const idx = items.findIndex((a) => a.slug === article.slug);
-  if (idx >= 0) items[idx] = article;
-  else items.push(article);
-  await store.writeAll(COLLECTION, items);
+  await db
+    .insert(articlesTable)
+    .values(article)
+    .onConflictDoUpdate({ target: articlesTable.slug, set: article });
 }
 
 export async function deleteArticle(slug: string): Promise<void> {
-  const items = await getArticles();
-  await store.writeAll(
-    COLLECTION,
-    items.filter((a) => a.slug !== slug)
-  );
+  await db.delete(articlesTable).where(eq(articlesTable.slug, slug));
 }

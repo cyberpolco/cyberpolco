@@ -1,4 +1,5 @@
-import { store } from "./store";
+import { db } from "./client";
+import { applications as applicationsTable } from "./schema";
 
 export type Application = {
   id: string;
@@ -13,23 +14,21 @@ export type Application = {
   createdAt: string;
 };
 
-const COLLECTION = "applications";
-
 export async function getApplications(): Promise<Application[]> {
-  const items = await store.readAll<Application>(COLLECTION, []);
+  const items = await db.select().from(applicationsTable);
   return items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
 export async function addApplication(
   application: Omit<Application, "id" | "createdAt">
 ): Promise<Application> {
-  const items = await store.readAll<Application>(COLLECTION, []);
-  const record: Application = {
-    ...application,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  };
-  items.push(record);
-  await store.writeAll(COLLECTION, items);
+  const [record] = await db
+    .insert(applicationsTable)
+    .values({
+      ...application,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    })
+    .returning();
   return record;
 }

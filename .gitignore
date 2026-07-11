@@ -34,8 +34,7 @@ yarn-error.log*
 .env*
 !.env.example
 
-# local file-based data store (dev persistence layer — see README)
-/data/db
+# local CV upload fallback (dev only — see README)
 /data/uploads
 
 # vercel

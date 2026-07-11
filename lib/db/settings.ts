@@ -1,4 +1,5 @@
-import { store } from "./store";
+import { db } from "./client";
+import { settings as settingsTable } from "./schema";
 import { stats as defaultStats, socialLinks as defaultSocial } from "@/lib/content/company";
 
 export type SiteSettings = {
@@ -6,7 +7,7 @@ export type SiteSettings = {
   socialLinks: typeof defaultSocial;
 };
 
-const COLLECTION = "settings";
+const SINGLETON_ID = "singleton";
 
 const defaults: SiteSettings = {
   stats: defaultStats,
@@ -14,10 +15,14 @@ const defaults: SiteSettings = {
 };
 
 export async function getSettings(): Promise<SiteSettings> {
-  const rows = await store.readAll<SiteSettings>(COLLECTION, [defaults]);
-  return rows[0] || defaults;
+  const [row] = await db.select().from(settingsTable);
+  if (!row) return defaults;
+  return { stats: row.stats, socialLinks: row.socialLinks };
 }
 
 export async function saveSettings(settings: SiteSettings): Promise<void> {
-  await store.writeAll(COLLECTION, [settings]);
+  await db
+    .insert(settingsTable)
+    .values({ id: SINGLETON_ID, ...settings })
+    .onConflictDoUpdate({ target: settingsTable.id, set: settings });
 }

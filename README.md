@@ -25,6 +25,7 @@ production (Settings → Environment Variables).
 
 | Variable | Required | Purpose |
 |---|---|---|
+| `DATABASE_URL` | Yes | Neon Postgres connection string — powers the admin panel (articles, jobs, inquiries, applications, settings) |
 | `ADMIN_EMAIL` | Yes | The one admin account's email |
 | `ADMIN_PASSWORD_HASH` | Yes | bcrypt hash of the admin password — generate with `node -e "console.log(require('bcryptjs').hashSync('YOUR_PASSWORD', 10))"` |
 | `ADMIN_SESSION_SECRET` | Yes | Random secret for signing the admin session cookie — generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
@@ -40,41 +41,44 @@ runs in "local/demo" mode for email and file storage.
 
 This build prioritizes shipping something that works end-to-end today over
 wiring every external service before anyone has created an account for it.
-Two deliberate substitutions from the original spec, both called out in code
-comments at the point of use:
+One deliberate substitution remains from the original spec, called out in
+code comments at the point of use:
 
-1. **Persistence**: `lib/db/store.ts` is a JSON-file-based data store
-   (`data/db/*.json`), not Neon Postgres + Drizzle. It powers the entire
-   admin panel (articles, jobs, inquiries, applications, settings) and works
-   great for local development. **It will not persist across deploys on
-   Vercel**, whose filesystem is ephemeral outside `/tmp`. See "Upgrading to
-   production persistence" below before you rely on the admin panel in
-   production.
+- **Admin auth**: `lib/auth/session.ts` is a lightweight HMAC-signed cookie,
+  not Auth.js/NextAuth. There's exactly one admin account with no
+  registration, roles, or OAuth, so this avoids pulling in a full session
+  framework for a single credential pair. See "Upgrading admin auth" if you
+  need multiple admins or SSO later.
 
-2. **Admin auth**: `lib/auth/session.ts` is a lightweight HMAC-signed cookie,
-   not Auth.js/NextAuth. There's exactly one admin account with no
-   registration, roles, or OAuth, so this avoids pulling in a full session
-   framework for a single credential pair. See "Upgrading admin auth" if you
-   need multiple admins or SSO later.
+Persistence is real: `lib/db/*.ts` (articles, jobs, inquiries, applications,
+settings) uses Neon Postgres via Drizzle ORM — see "Database" below. CV
+uploads use Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, falling back to
+local disk (`data/uploads/`) for zero-setup local dev only.
 
 Everything else in the spec (security headers, CSP, rate limiting, Zod
 validation, file-type/size checks on CV uploads, FR/EN routing, the Africa
 map, the bilingual content) is implemented as specified.
 
-## Upgrading to production persistence (Neon + Drizzle)
+## Database (Neon + Drizzle)
 
-Before the admin panel is used in production:
+`lib/db/schema.ts` defines five tables (`articles`, `jobs`, `inquiries`,
+`applications`, `settings`) mirroring the types Drizzle infers from it, and
+`lib/db/client.ts` opens a `neon-http` connection from `DATABASE_URL`.
+`lib/db/articles.ts`, `jobs.ts`, `inquiries.ts`, `applications.ts`, and
+`settings.ts` expose the same typed CRUD functions pages/server actions
+always called — only their internals changed.
 
-1. Create a free Neon Postgres database at neon.tech
-2. `npm install drizzle-orm @neondatabase/serverless drizzle-kit --save`
-3. Define schemas mirroring the shapes in `lib/db/*.ts` (`Article`, `Job`,
-   `Inquiry`, `Application`, `SiteSettings` — the types are already there to
-   copy from)
-4. Replace the bodies of `lib/db/articles.ts`, `jobs.ts`, `inquiries.ts`,
-   `applications.ts`, and `settings.ts` with Drizzle queries. Every function
-   in those files has the same signature it'll need after the swap — nothing
-   that imports them (pages, server actions) needs to change.
-5. Add `DATABASE_URL` to your environment variables
+Setup for a fresh database:
+
+1. Create a free Neon Postgres database at neon.tech and set `DATABASE_URL`
+   in `.env.local` (and in Vercel's env vars for production)
+2. `npm run db:migrate` — applies the SQL migrations in `drizzle/` to create
+   the tables
+3. `npm run db:seed` — inserts the seed articles (`lib/content/articles.ts`)
+   and default homepage settings (`lib/content/company.ts`)
+
+After changing `lib/db/schema.ts`, run `npm run db:generate` to produce a new
+migration file, then `npm run db:migrate` to apply it.
 
 ## Upgrading rate limiting (Upstash)
 
@@ -141,7 +145,7 @@ components/
   forms/                ContactForm, ApplicationForm
 lib/
   content/              Bilingual content: services, articles, company info
-  db/                   Data layer (JSON store — see "Upgrading" above)
+  db/                   Data layer (Neon + Drizzle — see "Database" above)
   actions/              Server actions for admin CRUD
   auth/                 Admin session + credential verification
   validation/           Zod schemas for form input

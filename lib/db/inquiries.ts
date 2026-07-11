@@ -1,4 +1,6 @@
-import { store } from "./store";
+import { eq } from "drizzle-orm";
+import { db } from "./client";
+import { inquiries as inquiriesTable } from "./schema";
 
 export type Inquiry = {
   id: string;
@@ -12,33 +14,26 @@ export type Inquiry = {
   read: boolean;
 };
 
-const COLLECTION = "inquiries";
-
 export async function getInquiries(): Promise<Inquiry[]> {
-  const items = await store.readAll<Inquiry>(COLLECTION, []);
+  const items = await db.select().from(inquiriesTable);
   return items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
 export async function addInquiry(
   inquiry: Omit<Inquiry, "id" | "createdAt" | "read">
 ): Promise<Inquiry> {
-  const items = await store.readAll<Inquiry>(COLLECTION, []);
-  const record: Inquiry = {
-    ...inquiry,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-    read: false,
-  };
-  items.push(record);
-  await store.writeAll(COLLECTION, items);
+  const [record] = await db
+    .insert(inquiriesTable)
+    .values({
+      ...inquiry,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      read: false,
+    })
+    .returning();
   return record;
 }
 
 export async function markInquiryRead(id: string, read: boolean): Promise<void> {
-  const items = await store.readAll<Inquiry>(COLLECTION, []);
-  const idx = items.findIndex((i) => i.id === id);
-  if (idx >= 0) {
-    items[idx].read = read;
-    await store.writeAll(COLLECTION, items);
-  }
+  await db.update(inquiriesTable).set({ read }).where(eq(inquiriesTable.id, id));
 }

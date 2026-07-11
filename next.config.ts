@@ -30,13 +30,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // The admin panel's file-based JSON store (lib/db/store.ts) reads/writes
-  // data/db/*.json via dynamic fs calls, which Next's build tracer can't see
-  // statically — without this, those files are missing from the deployed
-  // serverless function (ENOENT at /var/task/data on Vercel).
-  outputFileTracingIncludes: {
-    "/*": ["./data/db/**/*"],
-  },
   async headers() {
     return [
       {
