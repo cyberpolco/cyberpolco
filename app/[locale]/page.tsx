@@ -88,7 +88,7 @@ export default async function HomePage({
           <h2 className="text-3xl font-bold">{t("mapTitle")}</h2>
           <p className="mt-2 text-white/60">{t("mapSubtitle")}</p>
         </div>
-        <div className="mx-auto mt-10 max-w-3xl px-5 lg:px-8">
+        <div className="mx-auto mt-10 max-w-5xl px-5 lg:px-8">
           <AfricaMap />
         </div>
       </section>
