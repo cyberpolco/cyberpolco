@@ -55,7 +55,7 @@ export default function AfricaMap() {
         onMouseLeave={() => setTooltip(null)}
       >
         <ComposableMap
-          projectionConfig={{ scale: 550, center: [20, 2] }}
+          projectionConfig={{ scale: 470, center: [20, 2] }}
           width={800}
           height={760}
           style={{ width: "100%", height: "auto" }}
