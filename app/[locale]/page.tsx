@@ -26,12 +26,52 @@ export default async function HomePage({
   const latestArticles = await getLatestArticles(3);
   const { stats } = await getSettings();
 
+  const heroParticles = [
+    { top: "12%", left: "8%", size: 3, color: "bg-brand-blue", duration: "6s", twinkle: "3.2s", delay: "0s" },
+    { top: "22%", left: "42%", size: 2, color: "bg-brand-yellow", duration: "7.5s", twinkle: "4s", delay: "0.6s" },
+    { top: "68%", left: "18%", size: 3, color: "bg-brand-red", duration: "5.5s", twinkle: "2.8s", delay: "1.1s" },
+    { top: "80%", left: "35%", size: 2, color: "bg-brand-blue", duration: "8s", twinkle: "3.6s", delay: "0.3s" },
+    { top: "15%", left: "62%", size: 2, color: "bg-brand-blue", duration: "6.8s", twinkle: "3s", delay: "1.6s" },
+    { top: "48%", left: "88%", size: 3, color: "bg-brand-yellow", duration: "7s", twinkle: "4.4s", delay: "0.8s" },
+    { top: "34%", left: "24%", size: 2, color: "bg-brand-red", duration: "6.2s", twinkle: "3.4s", delay: "1.9s" },
+    { top: "88%", left: "70%", size: 2, color: "bg-brand-blue", duration: "7.2s", twinkle: "3.8s", delay: "0.4s" },
+  ] as const;
+
   return (
     <>
       {/* Hero */}
       <section className="relative overflow-hidden bg-brand-dark text-white">
+        {/* animated tech grid */}
+        <div className="hero-grid pointer-events-none absolute inset-0" />
+        {/* pulsing glow orbs */}
+        <div className="hero-glow-orb pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-brand-blue/25 blur-3xl" />
+        <div
+          className="hero-glow-orb pointer-events-none absolute -right-16 top-0 h-96 w-96 rounded-full bg-brand-red/20 blur-3xl"
+          style={{ animationDelay: "2s" }}
+        />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(98,111,218,0.25),transparent_55%)]" />
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
+        {/* scanning light sweep */}
+        <div className="hero-scan pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-brand-blue/10 via-transparent to-transparent" />
+        {/* floating particles */}
+        <div className="pointer-events-none absolute inset-0 hidden sm:block">
+          {heroParticles.map((p, i) => (
+            <span
+              key={i}
+              className={`hero-particle absolute rounded-full ${p.color}`}
+              style={{
+                top: p.top,
+                left: p.left,
+                width: p.size,
+                height: p.size,
+                animationDelay: p.delay,
+                ["--hero-particle-duration" as string]: p.duration,
+                ["--hero-particle-twinkle" as string]: p.twinkle,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
           <div>
             <p className="mb-4 inline-block rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brand-yellow">
               {t("eyebrow")}
@@ -56,13 +96,15 @@ export default async function HomePage({
             </div>
           </div>
           <div className="relative mx-auto w-full max-w-sm">
-            <div className="absolute -inset-6 rounded-full bg-brand-blue/20 blur-3xl" />
+            <div className="hero-glow-orb absolute -inset-10 rounded-full bg-brand-blue/25 blur-3xl" />
+            <div className="absolute inset-4 animate-spin rounded-full border border-dashed border-brand-blue/25 [animation-duration:26s]" />
             <Image
-              src="/images/placeholder-hero.png"
+              src="/images/logo-mark.png"
               alt="Cyber PolCo"
               width={420}
-              height={420}
-              className="relative mx-auto"
+              height={416}
+              priority
+              className="relative mx-auto object-contain drop-shadow-[0_0_45px_rgba(98,111,218,0.35)]"
             />
           </div>
         </div>
