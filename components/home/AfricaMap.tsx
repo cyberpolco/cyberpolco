@@ -15,15 +15,62 @@ const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
 const COLORS = {
   physical: "#626fda",
   online: "#e69c3f",
+  coming: "#e3484f",
   none: "#3a3f5c",
-  hover: "#e3484f",
+  hover: "#8890e8",
 };
 
 const COUNTRY_NAMES: Record<string, { fr: string; en: string }> = {
-  COD: { fr: "République Démocratique du Congo", en: "Democratic Republic of Congo" },
-  NAM: { fr: "Namibie", en: "Namibia" },
-  ZAF: { fr: "Afrique du Sud", en: "South Africa" },
+  DZA: { fr: "Algérie", en: "Algeria" },
   AGO: { fr: "Angola", en: "Angola" },
+  BEN: { fr: "Bénin", en: "Benin" },
+  BWA: { fr: "Botswana", en: "Botswana" },
+  BFA: { fr: "Burkina Faso", en: "Burkina Faso" },
+  BDI: { fr: "Burundi", en: "Burundi" },
+  CMR: { fr: "Cameroun", en: "Cameroon" },
+  CAF: { fr: "République centrafricaine", en: "Central African Republic" },
+  TCD: { fr: "Tchad", en: "Chad" },
+  COG: { fr: "Congo", en: "Congo" },
+  COD: { fr: "République Démocratique du Congo", en: "Democratic Republic of Congo" },
+  CIV: { fr: "Côte d'Ivoire", en: "Côte d'Ivoire" },
+  DJI: { fr: "Djibouti", en: "Djibouti" },
+  EGY: { fr: "Égypte", en: "Egypt" },
+  GNQ: { fr: "Guinée équatoriale", en: "Equatorial Guinea" },
+  ERI: { fr: "Érythrée", en: "Eritrea" },
+  SWZ: { fr: "Eswatini", en: "Eswatini" },
+  ETH: { fr: "Éthiopie", en: "Ethiopia" },
+  GAB: { fr: "Gabon", en: "Gabon" },
+  GMB: { fr: "Gambie", en: "Gambia" },
+  GHA: { fr: "Ghana", en: "Ghana" },
+  GIN: { fr: "Guinée", en: "Guinea" },
+  GNB: { fr: "Guinée-Bissau", en: "Guinea-Bissau" },
+  KEN: { fr: "Kenya", en: "Kenya" },
+  LSO: { fr: "Lesotho", en: "Lesotho" },
+  LBR: { fr: "Libéria", en: "Liberia" },
+  LBY: { fr: "Libye", en: "Libya" },
+  MDG: { fr: "Madagascar", en: "Madagascar" },
+  MWI: { fr: "Malawi", en: "Malawi" },
+  MLI: { fr: "Mali", en: "Mali" },
+  MRT: { fr: "Mauritanie", en: "Mauritania" },
+  MAR: { fr: "Maroc", en: "Morocco" },
+  MOZ: { fr: "Mozambique", en: "Mozambique" },
+  NAM: { fr: "Namibie", en: "Namibia" },
+  NER: { fr: "Niger", en: "Niger" },
+  NGA: { fr: "Nigeria", en: "Nigeria" },
+  RWA: { fr: "Rwanda", en: "Rwanda" },
+  SEN: { fr: "Sénégal", en: "Senegal" },
+  SLE: { fr: "Sierra Leone", en: "Sierra Leone" },
+  SOM: { fr: "Somalie", en: "Somalia" },
+  ZAF: { fr: "Afrique du Sud", en: "South Africa" },
+  SSD: { fr: "Soudan du Sud", en: "South Sudan" },
+  SDN: { fr: "Soudan", en: "Sudan" },
+  TZA: { fr: "Tanzanie", en: "Tanzania" },
+  TGO: { fr: "Togo", en: "Togo" },
+  TUN: { fr: "Tunisie", en: "Tunisia" },
+  UGA: { fr: "Ouganda", en: "Uganda" },
+  ZMB: { fr: "Zambie", en: "Zambia" },
+  ZWE: { fr: "Zimbabwe", en: "Zimbabwe" },
+  ESH: { fr: "Sahara occidental", en: "Western Sahara" },
 };
 
 export default function AfricaMap() {
@@ -32,7 +79,7 @@ export default function AfricaMap() {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
 
   const presenceByIso = useMemo(() => {
-    const map = new Map<string, "physical" | "online">();
+    const map = new Map<string, "physical" | "online" | "coming">();
     presenceCountries.forEach((c) => map.set(c.iso, c.status));
     return map;
   }, []);
@@ -41,23 +88,24 @@ export default function AfricaMap() {
     return presenceByIso.get(iso);
   }
 
-  function labelFor(iso: string, status: "physical" | "online" | undefined) {
+  function labelFor(iso: string, status: "physical" | "online" | "coming" | undefined) {
     const name = COUNTRY_NAMES[iso]?.[locale] ?? iso;
     if (status === "physical") return `${name} — ${t("mapLegendPhysical")}`;
     if (status === "online") return `${name} — ${t("mapLegendOnline")}`;
+    if (status === "coming") return `${name} — ${t("mapLegendComing")}`;
     return `${name} — ${t("mapNotYet")}`;
   }
 
   return (
-    <div className="relative">
+    <div className="relative mx-auto max-w-xl">
       <div
-        className="relative overflow-hidden rounded-3xl border border-white/10 bg-brand-dark-2/40"
+        className="relative mx-auto overflow-hidden rounded-3xl border border-white/10 bg-brand-dark-2/40"
         onMouseLeave={() => setTooltip(null)}
       >
         <ComposableMap
           projectionConfig={{ scale: 470, center: [20, 2] }}
-          width={800}
-          height={760}
+          width={720}
+          height={800}
           style={{ width: "100%", height: "auto" }}
         >
           <Geographies geography={GEO_URL}>
@@ -72,7 +120,9 @@ export default function AfricaMap() {
                       ? COLORS.physical
                       : status === "online"
                         ? COLORS.online
-                        : COLORS.none;
+                        : status === "coming"
+                          ? COLORS.coming
+                          : COLORS.none;
 
                   return (
                     <Geography
@@ -119,9 +169,10 @@ export default function AfricaMap() {
         )}
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-5 text-sm text-white/70">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-5 text-sm text-white/70">
         <LegendDot color={COLORS.physical} label={t("mapLegendPhysical")} />
         <LegendDot color={COLORS.online} label={t("mapLegendOnline")} />
+        <LegendDot color={COLORS.coming} label={t("mapLegendComing")} />
         <LegendDot color={COLORS.none} label={t("mapNotYet")} />
       </div>
 

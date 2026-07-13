@@ -42,4 +42,5 @@ export const presenceCountries = [
   { iso: "NAM", status: "physical" as const },
   { iso: "ZAF", status: "online" as const },
   { iso: "AGO", status: "online" as const },
+  { iso: "ZMB", status: "coming" as const },
 ];
