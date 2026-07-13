@@ -173,19 +173,12 @@ h1, h2, h3, h4 {
 .logo-marquee-track {
   display: flex;
   width: max-content;
-  gap: 4rem;
+  gap: 2rem;
   animation: logo-marquee 26s linear infinite;
 }
 
 .logo-marquee:hover .logo-marquee-track {
   animation-play-state: paused;
-}
-
-.logo-marquee-item {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
 }
 
 @keyframes logo-marquee {

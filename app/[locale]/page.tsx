@@ -186,12 +186,12 @@ export default async function HomePage({
       </section>
 
       {/* Clients */}
-      <section className="border-y border-black/5 bg-white py-14">
+      <section className="bg-brand-dark py-16">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-brand-gray">
+          <h2 className="text-center text-xs font-semibold uppercase tracking-widest text-brand-yellow">
             {t("clientsTitle")}
           </h2>
-          <div className="mt-8">
+          <div className="mt-10">
             <ClientLogos />
           </div>
         </div>
