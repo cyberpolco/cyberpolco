@@ -10,6 +10,7 @@ export const articles: Article[] = [
   {
     slug: "vpns-explained",
     date: "2026-01-15",
+    image: "/images/articles/vpns-explained.jpg",
     en: {
       title: "VPNs: What They Actually Do (and How to Pick One)",
       excerpt:
@@ -44,6 +45,7 @@ export const articles: Article[] = [
   {
     slug: "understanding-ai-in-cybersecurity",
     date: "2026-01-08",
+    image: "/images/articles/understanding-ai-in-cybersecurity.jpg",
     en: {
       title: "Understanding AI: Opportunity and Risk in Cybersecurity",
       excerpt:
@@ -74,6 +76,7 @@ export const articles: Article[] = [
   {
     slug: "who-is-spying-on-me",
     date: "2026-01-02",
+    image: "/images/articles/who-is-spying-on-me.jpg",
     en: {
       title: "Who's Spying on Me? Recognizing the Signs of Spyware",
       excerpt:
