@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { ShieldCheck, Radar, SatelliteDish, GraduationCap, SearchCheck, Layers, ArrowRight, Target, Eye } from "lucide-react";
 import AfricaMap from "@/components/home/AfricaMap";
+import ClientLogos from "@/components/home/ClientLogos";
 import { services } from "@/lib/content/services";
 import { getSettings } from "@/lib/db/settings";
 import { getLatestArticles } from "@/lib/db/articles";
@@ -181,6 +182,18 @@ export default async function HomePage({
             {t("findMoreServices")}
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </Link>
+        </div>
+      </section>
+
+      {/* Clients */}
+      <section className="border-y border-black/5 bg-white py-14">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-brand-gray">
+            {t("clientsTitle")}
+          </h2>
+          <div className="mt-8">
+            <ClientLogos />
+          </div>
         </div>
       </section>
 
