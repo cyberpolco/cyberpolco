@@ -97,7 +97,7 @@ export default function AfricaMap() {
   }
 
   return (
-    <div className="relative mx-auto max-w-xl">
+    <div className="relative mx-auto max-w-2xl">
       <div
         className="relative mx-auto overflow-hidden rounded-3xl border border-white/10 bg-brand-dark-2/40"
         onMouseLeave={() => setTooltip(null)}
