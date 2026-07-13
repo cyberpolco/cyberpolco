@@ -8,14 +8,14 @@ export default function ClientLogos() {
     <div className="logo-marquee mx-auto max-w-2xl">
       <div className="logo-marquee-track">
         {track.map((client, i) => (
-          <div key={`${client.name}-${i}`} className="flex w-[210px] flex-none flex-col items-center gap-3">
-            <div className="flex h-24 w-full items-center justify-center rounded-2xl bg-white p-4 shadow-sm">
+          <div key={`${client.name}-${i}`} className="flex w-[230px] flex-none flex-col items-center gap-3">
+            <div className="flex h-28 w-full items-center justify-center rounded-2xl bg-white p-3 shadow-sm">
               <Image
                 src={client.logo}
                 alt={client.name}
-                width={170}
-                height={80}
-                className="h-16 w-auto object-contain"
+                width={200}
+                height={96}
+                className="h-24 w-auto object-contain"
               />
             </div>
             <p className="text-center text-sm font-medium text-white/80">{client.name}</p>

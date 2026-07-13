@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { ShieldCheck, Radar, SatelliteDish, GraduationCap, SearchCheck, Layers, ArrowRight, Target, Eye } from "lucide-react";
 import AfricaMap from "@/components/home/AfricaMap";
 import ClientLogos from "@/components/home/ClientLogos";
+import StatsCounter from "@/components/home/StatsCounter";
 import { services } from "@/lib/content/services";
 import { getSettings } from "@/lib/db/settings";
 import { getLatestArticles } from "@/lib/db/articles";
@@ -186,11 +187,9 @@ export default async function HomePage({
       </section>
 
       {/* Clients */}
-      <section className="bg-brand-dark py-16">
+      <section className="bg-brand-dark py-16 text-white">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <h2 className="text-center text-xs font-semibold uppercase tracking-widest text-brand-yellow">
-            {t("clientsTitle")}
-          </h2>
+          <h2 className="text-center text-3xl font-bold">{t("clientsTitle")}</h2>
           <div className="mt-10">
             <ClientLogos />
           </div>
@@ -204,7 +203,7 @@ export default async function HomePage({
           <div className="mt-10 grid grid-cols-2 gap-8 text-center sm:grid-cols-4">
             {stats.map((s) => (
               <div key={s.value}>
-                <p className="font-display text-4xl font-bold text-brand-yellow">{s.value}</p>
+                <StatsCounter value={s.value} />
                 <p className="mt-2 text-sm text-white/70">{s[locale]}</p>
               </div>
             ))}

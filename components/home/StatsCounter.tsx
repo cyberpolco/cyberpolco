@@ -1,0 +1,57 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+const DURATION_MS = 3000;
+
+function parseValue(value: string) {
+  const match = value.match(/^(\D*)([\d,]+)(\D*)$/);
+  if (!match) return { prefix: "", number: 0, suffix: "" };
+  const [, prefix, numStr, suffix] = match;
+  return { prefix, number: parseInt(numStr.replace(/,/g, ""), 10), suffix };
+}
+
+export default function StatsCounter({ value }: { value: string }) {
+  const { prefix, number, suffix } = parseValue(value);
+  const [display, setDisplay] = useState(0);
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || number === 0) return;
+
+    let started = false;
+    let frame: number;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || started) return;
+        started = true;
+        observer.disconnect();
+
+        const start = performance.now();
+        const tick = (now: number) => {
+          const progress = Math.min((now - start) / DURATION_MS, 1);
+          setDisplay(Math.round(progress * number));
+          if (progress < 1) frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+      },
+      { threshold: 0.4 }
+    );
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [number]);
+
+  return (
+    <p ref={ref} className="font-display text-4xl font-bold text-brand-yellow">
+      {prefix}
+      {number === 0 ? value : display}
+      {suffix}
+    </p>
+  );
+}

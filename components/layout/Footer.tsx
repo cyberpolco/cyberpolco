@@ -65,7 +65,7 @@ export default async function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <Image src="/images/logo.png" alt="Cyber PolCo" width={36} height={36} className="rounded-full" />
+              <Image src="/images/logo-mark.png" alt="Cyber PolCo" width={36} height={36} className="rounded-full" />
               <span className="font-display text-lg font-bold text-white">Cyber PolCo</span>
             </div>
             <p className="text-sm text-white/60">{t("tagline")}</p>

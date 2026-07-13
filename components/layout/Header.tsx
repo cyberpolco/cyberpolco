@@ -23,7 +23,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-brand-dark/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 lg:px-8">
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <Image src="/images/logo.png" alt="Cyber PolCo" width={40} height={40} className="rounded-full" />
+          <Image src="/images/logo-mark.png" alt="Cyber PolCo" width={40} height={40} className="rounded-full" />
           <span className="font-display text-lg font-bold tracking-tight text-white">
             Cyber PolCo
           </span>
