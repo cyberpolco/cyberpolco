@@ -153,7 +153,7 @@ lib/
   email/                Resend wrapper with console fallback
 i18n/                   next-intl routing/navigation config
 messages/               fr.json / en.json — UI chrome strings
-middleware.ts           Locale routing + admin route guard
+proxy.ts                Locale routing + admin route guard
 next.config.ts          Security headers (CSP, HSTS, etc.) + next-intl plugin
 ```
 

@@ -1,24 +1,24 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
-import { routing } from "./i18n/routing";
+import { routing } from "@/i18n/routing";
+import { ADMIN_COOKIE_NAME, verifySessionToken } from "@/lib/auth/session";
 
-const intlMiddleware = createMiddleware(routing);
+const intlProxy = createMiddleware(routing);
 
-const ADMIN_SESSION_COOKIE = "cp_admin_session";
-
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Admin area: guard everything except /admin/login
   if (pathname.startsWith("/admin")) {
     const isLoginPage = pathname === "/admin/login";
-    const session = request.cookies.get(ADMIN_SESSION_COOKIE);
+    const token = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+    const session = verifySessionToken(token);
 
-    if (!session && !isLoginPage) {
+    if (!session.valid && !isLoginPage) {
       const loginUrl = new URL("/admin/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
-    if (session && isLoginPage) {
+    if (session.valid && isLoginPage) {
       const dashboardUrl = new URL("/admin/dashboard", request.url);
       return NextResponse.redirect(dashboardUrl);
     }
@@ -26,7 +26,7 @@ export default function middleware(request: NextRequest) {
   }
 
   // Everything else (public site) goes through locale routing
-  return intlMiddleware(request);
+  return intlProxy(request);
 }
 
 export const config = {
