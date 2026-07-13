@@ -109,7 +109,7 @@ export default async function Footer() {
             <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white">
               {t("followTitle")}
             </h4>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid w-fit grid-cols-3 gap-3">
               {socialIcons.map((s) => (
                 <a
                   key={s.label}
