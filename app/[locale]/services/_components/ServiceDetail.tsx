@@ -1,12 +1,13 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { CheckCircle2, ShieldCheck, Radar, GraduationCap, SearchCheck, Layers } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Radar, SatelliteDish, GraduationCap, SearchCheck, Layers } from "lucide-react";
 import { getServiceBySlug } from "@/lib/content/services";
 import { notFound } from "next/navigation";
 
 const ICONS = {
   shield: ShieldCheck,
   radar: Radar,
+  "satellite-dish": SatelliteDish,
   "graduation-cap": GraduationCap,
   "search-check": SearchCheck,
   layers: Layers,

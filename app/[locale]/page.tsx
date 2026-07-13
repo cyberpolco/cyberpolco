@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { ShieldCheck, Radar, GraduationCap, SearchCheck, Layers, ArrowRight, Target, Eye } from "lucide-react";
+import { ShieldCheck, Radar, SatelliteDish, GraduationCap, SearchCheck, Layers, ArrowRight, Target, Eye } from "lucide-react";
 import AfricaMap from "@/components/home/AfricaMap";
 import { services } from "@/lib/content/services";
 import { getSettings } from "@/lib/db/settings";
@@ -10,6 +10,7 @@ import { getLatestArticles } from "@/lib/db/articles";
 const ICONS = {
   shield: ShieldCheck,
   radar: Radar,
+  "satellite-dish": SatelliteDish,
   "graduation-cap": GraduationCap,
   "search-check": SearchCheck,
   layers: Layers,
@@ -149,8 +150,8 @@ export default async function HomePage({
           <h2 className="text-3xl font-bold text-brand-dark">{t("servicesTitle")}</h2>
           <p className="mt-2 text-brand-gray">{t("servicesSubtitle")}</p>
         </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((service) => {
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {services.slice(0, 4).map((service) => {
             const Icon = ICONS[service.icon];
             const content = service[locale];
             return (
@@ -170,6 +171,16 @@ export default async function HomePage({
               </Link>
             );
           })}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <Link
+            href="/services"
+            className="group inline-flex items-center gap-2 rounded-full border border-brand-red/30 px-6 py-3 text-sm font-semibold text-brand-red transition-colors hover:bg-brand-red hover:text-white"
+          >
+            {t("findMoreServices")}
+            <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
 

@@ -1,6 +1,6 @@
 export type Service = {
   slug: string;
-  icon: "shield" | "radar" | "graduation-cap" | "search-check" | "layers";
+  icon: "shield" | "radar" | "satellite-dish" | "graduation-cap" | "search-check" | "layers";
   fr: { name: string; tagline: string; description: string; bullets: string[] };
   en: { name: string; tagline: string; description: string; bullets: string[] };
 };
@@ -59,6 +59,34 @@ export const services: Service[] = [
         "Incident detection and response",
         "Regular reporting and security dashboards",
         "Fully managed — no dedicated in-house team required",
+      ],
+    },
+  },
+  {
+    slug: "starlink-deployment",
+    icon: "satellite-dish",
+    fr: {
+      name: "Déploiement Starlink",
+      tagline: "Une connexion internet fiable, même dans les zones les plus reculées.",
+      description:
+        "Nous installons, configurons et maintenons des kits Starlink pour garantir une connectivité internet stable aux entreprises, institutions et communautés, y compris dans les régions mal desservies par les réseaux traditionnels.",
+      bullets: [
+        "Installation et configuration de kits Starlink",
+        "Optimisation du réseau et de la connectivité",
+        "Maintenance et support technique continu",
+        "Solutions adaptées aux zones reculées ou mal desservies",
+      ],
+    },
+    en: {
+      name: "Starlink Deployment",
+      tagline: "Reliable internet connectivity, even in the most remote areas.",
+      description:
+        "We install, configure, and maintain Starlink kits to deliver stable internet connectivity for businesses, institutions, and communities — including in regions poorly served by traditional networks.",
+      bullets: [
+        "Starlink kit installation and configuration",
+        "Network setup and connectivity optimization",
+        "Ongoing maintenance and technical support",
+        "Tailored solutions for remote or underserved areas",
       ],
     },
   },
