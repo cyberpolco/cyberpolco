@@ -21,9 +21,12 @@ export async function upsertArticleAction(formData: FormData) {
 
   const slug = originalSlug || slugify(title_en || title_fr);
 
+  const image = String(formData.get("image") || "").trim();
+
   const article: Article = {
     slug,
     date: String(formData.get("date") || new Date().toISOString().slice(0, 10)),
+    image: image || undefined,
     fr: {
       title: title_fr,
       excerpt: String(formData.get("excerpt_fr") || ""),

@@ -203,7 +203,7 @@ export default async function HomePage({
           <div className="mt-10 grid grid-cols-2 gap-8 text-center sm:grid-cols-4">
             {stats.map((s) => (
               <div key={s.value}>
-                <StatsCounter value={s.value} />
+                <StatsCounter value={s.value} durationMs={s.durationMs} />
                 <p className="mt-2 text-sm text-white/70">{s[locale]}</p>
               </div>
             ))}
@@ -231,10 +231,10 @@ export default async function HomePage({
             >
               <div className="relative h-40 w-full bg-brand-dark-2/10">
                 <Image
-                  src="/images/placeholder-article.png"
-                  alt=""
+                  src={article.image || "/images/placeholder-article.png"}
+                  alt={article.image ? article[locale].title : ""}
                   fill
-                  className="object-contain p-10 opacity-70"
+                  className={article.image ? "object-cover" : "object-contain p-10 opacity-70"}
                 />
               </div>
               <div className="p-6">

@@ -1,12 +1,43 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { articles as seedArticles } from "@/lib/content/articles";
 import { getArticleBySlug } from "@/lib/db/articles";
+import ShareButton from "@/components/articles/ShareButton";
 
 export function generateStaticParams() {
   return seedArticles.map((a) => ({ slug: a.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en"; slug: string }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const article = await getArticleBySlug(slug);
+  if (!article) return {};
+
+  const content = article[locale];
+  const image = article.image || "/images/placeholder-article.png";
+
+  return {
+    title: content.title,
+    description: content.excerpt,
+    openGraph: {
+      title: content.title,
+      description: content.excerpt,
+      images: [{ url: image }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: content.title,
+      description: content.excerpt,
+      images: [image],
+    },
+  };
 }
 
 export default async function ArticleDetailPage({
@@ -24,9 +55,12 @@ export default async function ArticleDetailPage({
 
   return (
     <article className="mx-auto max-w-3xl px-5 py-20 lg:px-8">
-      <Link href="/articles" className="text-sm font-semibold text-brand-red">
-        ← {t("back")}
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/articles" className="text-sm font-semibold text-brand-red">
+          ← {t("back")}
+        </Link>
+        <ShareButton title={content.title} shareLabel={t("share")} copiedLabel={t("copied")} />
+      </div>
 
       <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-brand-blue">
         {new Date(article.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
@@ -38,11 +72,15 @@ export default async function ArticleDetailPage({
       <h1 className="mt-3 text-4xl font-bold text-brand-dark">{content.title}</h1>
 
       <Image
-        src="/images/placeholder-article.png"
-        alt=""
+        src={article.image || "/images/placeholder-article.png"}
+        alt={article.image ? content.title : ""}
         width={700}
         height={280}
-        className="mt-8 h-56 w-full rounded-2xl border border-black/5 bg-brand-dark-2/10 object-contain p-14 opacity-70"
+        className={
+          article.image
+            ? "mt-8 h-56 w-full rounded-2xl border border-black/5 object-cover"
+            : "mt-8 h-56 w-full rounded-2xl border border-black/5 bg-brand-dark-2/10 object-contain p-14 opacity-70"
+        }
       />
 
       <div className="prose prose-lg mt-8 max-w-none text-brand-gray">

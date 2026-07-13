@@ -61,7 +61,9 @@
   "articles": {
     "title": "Articles",
     "subtitle": "Sensibilisation, analyses et conseils pratiques en cybersécurité.",
-    "back": "Retour aux articles"
+    "back": "Retour aux articles",
+    "share": "Partager",
+    "copied": "Lien copié !"
   },
   "careers": {
     "title": "Carrières",

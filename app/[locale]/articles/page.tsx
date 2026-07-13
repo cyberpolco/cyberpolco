@@ -28,10 +28,10 @@ export default async function ArticlesPage({
           >
             <div className="relative h-40 w-full bg-brand-dark-2/10">
               <Image
-                src="/images/placeholder-article.png"
-                alt=""
+                src={article.image || "/images/placeholder-article.png"}
+                alt={article.image ? article[locale].title : ""}
                 fill
-                className="object-contain p-10 opacity-70"
+                className={article.image ? "object-cover" : "object-contain p-10 opacity-70"}
               />
             </div>
             <div className="p-6">

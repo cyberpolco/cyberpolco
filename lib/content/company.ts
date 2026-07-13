@@ -34,7 +34,7 @@ export const stats = [
   { value: "2025", fr: "Année de fondation", en: "Founded" },
   { value: "2", fr: "Pays de présence physique", en: "Countries with physical presence" },
   { value: "4", fr: "Pays d'Afrique australe couverts", en: "Southern African countries covered" },
-  { value: "100%", fr: "Sécurité, notre seule priorité", en: "Focused on security, exclusively" },
+  { value: "100%", fr: "Sécurité, notre seule priorité", en: "Focused on security, exclusively", durationMs: 5000 },
 ];
 
 export const presenceCountries = [

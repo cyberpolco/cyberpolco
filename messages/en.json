@@ -61,7 +61,9 @@
   "articles": {
     "title": "Articles",
     "subtitle": "Awareness, analysis, and practical cybersecurity advice.",
-    "back": "Back to articles"
+    "back": "Back to articles",
+    "share": "Share",
+    "copied": "Link copied!"
   },
   "careers": {
     "title": "Careers",

@@ -15,6 +15,7 @@ type SocialLinks = {
 export const articles = pgTable("articles", {
   slug: text("slug").primaryKey(),
   date: text("date").notNull(),
+  image: text("image"),
   fr: jsonb("fr").$type<LocalizedArticle>().notNull(),
   en: jsonb("en").$type<LocalizedArticle>().notNull(),
 });

@@ -1,6 +1,7 @@
 export type Article = {
   slug: string;
   date: string;
+  image?: string | null;
   fr: { title: string; excerpt: string; body: string[] };
   en: { title: string; excerpt: string; body: string[] };
 };

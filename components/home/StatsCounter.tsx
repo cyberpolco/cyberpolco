@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const DURATION_MS = 3000;
+const DEFAULT_DURATION_MS = 3000;
 
 function parseValue(value: string) {
   const match = value.match(/^(\D*)([\d,]+)(\D*)$/);
@@ -11,7 +11,13 @@ function parseValue(value: string) {
   return { prefix, number: parseInt(numStr.replace(/,/g, ""), 10), suffix };
 }
 
-export default function StatsCounter({ value }: { value: string }) {
+export default function StatsCounter({
+  value,
+  durationMs = DEFAULT_DURATION_MS,
+}: {
+  value: string;
+  durationMs?: number;
+}) {
   const { prefix, number, suffix } = parseValue(value);
   const [display, setDisplay] = useState(0);
   const ref = useRef<HTMLParagraphElement>(null);
@@ -31,7 +37,7 @@ export default function StatsCounter({ value }: { value: string }) {
 
         const start = performance.now();
         const tick = (now: number) => {
-          const progress = Math.min((now - start) / DURATION_MS, 1);
+          const progress = Math.min((now - start) / durationMs, 1);
           setDisplay(Math.round(progress * number));
           if (progress < 1) frame = requestAnimationFrame(tick);
         };
@@ -45,7 +51,7 @@ export default function StatsCounter({ value }: { value: string }) {
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [number]);
+  }, [number, durationMs]);
 
   return (
     <p ref={ref} className="font-display text-4xl font-bold text-brand-yellow">

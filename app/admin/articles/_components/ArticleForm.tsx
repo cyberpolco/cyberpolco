@@ -17,6 +17,21 @@ export default function ArticleForm({ article }: { article?: Article }) {
         />
       </div>
 
+      <div>
+        <label className="mb-1 block text-sm font-medium text-brand-dark">
+          Thumbnail image path
+        </label>
+        <input
+          name="image"
+          defaultValue={article?.image ?? undefined}
+          placeholder="/images/articles/example.jpg"
+          className="w-full rounded-lg border border-black/10 px-4 py-2.5"
+        />
+        <p className="mt-1 text-xs text-brand-gray">
+          Path to a file in /public/images/articles — leave blank to use the placeholder.
+        </p>
+      </div>
+
       <div className="grid gap-8 md:grid-cols-2">
         <fieldset className="space-y-4 rounded-2xl border border-black/5 p-5">
           <legend className="px-1 text-sm font-semibold text-brand-blue">Français</legend>

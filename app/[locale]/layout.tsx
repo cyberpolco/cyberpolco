@@ -12,6 +12,7 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cyberpolco.com"),
   title: "Cyber PolCo — Limit the Risk Now",
   description:
     "Cyber PolCo delivers cybersecurity consulting, SOC/MSSP, awareness trainings, and background checks across the Democratic Republic of Congo, Namibia, and Southern Africa.",
