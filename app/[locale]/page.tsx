@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { ShieldCheck, Radar, GraduationCap, SearchCheck, Layers, ArrowRight } from "lucide-react";
+import { ShieldCheck, Radar, GraduationCap, SearchCheck, Layers, ArrowRight, Target, Eye } from "lucide-react";
 import AfricaMap from "@/components/home/AfricaMap";
 import { services } from "@/lib/content/services";
 import { getSettings } from "@/lib/db/settings";
@@ -113,13 +113,21 @@ export default async function HomePage({
       {/* Mission / Vision */}
       <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
         <div className="grid gap-8 md:grid-cols-2">
-          <div className="rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8">
-            <h2 className="text-2xl font-bold text-brand-dark">{t("missionTitle")}</h2>
-            <p className="mt-3 text-brand-gray">{t("missionBody")}</p>
+          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-blue/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+              <Target size={24} />
+            </div>
+            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{t("missionTitle")}</h2>
+            <p className="relative mt-3 text-brand-gray">{t("missionBody")}</p>
           </div>
-          <div className="rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8">
-            <h2 className="text-2xl font-bold text-brand-dark">{t("visionTitle")}</h2>
-            <p className="mt-3 text-brand-gray">{t("visionBody")}</p>
+          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-red/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red/10 text-brand-red">
+              <Eye size={24} />
+            </div>
+            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{t("visionTitle")}</h2>
+            <p className="relative mt-3 text-brand-gray">{t("visionBody")}</p>
           </div>
         </div>
       </section>
