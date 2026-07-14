@@ -26,9 +26,8 @@ production (Settings → Environment Variables).
 | Variable | Required | Purpose |
 |---|---|---|
 | `DATABASE_URL` | Yes | Neon Postgres connection string — powers the admin panel (articles, jobs, inquiries, applications, settings) |
-| `ADMIN_EMAIL` | Yes | The one admin account's email |
-| `ADMIN_PASSWORD_HASH` | Yes | bcrypt hash of the admin password — generate with `node -e "console.log(require('bcryptjs').hashSync('YOUR_PASSWORD', 10))"` |
 | `ADMIN_SESSION_SECRET` | Yes | Random secret for signing the admin session cookie — generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD_HASH` | Yes (first run only) | Bootstraps the first Super Admin account in the `users` table the first time anyone logs in. After that, these vars are inert — manage all admin accounts from `/admin/users`. Generate the hash with `node -e "console.log(require('bcryptjs').hashSync('YOUR_PASSWORD', 10))"` |
 | `RESEND_API_KEY` | No | Enables real email delivery for contact/application notifications. Without it, emails are logged to the server console instead — the site still works end-to-end. |
 | `EMAIL_FROM` | No | From-address for outgoing email (defaults to a placeholder) |
 | `BLOB_READ_WRITE_TOKEN` | No | Enables Vercel Blob for CV storage. Without it, uploaded CVs are written to `data/uploads/` locally (does **not** persist in production — see below). |
@@ -45,10 +44,12 @@ One deliberate substitution remains from the original spec, called out in
 code comments at the point of use:
 
 - **Admin auth**: `lib/auth/session.ts` is a lightweight HMAC-signed cookie,
-  not Auth.js/NextAuth. There's exactly one admin account with no
-  registration, roles, or OAuth, so this avoids pulling in a full session
-  framework for a single credential pair. See "Upgrading admin auth" if you
-  need multiple admins or SSO later.
+  not Auth.js/NextAuth. Multiple admin accounts and roles are supported
+  (see "Admin panel" → "Roles" below) via a `users` table, but there's still
+  no registration or OAuth — accounts are created directly by a Super Admin,
+  which avoids pulling in a full session/provider framework for a small,
+  invite-only team. Swap this module for Auth.js's Credentials provider if
+  you need SSO or magic-link login later.
 
 Persistence is real: `lib/db/*.ts` (articles, jobs, inquiries, applications,
 settings) uses Neon Postgres via Drizzle ORM — see "Database" below. CV
@@ -61,12 +62,13 @@ map, the bilingual content) is implemented as specified.
 
 ## Database (Neon + Drizzle)
 
-`lib/db/schema.ts` defines five tables (`articles`, `jobs`, `inquiries`,
-`applications`, `settings`) mirroring the types Drizzle infers from it, and
-`lib/db/client.ts` opens a `neon-http` connection from `DATABASE_URL`.
-`lib/db/articles.ts`, `jobs.ts`, `inquiries.ts`, `applications.ts`, and
-`settings.ts` expose the same typed CRUD functions pages/server actions
-always called — only their internals changed.
+`lib/db/schema.ts` defines six tables (`articles`, `jobs`, `inquiries`,
+`applications`, `settings`, `users`) mirroring the types Drizzle infers from
+it, and `lib/db/client.ts` opens a `neon-http` connection from
+`DATABASE_URL`. `lib/db/articles.ts`, `jobs.ts`, `inquiries.ts`,
+`applications.ts`, `settings.ts`, and `users.ts` expose the same typed CRUD
+functions pages/server actions always called — only their internals
+changed.
 
 Setup for a fresh database:
 
@@ -177,6 +179,22 @@ Go to `/admin/login`. Manage:
 - **Applications** — job applications with CV download links
 - **Settings** — homepage stats and social links, editable without a
   redeploy
+- **Users** — manage admin accounts and roles (Super Admin only)
+
+### Roles
+
+Every admin account has exactly one role, set in `/admin/users`:
+
+| Role | Can access |
+|---|---|
+| Super Admin | Everything, including Users and Settings |
+| Content Editor | Articles |
+| HR / Recruiter | Jobs, Applications |
+| Viewer | Dashboard only, read-only |
+
+New accounts are created with a temporary password chosen by a Super
+Admin and must change it on first login. There is no email-invite flow —
+the Super Admin communicates the temporary password directly.
 
 ## Legal content
 

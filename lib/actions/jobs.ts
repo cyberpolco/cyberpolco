@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { saveJob, deleteJob, type Job } from "@/lib/db/jobs";
+import { requireRole } from "@/lib/auth/rbac";
 
 function slugify(input: string) {
   return input
@@ -14,6 +15,8 @@ function slugify(input: string) {
 }
 
 export async function upsertJobAction(formData: FormData) {
+  await requireRole(["super_admin", "hr_recruiter"]);
+
   const id = String(formData.get("id") || crypto.randomUUID());
   const title_en = String(formData.get("title_en") || "");
   const title_fr = String(formData.get("title_fr") || "");
@@ -45,6 +48,8 @@ export async function upsertJobAction(formData: FormData) {
 }
 
 export async function deleteJobAction(formData: FormData) {
+  await requireRole(["super_admin", "hr_recruiter"]);
+
   const id = String(formData.get("id") || "");
   await deleteJob(id);
   revalidatePath("/admin/jobs");

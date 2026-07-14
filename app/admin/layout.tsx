@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -9,9 +7,11 @@ import {
   Inbox,
   FileText,
   Settings,
+  Users,
   LogOut,
 } from "lucide-react";
-import { ADMIN_COOKIE_NAME, verifySessionToken } from "@/lib/auth/session";
+import { getSession } from "@/lib/auth/rbac";
+import type { Role } from "@/lib/auth/roles";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -19,30 +19,44 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const navItems = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/articles", label: "Articles", icon: Newspaper },
-  { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
-  { href: "/admin/applications", label: "Applications", icon: FileText },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+const navItems: { href: string; label: string; icon: typeof LayoutDashboard; roles: Role[] }[] = [
+  {
+    href: "/admin/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    roles: ["super_admin", "content_editor", "hr_recruiter", "viewer"],
+  },
+  { href: "/admin/articles", label: "Articles", icon: Newspaper, roles: ["super_admin", "content_editor"] },
+  { href: "/admin/jobs", label: "Jobs", icon: Briefcase, roles: ["super_admin", "hr_recruiter"] },
+  { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, roles: ["super_admin"] },
+  {
+    href: "/admin/applications",
+    label: "Applications",
+    icon: FileText,
+    roles: ["super_admin", "hr_recruiter"],
+  },
+  { href: "/admin/settings", label: "Settings", icon: Settings, roles: ["super_admin"] },
+  { href: "/admin/users", label: "Users", icon: Users, roles: ["super_admin"] },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const session = verifySessionToken(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await getSession();
+  const showChrome = Boolean(session) && !session?.mustChangePassword;
+  const visibleNavItems = session
+    ? navItems.filter((item) => item.roles.includes(session.role))
+    : [];
 
   return (
     <html lang="en">
       <body className="min-h-screen bg-brand-dark-2/5 font-sans text-brand-dark antialiased">
-        {session.valid ? (
+        {showChrome ? (
           <div className="flex min-h-screen">
             <aside className="hidden w-60 flex-col border-r border-black/5 bg-white p-5 md:flex">
               <div className="mb-8 font-display text-lg font-bold text-brand-dark">
                 Cyber PolCo <span className="text-brand-red">Admin</span>
               </div>
               <nav className="flex-1 space-y-1">
-                {navItems.map((item) => {
+                {visibleNavItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link

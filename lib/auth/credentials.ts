@@ -1,21 +1,13 @@
 import bcrypt from "bcryptjs";
+import { getUserByEmail, type User } from "@/lib/db/users";
 
-export async function verifyAdminCredentials(
+export async function verifyUserCredentials(
   email: string,
   password: string
-): Promise<boolean> {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+): Promise<User | null> {
+  const user = await getUserByEmail(email);
+  if (!user) return null;
 
-  if (!adminEmail || !adminPasswordHash) {
-    throw new Error(
-      "ADMIN_EMAIL / ADMIN_PASSWORD_HASH are not set. See README.md → Admin setup."
-    );
-  }
-
-  if (email.trim().toLowerCase() !== adminEmail.trim().toLowerCase()) {
-    return false;
-  }
-
-  return bcrypt.compare(password, adminPasswordHash);
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  return valid ? user : null;
 }

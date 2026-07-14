@@ -1,7 +1,10 @@
 import { getSettings } from "@/lib/db/settings";
 import { updateSettingsAction } from "@/lib/actions/settings";
+import { requireRole } from "@/lib/auth/rbac";
 
 export default async function SettingsPage() {
+  await requireRole(["super_admin"]);
+
   const settings = await getSettings();
 
   return (

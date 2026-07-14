@@ -1,7 +1,10 @@
 import { getInquiries } from "@/lib/db/inquiries";
 import { toggleInquiryReadAction } from "@/lib/actions/inquiries";
+import { requireRole } from "@/lib/auth/rbac";
 
 export default async function InquiriesPage() {
+  await requireRole(["super_admin"]);
+
   const inquiries = await getInquiries();
 
   return (

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { saveArticle, deleteArticle } from "@/lib/db/articles";
+import { requireRole } from "@/lib/auth/rbac";
 import type { Article } from "@/lib/content/articles";
 
 function slugify(input: string) {
@@ -15,6 +16,8 @@ function slugify(input: string) {
 }
 
 export async function upsertArticleAction(formData: FormData) {
+  await requireRole(["super_admin", "content_editor"]);
+
   const originalSlug = String(formData.get("originalSlug") || "");
   const title_fr = String(formData.get("title_fr") || "");
   const title_en = String(formData.get("title_en") || "");
@@ -53,6 +56,8 @@ export async function upsertArticleAction(formData: FormData) {
 }
 
 export async function deleteArticleAction(formData: FormData) {
+  await requireRole(["super_admin", "content_editor"]);
+
   const slug = String(formData.get("slug") || "");
   await deleteArticle(slug);
   revalidatePath("/admin/articles");

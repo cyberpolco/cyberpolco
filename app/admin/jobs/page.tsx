@@ -2,8 +2,11 @@ import Link from "next/link";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { getJobs } from "@/lib/db/jobs";
 import { deleteJobAction } from "@/lib/actions/jobs";
+import { requireRole } from "@/lib/auth/rbac";
 
 export default async function AdminJobsPage() {
+  await requireRole(["super_admin", "hr_recruiter"]);
+
   const jobs = await getJobs();
 
   return (

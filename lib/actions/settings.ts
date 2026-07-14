@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { getSettings, saveSettings } from "@/lib/db/settings";
+import { requireRole } from "@/lib/auth/rbac";
 
 export async function updateSettingsAction(formData: FormData) {
+  await requireRole(["super_admin"]);
+
   const current = await getSettings();
 
   const stats = current.stats.map((s, i) => ({

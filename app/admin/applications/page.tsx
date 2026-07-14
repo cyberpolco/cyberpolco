@@ -1,6 +1,9 @@
 import { getApplications } from "@/lib/db/applications";
+import { requireRole } from "@/lib/auth/rbac";
 
 export default async function ApplicationsPage() {
+  await requireRole(["super_admin", "hr_recruiter"]);
+
   const applications = await getApplications();
 
   return (

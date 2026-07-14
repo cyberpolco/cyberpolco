@@ -59,3 +59,16 @@ export const settings = pgTable("settings", {
   stats: jsonb("stats").$type<Stat[]>().notNull(),
   socialLinks: jsonb("social_links").$type<SocialLinks>().notNull(),
 });
+
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role", {
+    enum: ["super_admin", "content_editor", "hr_recruiter", "viewer"],
+  }).notNull(),
+  mustChangePassword: boolean("must_change_password").notNull().default(true),
+  createdAt: text("created_at").notNull(),
+  createdBy: text("created_by"),
+  lastLoginAt: text("last_login_at"),
+});

@@ -3,9 +3,11 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
-import { verifyAdminCredentials } from "@/lib/auth/credentials";
+import { verifyUserCredentials } from "@/lib/auth/credentials";
+import { ensureBootstrapSuperAdmin } from "@/lib/auth/bootstrap";
+import { touchLastLogin } from "@/lib/db/users";
 import { createSessionToken, ADMIN_COOKIE_NAME, ADMIN_SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
-import PasswordField from "./_components/PasswordField";
+import PasswordField from "@/app/admin/_components/PasswordField";
 
 async function login(formData: FormData) {
   "use server";
@@ -13,34 +15,37 @@ async function login(formData: FormData) {
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
 
-  let valid = false;
-  let configError = false;
-  try {
-    valid = await verifyAdminCredentials(email, password);
-    if (valid) {
-      const token = createSessionToken(email);
-      const cookieStore = await cookies();
-      cookieStore.set(ADMIN_COOKIE_NAME, token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
-      });
-    }
-  } catch {
-    configError = true;
-  }
+  await ensureBootstrapSuperAdmin();
 
-  if (configError) {
-    redirect("/admin/login?error=config");
-  }
-
-  if (!valid) {
+  const user = await verifyUserCredentials(email, password);
+  if (!user) {
     redirect("/admin/login?error=invalid");
   }
 
-  redirect("/admin/dashboard");
+  let token: string;
+  try {
+    token = createSessionToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      mustChangePassword: user.mustChangePassword,
+    });
+  } catch {
+    redirect("/admin/login?error=config");
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set(ADMIN_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
+  });
+
+  await touchLastLogin(user.id);
+
+  redirect(user.mustChangePassword ? "/admin/change-password" : "/admin/dashboard");
 }
 
 const binaryDigits = [
@@ -135,8 +140,7 @@ export default async function AdminLoginPage({
           )}
           {error === "config" && (
             <p className="text-sm text-brand-red">
-              Admin account isn&apos;t configured yet. Set ADMIN_EMAIL, ADMIN_PASSWORD_HASH, and
-              ADMIN_SESSION_SECRET (see README.md).
+              Server isn&apos;t configured yet. Set ADMIN_SESSION_SECRET (see README.md).
             </p>
           )}
 

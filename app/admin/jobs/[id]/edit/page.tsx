@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getJobs } from "@/lib/db/jobs";
+import { requireRole } from "@/lib/auth/rbac";
 import JobForm from "../../_components/JobForm";
 
 export default async function EditJobPage({
@@ -7,6 +8,8 @@ export default async function EditJobPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireRole(["super_admin", "hr_recruiter"]);
+
   const { id } = await params;
   const jobs = await getJobs();
   const job = jobs.find((j) => j.id === id);

@@ -1,21 +1,29 @@
 import crypto from "crypto";
+import type { Role } from "./roles";
 
 /**
- * Lightweight signed-cookie session for the single admin account.
+ * Lightweight signed-cookie session — see roles.ts for the permission model.
  *
  * DESIGN NOTE: the spec called for Auth.js (NextAuth). We shipped this
- * simpler HMAC-signed cookie instead because there is exactly one admin
- * account (no registration, no roles, no OAuth) — pulling in NextAuth's
- * full session/provider machinery for a single hardcoded credential pair
- * would add configuration surface without adding security. If you later
- * need multiple admin users, SSO, or magic-link login, swap this module for
- * Auth.js's Credentials provider — everything that imports
- * `createSession`/`verifySession` only needs those two function signatures
- * preserved.
+ * simpler HMAC-signed cookie instead because this is a small team (a
+ * handful of admin accounts, no registration, no OAuth) — pulling in
+ * NextAuth's full session/provider machinery just to carry a userId/role
+ * through a cookie would add configuration surface without adding
+ * security. If you later need SSO or magic-link login, swap this module
+ * for Auth.js's Credentials provider — everything that imports
+ * `createSessionToken`/`verifySessionToken` only needs those two function
+ * signatures preserved.
  */
 
 const COOKIE_NAME = "cp_admin_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+export type SessionPayload = {
+  userId: string;
+  email: string;
+  role: Role;
+  mustChangePassword: boolean;
+};
 
 function getSecret(): string {
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -31,38 +39,36 @@ function sign(payload: string): string {
   return crypto.createHmac("sha256", getSecret()).update(payload).digest("hex");
 }
 
-export function createSessionToken(email: string): string {
-  const expiresAt = Date.now() + SESSION_TTL_MS;
-  const payload = `${email}.${expiresAt}`;
-  const signature = sign(payload);
-  return Buffer.from(`${payload}.${signature}`).toString("base64url");
+export function createSessionToken(payload: SessionPayload): string {
+  const body = JSON.stringify({ ...payload, expiresAt: Date.now() + SESSION_TTL_MS });
+  const bodyB64 = Buffer.from(body).toString("base64url");
+  return `${bodyB64}.${sign(bodyB64)}`;
 }
 
 export function verifySessionToken(
   token: string | undefined
-): { valid: boolean; email?: string } {
+): { valid: false } | ({ valid: true } & SessionPayload) {
   if (!token) return { valid: false };
   try {
-    const decoded = Buffer.from(token, "base64url").toString("utf-8");
-    // Split from the right: the signature and expiry are always the last two
-    // segments, but the email itself may contain dots.
-    const lastDot = decoded.lastIndexOf(".");
-    const secondLastDot = decoded.lastIndexOf(".", lastDot - 1);
-    const email = decoded.slice(0, secondLastDot);
-    const expiresAtStr = decoded.slice(secondLastDot + 1, lastDot);
-    const signature = decoded.slice(lastDot + 1);
-    const expiresAt = Number(expiresAtStr);
-    const expected = sign(`${email}.${expiresAtStr}`);
+    const dotIndex = token.lastIndexOf(".");
+    if (dotIndex === -1) return { valid: false };
 
-    const validSignature = crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expected)
-    );
+    const bodyB64 = token.slice(0, dotIndex);
+    const signature = token.slice(dotIndex + 1);
+    const expected = sign(bodyB64);
 
-    if (!validSignature || Date.now() > expiresAt) {
+    const validSignature =
+      signature.length === expected.length &&
+      crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+    if (!validSignature) return { valid: false };
+
+    const decoded = JSON.parse(Buffer.from(bodyB64, "base64url").toString("utf-8"));
+    const { expiresAt, ...payload } = decoded;
+    if (typeof expiresAt !== "number" || Date.now() > expiresAt) {
       return { valid: false };
     }
-    return { valid: true, email };
+
+    return { valid: true, ...(payload as SessionPayload) };
   } catch {
     return { valid: false };
   }

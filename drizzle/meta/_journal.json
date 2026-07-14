@@ -15,6 +15,13 @@
       "when": 1783982579639,
       "tag": "0001_illegal_luminals",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783995430373,
+      "tag": "0002_wet_nightcrawler",
+      "breakpoints": true
     }
   ]
 }

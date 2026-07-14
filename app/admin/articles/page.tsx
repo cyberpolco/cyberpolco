@@ -2,8 +2,11 @@ import Link from "next/link";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { getArticles } from "@/lib/db/articles";
 import { deleteArticleAction } from "@/lib/actions/articles";
+import { requireRole } from "@/lib/auth/rbac";
 
 export default async function AdminArticlesPage() {
+  await requireRole(["super_admin", "content_editor"]);
+
   const articles = await getArticles();
   const sorted = [...articles].sort((a, b) => (a.date < b.date ? 1 : -1));
 
