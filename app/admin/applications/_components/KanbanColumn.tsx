@@ -1,6 +1,6 @@
 "use client";
 
-import type { Application, Stage } from "@/lib/db/applications";
+import type { Application, Stage } from "@/lib/types/applications";
 import ApplicationCard from "./ApplicationCard";
 
 export default function KanbanColumn({

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import type { Application, Stage } from "@/lib/db/applications";
+import type { Application, Stage } from "@/lib/types/applications";
 import { moveApplicationStageAction } from "@/lib/actions/applications";
 import StageSelect from "./StageSelect";
 

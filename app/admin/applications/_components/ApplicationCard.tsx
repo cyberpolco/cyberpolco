@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FileText } from "lucide-react";
-import type { Application, Stage } from "@/lib/db/applications";
+import type { Application, Stage } from "@/lib/types/applications";
 import StageSelect from "./StageSelect";
 
 export default function ApplicationCard({

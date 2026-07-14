@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { STAGES, type Application, type Stage } from "@/lib/db/applications";
+import { STAGES, type Application, type Stage } from "@/lib/types/applications";
 import { moveApplicationStageAction } from "@/lib/actions/applications";
 import KanbanColumn from "./KanbanColumn";
 

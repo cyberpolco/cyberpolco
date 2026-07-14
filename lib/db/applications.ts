@@ -1,32 +1,9 @@
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { applications as applicationsTable } from "./schema";
+import { STAGES, type Stage, type Application } from "@/lib/types/applications";
 
-export type Stage = "new" | "reviewing" | "interview" | "offer" | "hired" | "rejected";
-
-export const STAGES: { value: Stage; label: string }[] = [
-  { value: "new", label: "New" },
-  { value: "reviewing", label: "Reviewing" },
-  { value: "interview", label: "Interview" },
-  { value: "offer", label: "Offer" },
-  { value: "hired", label: "Hired" },
-  { value: "rejected", label: "Rejected" },
-];
-
-export type Application = {
-  id: string;
-  jobSlug: string;
-  jobTitle: string;
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-  cvFileName: string;
-  cvUrl: string;
-  createdAt: string;
-  stage: Stage;
-  notes: string | null;
-};
+export { STAGES, type Stage, type Application };
 
 export async function getApplications(): Promise<Application[]> {
   const items = await db.select().from(applicationsTable);

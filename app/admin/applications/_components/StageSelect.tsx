@@ -1,6 +1,6 @@
 "use client";
 
-import { STAGES, type Stage } from "@/lib/db/applications";
+import { STAGES, type Stage } from "@/lib/types/applications";
 
 export default function StageSelect({
   value,
