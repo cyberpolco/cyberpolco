@@ -203,7 +203,11 @@ export default async function HomePage({
           <div className="mt-10 grid grid-cols-2 gap-8 text-center sm:grid-cols-4">
             {stats.map((s) => (
               <div key={s.value}>
-                <StatsCounter value={s.value} durationMs={s.durationMs} />
+                {s.durationMs ? (
+                  <StatsCounter value={s.value} durationMs={s.durationMs} />
+                ) : (
+                  <p className="font-display text-4xl font-bold text-brand-yellow">{s.value}</p>
+                )}
                 <p className="mt-2 text-sm text-white/70">{s[locale]}</p>
               </div>
             ))}

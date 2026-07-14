@@ -99,7 +99,10 @@ export default async function Footer() {
             <div className="mt-4 space-y-1 text-sm text-white/60">
               {offices.map((o) => (
                 <div key={o.country}>
-                  <span className="font-medium text-white/80">{o[locale].city}</span> · {o.phone}
+                  <span className="font-medium text-white/80">{o[locale].city}</span> ·{" "}
+                  <a href={`tel:${o.phone.replace(/\s+/g, "")}`} className="hover:text-white">
+                    {o.phone}
+                  </a>
                 </div>
               ))}
             </div>
