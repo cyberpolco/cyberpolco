@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Briefcase, MapPin } from "lucide-react";
 import { getOpenJobs } from "@/lib/db/jobs";
+import { getBlock } from "@/lib/content/blocks";
 
 export default async function CareersPage({
   params,
@@ -12,11 +13,12 @@ export default async function CareersPage({
   setRequestLocale(locale);
   const t = await getTranslations("careers");
   const jobs = await getOpenJobs();
+  const intro = await getBlock("careers.intro", locale);
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-20 lg:px-8">
       <h1 className="text-4xl font-bold text-brand-dark">{t("title")}</h1>
-      <p className="mt-3 text-lg text-brand-gray">{t("subtitle")}</p>
+      <p className="mt-3 text-lg text-brand-gray">{intro.subtitle}</p>
 
       {jobs.length === 0 ? (
         <div className="mt-14 rounded-2xl border border-dashed border-black/15 p-12 text-center">

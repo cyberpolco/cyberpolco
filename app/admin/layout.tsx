@@ -3,6 +3,8 @@ import Link from "next/link";
 import {
   LayoutDashboard,
   Newspaper,
+  FileStack,
+  Layers,
   Briefcase,
   Inbox,
   FileText,
@@ -27,6 +29,8 @@ const navItems: { href: string; label: string; icon: typeof LayoutDashboard; rol
     roles: ["super_admin", "content_editor", "hr_recruiter", "viewer"],
   },
   { href: "/admin/articles", label: "Articles", icon: Newspaper, roles: ["super_admin", "content_editor"] },
+  { href: "/admin/content", label: "Content", icon: FileStack, roles: ["super_admin", "content_editor"] },
+  { href: "/admin/services", label: "Services", icon: Layers, roles: ["super_admin", "content_editor"] },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase, roles: ["super_admin", "hr_recruiter"] },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, roles: ["super_admin"] },
   {

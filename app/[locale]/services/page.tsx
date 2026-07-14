@@ -1,16 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { ShieldCheck, Radar, SatelliteDish, GraduationCap, SearchCheck, Layers, ArrowRight } from "lucide-react";
-import { services } from "@/lib/content/services";
-
-const ICONS = {
-  shield: ShieldCheck,
-  radar: Radar,
-  "satellite-dish": SatelliteDish,
-  "graduation-cap": GraduationCap,
-  "search-check": SearchCheck,
-  layers: Layers,
-};
+import { ArrowRight } from "lucide-react";
+import { getServices } from "@/lib/db/services";
+import { SERVICE_ICONS } from "@/lib/content/service-icons";
+import { getBlock } from "@/lib/content/blocks";
 
 export default async function ServicesPage({
   params,
@@ -20,17 +13,19 @@ export default async function ServicesPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("services");
+  const intro = await getBlock("services.intro", locale);
+  const services = await getServices();
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
       <div className="max-w-2xl">
         <h1 className="text-4xl font-bold text-brand-dark">{t("title")}</h1>
-        <p className="mt-4 text-lg text-brand-gray">{t("subtitle")}</p>
+        <p className="mt-4 text-lg text-brand-gray">{intro.subtitle}</p>
       </div>
 
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => {
-          const Icon = ICONS[service.icon];
+          const Icon = SERVICE_ICONS[service.icon];
           const content = service[locale];
           return (
             <Link

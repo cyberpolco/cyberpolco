@@ -1,17 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { CheckCircle2, ShieldCheck, Radar, SatelliteDish, GraduationCap, SearchCheck, Layers } from "lucide-react";
-import { getServiceBySlug } from "@/lib/content/services";
+import { CheckCircle2 } from "lucide-react";
+import { getServiceBySlug } from "@/lib/db/services";
+import { SERVICE_ICONS } from "@/lib/content/service-icons";
 import { notFound } from "next/navigation";
-
-const ICONS = {
-  shield: ShieldCheck,
-  radar: Radar,
-  "satellite-dish": SatelliteDish,
-  "graduation-cap": GraduationCap,
-  "search-check": SearchCheck,
-  layers: Layers,
-};
 
 export default async function ServiceDetail({
   slug,
@@ -20,12 +12,12 @@ export default async function ServiceDetail({
   slug: string;
   locale: "fr" | "en";
 }) {
-  const service = getServiceBySlug(slug);
+  const service = await getServiceBySlug(slug);
   if (!service) notFound();
 
   const t = await getTranslations("services");
   const content = service[locale];
-  const Icon = ICONS[service.icon];
+  const Icon = SERVICE_ICONS[service.icon];
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-20 lg:px-8">

@@ -1,7 +1,8 @@
-import { pgTable, text, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, jsonb, integer } from "drizzle-orm/pg-core";
 
 type LocalizedArticle = { title: string; excerpt: string; body: string[] };
 type LocalizedJob = { title: string; location: string; type: string; description: string };
+type LocalizedService = { name: string; tagline: string; description: string; bullets: string[] };
 type Stat = { value: string; fr: string; en: string };
 type SocialLinks = {
   x: string;
@@ -77,4 +78,24 @@ export const users = pgTable("users", {
   createdAt: text("created_at").notNull(),
   createdBy: text("created_by"),
   lastLoginAt: text("last_login_at"),
+});
+
+// Generic keyed content for one-off page sections (hero, mission, vision,
+// about story, page intros, etc.) — shape varies per key, defined and
+// validated in lib/content/blocks.ts, not enforced at the DB layer.
+export const contentBlocks = pgTable("content_blocks", {
+  key: text("key").primaryKey(),
+  fr: jsonb("fr").notNull(),
+  en: jsonb("en").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const services = pgTable("services", {
+  slug: text("slug").primaryKey(),
+  icon: text("icon", {
+    enum: ["shield", "radar", "satellite-dish", "graduation-cap", "search-check", "layers"],
+  }).notNull(),
+  displayOrder: integer("display_order").notNull().default(0),
+  fr: jsonb("fr").$type<LocalizedService>().notNull(),
+  en: jsonb("en").$type<LocalizedService>().notNull(),
 });

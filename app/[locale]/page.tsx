@@ -1,22 +1,15 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { ShieldCheck, Radar, SatelliteDish, GraduationCap, SearchCheck, Layers, ArrowRight, Target, Eye } from "lucide-react";
+import { ArrowRight, Target, Eye } from "lucide-react";
 import AfricaMap from "@/components/home/AfricaMap";
 import ClientLogos from "@/components/home/ClientLogos";
 import StatsCounter from "@/components/home/StatsCounter";
-import { services } from "@/lib/content/services";
+import { getServices } from "@/lib/db/services";
+import { SERVICE_ICONS } from "@/lib/content/service-icons";
 import { getSettings } from "@/lib/db/settings";
 import { getLatestArticles } from "@/lib/db/articles";
-
-const ICONS = {
-  shield: ShieldCheck,
-  radar: Radar,
-  "satellite-dish": SatelliteDish,
-  "graduation-cap": GraduationCap,
-  "search-check": SearchCheck,
-  layers: Layers,
-};
+import { getBlock } from "@/lib/content/blocks";
 
 export default async function HomePage({
   params,
@@ -27,7 +20,20 @@ export default async function HomePage({
   setRequestLocale(locale);
   const t = await getTranslations("home");
   const latestArticles = await getLatestArticles(3);
+  const services = await getServices();
   const { stats } = await getSettings();
+  const [hero, mission, vision, map, servicesIntro, clientsIntro, statsIntro, articlesIntro, finalCta] =
+    await Promise.all([
+      getBlock("home.hero", locale),
+      getBlock("home.mission", locale),
+      getBlock("home.vision", locale),
+      getBlock("home.map", locale),
+      getBlock("home.servicesIntro", locale),
+      getBlock("home.clientsIntro", locale),
+      getBlock("home.statsIntro", locale),
+      getBlock("home.articlesIntro", locale),
+      getBlock("home.finalCta", locale),
+    ]);
 
   const heroParticles = [
     { top: "12%", left: "8%", size: 3, color: "bg-brand-blue", duration: "6s", twinkle: "3.2s", delay: "0s" },
@@ -77,24 +83,24 @@ export default async function HomePage({
         <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
           <div>
             <p className="mb-4 inline-block rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brand-yellow">
-              {t("eyebrow")}
+              {hero.eyebrow}
             </p>
             <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-              {t("heroTitle")}
+              {hero.heroTitle}
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-white/70">{t("heroSubtitle")}</p>
+            <p className="mt-6 max-w-xl text-lg text-white/70">{hero.heroSubtitle}</p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/services"
                 className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03]"
               >
-                {t("ctaPrimary")}
+                {hero.ctaPrimary}
               </Link>
               <Link
                 href="/contact"
                 className="rounded-full border border-white/25 px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-white"
               >
-                {t("ctaSecondary")}
+                {hero.ctaSecondary}
               </Link>
             </div>
           </div>
@@ -121,16 +127,16 @@ export default async function HomePage({
             <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
               <Target size={24} />
             </div>
-            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{t("missionTitle")}</h2>
-            <p className="relative mt-3 text-brand-gray">{t("missionBody")}</p>
+            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{mission.title}</h2>
+            <p className="relative mt-3 text-brand-gray">{mission.body}</p>
           </div>
           <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-red/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
             <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red/10 text-brand-red">
               <Eye size={24} />
             </div>
-            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{t("visionTitle")}</h2>
-            <p className="relative mt-3 text-brand-gray">{t("visionBody")}</p>
+            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{vision.title}</h2>
+            <p className="relative mt-3 text-brand-gray">{vision.body}</p>
           </div>
         </div>
       </section>
@@ -138,8 +144,8 @@ export default async function HomePage({
       {/* Africa Map */}
       <section className="bg-brand-dark py-16 text-white">
         <div className="mx-auto max-w-5xl px-5 text-center lg:px-8">
-          <h2 className="text-3xl font-bold">{t("mapTitle")}</h2>
-          <p className="mt-2 text-white/60">{t("mapSubtitle")}</p>
+          <h2 className="text-3xl font-bold">{map.title}</h2>
+          <p className="mt-2 text-white/60">{map.subtitle}</p>
         </div>
         <div className="mx-auto mt-10 max-w-5xl px-5 lg:px-8">
           <AfricaMap />
@@ -149,12 +155,12 @@ export default async function HomePage({
       {/* Services */}
       <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-bold text-brand-dark">{t("servicesTitle")}</h2>
-          <p className="mt-2 text-brand-gray">{t("servicesSubtitle")}</p>
+          <h2 className="text-3xl font-bold text-brand-dark">{servicesIntro.title}</h2>
+          <p className="mt-2 text-brand-gray">{servicesIntro.subtitle}</p>
         </div>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {services.slice(0, 4).map((service) => {
-            const Icon = ICONS[service.icon];
+            const Icon = SERVICE_ICONS[service.icon];
             const content = service[locale];
             return (
               <Link
@@ -189,7 +195,7 @@ export default async function HomePage({
       {/* Clients */}
       <section className="bg-brand-dark py-16 text-white">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <h2 className="text-center text-3xl font-bold">{t("clientsTitle")}</h2>
+          <h2 className="text-center text-3xl font-bold">{clientsIntro.title}</h2>
           <div className="mt-10">
             <ClientLogos />
           </div>
@@ -199,7 +205,7 @@ export default async function HomePage({
       {/* Stats */}
       <section className="bg-brand-dark-2 py-16 text-white">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <h2 className="text-center text-2xl font-bold">{t("statsTitle")}</h2>
+          <h2 className="text-center text-2xl font-bold">{statsIntro.title}</h2>
           <div className="mt-10 grid grid-cols-2 gap-8 text-center sm:grid-cols-4">
             {stats.map((s) => (
               <div key={s.value}>
@@ -219,8 +225,8 @@ export default async function HomePage({
       <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-brand-dark">{t("articlesTitle")}</h2>
-            <p className="mt-2 text-brand-gray">{t("articlesSubtitle")}</p>
+            <h2 className="text-3xl font-bold text-brand-dark">{articlesIntro.title}</h2>
+            <p className="mt-2 text-brand-gray">{articlesIntro.subtitle}</p>
           </div>
           <Link href="/articles" className="text-sm font-semibold text-brand-red">
             {t("viewAllArticles")} →
@@ -257,13 +263,13 @@ export default async function HomePage({
       {/* Final CTA */}
       <section className="bg-brand-red">
         <div className="mx-auto max-w-4xl px-5 py-16 text-center text-white lg:px-8">
-          <h2 className="text-3xl font-bold">{t("finalCtaTitle")}</h2>
-          <p className="mt-3 text-white/85">{t("finalCtaBody")}</p>
+          <h2 className="text-3xl font-bold">{finalCta.title}</h2>
+          <p className="mt-3 text-white/85">{finalCta.body}</p>
           <Link
             href="/contact"
             className="mt-8 inline-block rounded-full bg-white px-7 py-3 text-sm font-semibold text-brand-red"
           >
-            {t("finalCtaButton")}
+            {finalCta.button}
           </Link>
         </div>
       </section>

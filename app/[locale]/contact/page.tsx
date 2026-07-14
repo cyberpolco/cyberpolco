@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import ContactForm from "@/components/forms/ContactForm";
 import { offices, contactEmails } from "@/lib/content/company";
 import { getSettings } from "@/lib/db/settings";
+import { getBlock } from "@/lib/content/blocks";
 
 export default async function ContactPage({
   params,
@@ -13,12 +14,13 @@ export default async function ContactPage({
   setRequestLocale(locale);
   const t = await getTranslations("contact");
   const { socialLinks } = await getSettings();
+  const intro = await getBlock("contact.intro", locale);
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-20 lg:px-8">
       <div className="max-w-2xl">
         <h1 className="text-4xl font-bold text-brand-dark">{t("title")}</h1>
-        <p className="mt-3 text-lg text-brand-gray">{t("subtitle")}</p>
+        <p className="mt-3 text-lg text-brand-gray">{intro.subtitle}</p>
       </div>
 
       <div className="mt-12 grid gap-10 lg:grid-cols-3">

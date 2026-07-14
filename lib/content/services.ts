@@ -1,6 +1,9 @@
+import type { ServiceIconKey } from "./service-icons";
+
 export type Service = {
   slug: string;
-  icon: "shield" | "radar" | "satellite-dish" | "graduation-cap" | "search-check" | "layers";
+  icon: ServiceIconKey;
+  displayOrder?: number;
   fr: { name: string; tagline: string; description: string; bullets: string[] };
   en: { name: string; tagline: string; description: string; bullets: string[] };
 };
