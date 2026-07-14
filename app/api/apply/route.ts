@@ -4,10 +4,11 @@ import { addApplication } from "@/lib/db/applications";
 import { storeCvFile } from "@/lib/db/file-storage";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
-  const rate = checkRateLimit(`apply:${ip}`, 5, 60_000);
+  const rate = await checkRateLimit(`apply:${ip}`, 5, 60_000);
   if (!rate.success) {
     return NextResponse.json(
       { error: "Too many requests. Please try again in a minute." },
@@ -28,6 +29,11 @@ export async function POST(req: NextRequest) {
 
   if (parsed.data.website) {
     return NextResponse.json({ ok: true });
+  }
+
+  const captchaOk = await verifyTurnstileToken(parsed.data.turnstileToken, ip);
+  if (!captchaOk) {
+    return NextResponse.json({ error: "CAPTCHA verification failed. Please try again." }, { status: 400 });
   }
 
   const cv = formData.get("cv");

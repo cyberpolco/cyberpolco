@@ -32,7 +32,9 @@ const ROUTE_RULES: RouteRule[] = [
  * listed explicitly rather than relying on a permissive fallback.
  */
 export function isRouteAllowed(pathname: string, role: Role): boolean {
-  const rule = ROUTE_RULES.find((r) => pathname.startsWith(r.prefix));
+  const rule = ROUTE_RULES.find(
+    (r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`)
+  );
   if (!rule) return false;
   return rule.roles.includes(role);
 }

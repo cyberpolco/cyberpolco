@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import TurnstileWidget from "./TurnstileWidget";
 
 export default function ApplicationForm({
   jobSlug,
@@ -15,6 +16,8 @@ export default function ApplicationForm({
   const t = useTranslations("contact");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,6 +28,7 @@ export default function ApplicationForm({
     const formData = new FormData(form);
     formData.set("jobSlug", jobSlug);
     formData.set("jobTitle", jobTitle);
+    formData.set("turnstileToken", turnstileToken);
 
     try {
       const res = await fetch("/api/apply", { method: "POST", body: formData });
@@ -114,13 +118,15 @@ export default function ApplicationForm({
         />
       </div>
 
+      <TurnstileWidget onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
+
       {status === "error" && (
         <p className="text-sm text-brand-red">{errorMsg || t("formError")}</p>
       )}
 
       <button
         type="submit"
-        disabled={status === "loading"}
+        disabled={status === "loading" || (captchaRequired && !turnstileToken)}
         className="w-full rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white disabled:opacity-60"
       >
         {status === "loading"

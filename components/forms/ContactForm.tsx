@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { contactSchema, isFreeEmailDomain } from "@/lib/validation/schemas";
+import TurnstileWidget from "./TurnstileWidget";
 
 type FieldName = "firstName" | "lastName" | "company" | "position" | "email" | "subject" | "message";
 
@@ -12,6 +13,8 @@ export default function ContactForm() {
   const t = useTranslations("contact");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
   function messageFor(field: FieldName, rawEmail: string): string {
     if (field === "email") {
@@ -35,7 +38,8 @@ export default function ContactForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
+    const raw = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
+    const data = { ...raw, turnstileToken } as Record<string, string>;
 
     const parsed = contactSchema.safeParse(data);
     if (!parsed.success) {
@@ -187,17 +191,13 @@ export default function ContactForm() {
         {errors.message && <p className="mt-1 text-sm text-brand-red">{errors.message}</p>}
       </div>
 
-      {/*
-        Cloudflare Turnstile widget goes here once NEXT_PUBLIC_TURNSTILE_SITE_KEY
-        is configured — see README.md → "Enabling CAPTCHA". Omitted by default
-        so the form works end-to-end without any external account set up.
-      */}
+      <TurnstileWidget onVerify={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
 
       {status === "error" && <p className="text-sm text-brand-red">{t("formError")}</p>}
 
       <button
         type="submit"
-        disabled={status === "loading"}
+        disabled={status === "loading" || (captchaRequired && !turnstileToken)}
         className="w-full rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
       >
         {status === "loading" ? "..." : t("formSubmit")}

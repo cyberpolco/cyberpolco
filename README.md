@@ -84,26 +84,32 @@ migration file, then `npm run db:migrate` to apply it.
 
 ## Upgrading rate limiting (Upstash)
 
-`lib/rate-limit/index.ts` is in-memory, which doesn't survive across
-serverless invocations. For real protection in production:
+`lib/rate-limit/index.ts` already prefers Upstash Redis when it's configured,
+falling back to an in-memory counter otherwise (which doesn't survive across
+serverless invocations — fine for local dev, not for production). To enable
+it:
 
-```bash
-npm install @upstash/ratelimit @upstash/redis
-```
+1. Create a free Redis database at https://console.upstash.com
+2. Copy `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from its
+   "REST API" section
+3. Add both to `.env.local` (dev) and your Vercel project's environment
+   variables (production)
 
-Swap `checkRateLimit`'s implementation for `@upstash/ratelimit`'s `.limit()`
-call — same signature, so `app/api/contact/route.ts` and
-`app/api/apply/route.ts` don't need to change.
+No code changes needed — `checkRateLimit` picks up Redis automatically once
+both env vars are present.
 
 ## Enabling CAPTCHA (Cloudflare Turnstile)
 
+`components/forms/ContactForm.tsx` and `ApplicationForm.tsx` already render
+`TurnstileWidget` (`components/forms/TurnstileWidget.tsx`), and both API
+routes already verify the token via `lib/turnstile.ts`. The widget renders
+nothing and verification is bypassed until it's configured, so the forms
+work end-to-end without a Cloudflare account. To enable it:
+
 1. Create a free Turnstile site at the Cloudflare dashboard
 2. Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`
-3. Add the Turnstile script + widget to `components/forms/ContactForm.tsx`
-   and `ApplicationForm.tsx` (marked with a comment at the right spot)
-4. Verify the token server-side in `app/api/contact/route.ts` /
-   `app/api/apply/route.ts` (also marked with a comment) against
-   `https://challenges.cloudflare.com/turnstile/v0/siteverify`
+
+That's it — no other code changes needed.
 
 ## Adding the brand fonts
 

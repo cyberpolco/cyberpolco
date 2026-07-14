@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
@@ -7,6 +7,7 @@ import { verifyUserCredentials } from "@/lib/auth/credentials";
 import { ensureBootstrapSuperAdmin } from "@/lib/auth/bootstrap";
 import { touchLastLogin } from "@/lib/db/users";
 import { createSessionToken, ADMIN_COOKIE_NAME, ADMIN_SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import PasswordField from "@/app/admin/_components/PasswordField";
 
 async function login(formData: FormData) {
@@ -14,6 +15,12 @@ async function login(formData: FormData) {
 
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
+
+  const ip = getClientIp(await headers());
+  const rate = await checkRateLimit(`admin-login:${ip}`, 5, 5 * 60_000);
+  if (!rate.success) {
+    redirect("/admin/login?error=rate-limit");
+  }
 
   await ensureBootstrapSuperAdmin();
 
@@ -143,6 +150,11 @@ export default async function AdminLoginPage({
           {error === "config" && (
             <p className="text-sm text-brand-red">
               Server isn&apos;t configured yet. Set ADMIN_SESSION_SECRET (see README.md).
+            </p>
+          )}
+          {error === "rate-limit" && (
+            <p className="text-sm text-brand-red">
+              Too many login attempts. Please wait a few minutes and try again.
             </p>
           )}
 

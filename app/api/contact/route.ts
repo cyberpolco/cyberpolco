@@ -3,10 +3,11 @@ import { contactSchema } from "@/lib/validation/schemas";
 import { addInquiry } from "@/lib/db/inquiries";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
-  const rate = checkRateLimit(`contact:${ip}`, 5, 60_000);
+  const rate = await checkRateLimit(`contact:${ip}`, 5, 60_000);
   if (!rate.success) {
     return NextResponse.json(
       { error: "Too many requests. Please try again in a minute." },
@@ -34,9 +35,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  // TODO: verify parsed.data.turnstileToken against Cloudflare's siteverify
-  // endpoint once NEXT_PUBLIC_TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY are
-  // configured. See README.md -> "Enabling CAPTCHA".
+  const captchaOk = await verifyTurnstileToken(parsed.data.turnstileToken, ip);
+  if (!captchaOk) {
+    return NextResponse.json({ error: "CAPTCHA verification failed. Please try again." }, { status: 400 });
+  }
 
   const { firstName, lastName, company, position, email, subject, message } = parsed.data;
   const name = `${firstName} ${lastName}`;

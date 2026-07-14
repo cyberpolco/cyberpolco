@@ -46,6 +46,7 @@ export const applicationSchema = z.object({
   phone: z.string().trim().min(5).max(40),
   message: z.string().trim().max(5000).optional().default(""),
   website: z.string().max(0).optional().default(""),
+  turnstileToken: z.string().optional().default(""),
 });
 
 export type ApplicationInput = z.infer<typeof applicationSchema>;
