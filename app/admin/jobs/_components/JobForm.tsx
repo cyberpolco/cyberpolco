@@ -1,5 +1,6 @@
 import { upsertJobAction } from "@/lib/actions/jobs";
 import type { Job } from "@/lib/db/jobs";
+import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 
 export default function JobForm({ job }: { job?: Job }) {
   return (
@@ -28,12 +29,13 @@ export default function JobForm({ job }: { job?: Job }) {
           <Field label="Type de contrat" name="type_fr" defaultValue={job?.fr.type} />
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Description</label>
-            <textarea
+            <AlignedTextarea
               name="description_fr"
+              alignName="descriptionAlign_fr"
               defaultValue={job?.fr.description}
+              defaultAlign={job?.fr.descriptionAlign}
               rows={8}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
         </fieldset>
@@ -45,12 +47,13 @@ export default function JobForm({ job }: { job?: Job }) {
           <Field label="Contract type" name="type_en" defaultValue={job?.en.type} />
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Description</label>
-            <textarea
+            <AlignedTextarea
               name="description_en"
+              alignName="descriptionAlign_en"
               defaultValue={job?.en.description}
+              defaultAlign={job?.en.descriptionAlign}
               rows={8}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
         </fieldset>

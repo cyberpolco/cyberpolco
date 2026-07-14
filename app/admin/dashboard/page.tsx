@@ -1,15 +1,18 @@
-import { Newspaper, Briefcase, Inbox, FileText, Eye, Share2 } from "lucide-react";
+import Link from "next/link";
+import { Newspaper, Briefcase, Inbox, FileText, Eye, Share2, GraduationCap, Users, Award, SatelliteDish } from "lucide-react";
 import { getArticles, getTopArticlesByViews, getTopArticlesByShares } from "@/lib/db/articles";
 import { getJobs } from "@/lib/db/jobs";
 import { getInquiries } from "@/lib/db/inquiries";
 import { getApplications } from "@/lib/db/applications";
-import { getStarlinkClientById } from "@/lib/db/starlink";
-import { getAcademyEnrollmentById, getAcademyCourseById } from "@/lib/db/academy";
+import { getStarlinkClientById, getStarlinkStats } from "@/lib/db/starlink";
+import { getAcademyEnrollmentById, getAcademyCourseById, getAcademyStats } from "@/lib/db/academy";
 import { getSession } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/auth/roles";
 import RankedBarList from "./_components/RankedBarList";
 import StarlinkViewerDashboard from "./_components/StarlinkViewerDashboard";
 import AcademyViewerDashboard from "./_components/AcademyViewerDashboard";
+import Meter from "./_components/Meter";
+import PaymentStatusTiles from "./_components/PaymentStatusTiles";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -87,6 +90,9 @@ export default async function DashboardPage() {
 
   const cards = allCards.filter((card) => card.roles.includes(role));
 
+  const [academyStats, starlinkStats] =
+    role === "super_admin" ? await Promise.all([getAcademyStats(), getStarlinkStats()]) : [undefined, undefined];
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Dashboard</h1>
@@ -127,6 +133,108 @@ export default async function DashboardPage() {
           items={topByShares.map((a) => ({ label: a.en.title, value: a.shareCount ?? 0 }))}
         />
       </div>
+
+      {academyStats && (
+        <div className="mt-10">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-brand-dark dark:text-white">
+            <GraduationCap size={20} className="text-brand-blue" /> Academy
+          </h2>
+
+          <div className="mt-4 grid gap-5 sm:grid-cols-3">
+            <Link
+              href="/admin/academy/courses"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
+            >
+              <GraduationCap className="text-brand-blue" size={22} />
+              <p className="mt-4 text-3xl font-bold text-brand-dark dark:text-white">{academyStats.totalCourses}</p>
+              <p className="mt-1 text-sm text-brand-gray dark:text-white/60">Courses</p>
+            </Link>
+            <Link
+              href="/admin/academy/students"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
+            >
+              <Users className="text-brand-blue" size={22} />
+              <p className="mt-4 text-3xl font-bold text-brand-dark dark:text-white">{academyStats.totalStudents}</p>
+              <p className="mt-1 text-sm text-brand-gray dark:text-white/60">Enrolled students</p>
+            </Link>
+            <Link
+              href="/admin/academy/students"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
+            >
+              <Award className="text-brand-blue" size={22} />
+              <p className="mt-4 text-3xl font-bold text-brand-dark dark:text-white">{academyStats.certificatesIssued}</p>
+              <p className="mt-1 text-sm text-brand-gray dark:text-white/60">Certificates issued</p>
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+            <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
+              <Meter label="Average student progress" percent={academyStats.averageProgress} />
+            </div>
+            <RankedBarList
+              title="Enrollments by course"
+              colorClassName="bg-brand-blue"
+              items={academyStats.enrollmentsByCourse}
+            />
+          </div>
+        </div>
+      )}
+
+      {starlinkStats && (
+        <div className="mt-10">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-brand-dark dark:text-white">
+            <SatelliteDish size={20} className="text-brand-blue" /> Starlink
+          </h2>
+
+          <div className="mt-4 grid gap-5 sm:grid-cols-2">
+            <Link
+              href="/admin/starlink"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
+            >
+              <Users className="text-brand-blue" size={22} />
+              <p className="mt-4 text-3xl font-bold text-brand-dark dark:text-white">{starlinkStats.totalClients}</p>
+              <p className="mt-1 text-sm text-brand-gray dark:text-white/60">Clients</p>
+            </Link>
+            <Link
+              href="/admin/starlink"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
+            >
+              <SatelliteDish className="text-brand-blue" size={22} />
+              <p className="mt-4 text-3xl font-bold text-brand-dark dark:text-white">{starlinkStats.totalSites}</p>
+              <p className="mt-1 text-sm text-brand-gray dark:text-white/60">Sites</p>
+            </Link>
+          </div>
+
+          <div className="mt-5">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-brand-gray dark:text-white/60">
+              Payment status
+            </p>
+            <PaymentStatusTiles
+              paid={starlinkStats.paymentBreakdown.paid}
+              pending={starlinkStats.paymentBreakdown.pending}
+              overdue={starlinkStats.paymentBreakdown.overdue}
+            />
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-3">
+            <RankedBarList
+              title="Sites by installation status"
+              colorClassName="bg-brand-blue"
+              items={starlinkStats.installationByStatus}
+            />
+            <RankedBarList
+              title="Sites by deployment status"
+              colorClassName="bg-brand-blue"
+              items={starlinkStats.deploymentByStatus}
+            />
+            <RankedBarList
+              title="Sites by subscription type"
+              colorClassName="bg-brand-blue"
+              items={starlinkStats.subscriptionByType}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

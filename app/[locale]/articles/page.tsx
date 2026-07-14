@@ -45,7 +45,12 @@ export default async function ArticlesPage({
               <h2 className="mt-2 text-lg font-semibold text-brand-dark group-hover:text-brand-red">
                 {article[locale].title}
               </h2>
-              <p className="mt-2 line-clamp-3 text-sm text-brand-gray">{article[locale].excerpt}</p>
+              <p
+                className="mt-2 line-clamp-3 text-sm text-brand-gray"
+                style={{ textAlign: article[locale].excerptAlign || "left" }}
+              >
+                {article[locale].excerpt}
+              </p>
             </div>
           </Link>
         ))}

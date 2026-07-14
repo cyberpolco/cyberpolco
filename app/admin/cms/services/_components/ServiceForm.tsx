@@ -1,6 +1,7 @@
 import { upsertServiceAction } from "@/lib/actions/services";
 import { SERVICE_ICON_OPTIONS } from "@/lib/content/service-icons";
 import type { Service } from "@/lib/db/services";
+import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 
 export default function ServiceForm({ service }: { service?: Service }) {
   return (
@@ -63,12 +64,13 @@ export default function ServiceForm({ service }: { service?: Service }) {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Description</label>
-            <textarea
+            <AlignedTextarea
               name="description_fr"
+              alignName="descriptionAlign_fr"
               defaultValue={service?.fr.description}
+              defaultAlign={service?.fr.descriptionAlign}
               rows={4}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
           <div>
@@ -107,12 +109,13 @@ export default function ServiceForm({ service }: { service?: Service }) {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Description</label>
-            <textarea
+            <AlignedTextarea
               name="description_en"
+              alignName="descriptionAlign_en"
               defaultValue={service?.en.description}
+              defaultAlign={service?.en.descriptionAlign}
               rows={4}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
           <div>

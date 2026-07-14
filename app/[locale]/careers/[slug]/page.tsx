@@ -34,7 +34,10 @@ export default async function CareerDetailPage({
         </span>
       </div>
 
-      <div className="prose prose-lg mt-8 max-w-none whitespace-pre-line text-brand-gray">
+      <div
+        className="prose prose-lg mt-8 max-w-none whitespace-pre-line text-brand-gray"
+        style={{ textAlign: content.descriptionAlign || "left" }}
+      >
         {content.description}
       </div>
 

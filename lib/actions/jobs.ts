@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { saveJob, deleteJob, type Job } from "@/lib/db/jobs";
 import { requireRole } from "@/lib/auth/rbac";
+import { isTextAlign, type TextAlign } from "@/lib/types/text-align";
+
+function textAlign(formData: FormData, name: string): TextAlign {
+  const value = formData.get(name);
+  return isTextAlign(value) ? value : "left";
+}
 
 function slugify(input: string) {
   return input
@@ -32,12 +38,14 @@ export async function upsertJobAction(formData: FormData) {
       location: String(formData.get("location_fr") || ""),
       type: String(formData.get("type_fr") || ""),
       description: String(formData.get("description_fr") || ""),
+      descriptionAlign: textAlign(formData, "descriptionAlign_fr"),
     },
     en: {
       title: title_en,
       location: String(formData.get("location_en") || ""),
       type: String(formData.get("type_en") || ""),
       description: String(formData.get("description_en") || ""),
+      descriptionAlign: textAlign(formData, "descriptionAlign_en"),
     },
   };
 

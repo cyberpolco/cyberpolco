@@ -1,13 +1,14 @@
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { jobs as jobsTable } from "./schema";
+import type { TextAlign } from "@/lib/types/text-align";
 
 export type Job = {
   id: string;
   slug: string;
   status: "open" | "closed";
-  fr: { title: string; location: string; type: string; description: string };
-  en: { title: string; location: string; type: string; description: string };
+  fr: { title: string; location: string; type: string; description: string; descriptionAlign?: TextAlign };
+  en: { title: string; location: string; type: string; description: string; descriptionAlign?: TextAlign };
   createdAt: string;
 };
 

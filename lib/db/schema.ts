@@ -1,8 +1,27 @@
 import { pgTable, text, boolean, jsonb, integer } from "drizzle-orm/pg-core";
+import type { TextAlign } from "@/lib/types/text-align";
 
-type LocalizedArticle = { title: string; excerpt: string; body: string[] };
-type LocalizedJob = { title: string; location: string; type: string; description: string };
-type LocalizedService = { name: string; tagline: string; description: string; bullets: string[] };
+type LocalizedArticle = {
+  title: string;
+  excerpt: string;
+  excerptAlign?: TextAlign;
+  body: string[];
+  bodyAlign?: TextAlign;
+};
+type LocalizedJob = {
+  title: string;
+  location: string;
+  type: string;
+  description: string;
+  descriptionAlign?: TextAlign;
+};
+type LocalizedService = {
+  name: string;
+  tagline: string;
+  description: string;
+  descriptionAlign?: TextAlign;
+  bullets: string[];
+};
 type Stat = { value: string; fr: string; en: string };
 type SocialLinks = {
   x: string;

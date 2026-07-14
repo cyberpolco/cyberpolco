@@ -91,7 +91,7 @@ export default async function ArticleDetailPage({
         }
       />
 
-      <div className="prose prose-lg mt-8 max-w-none text-brand-gray">
+      <div className="prose prose-lg mt-8 max-w-none text-brand-gray" style={{ textAlign: content.bodyAlign || "left" }}>
         {content.body.map((paragraph, i) => (
           <p key={i} className="mb-5 leading-relaxed">
             {paragraph}

@@ -100,3 +100,45 @@ export function progressPercent(
   if (total === 0) return 0;
   return Math.round((enrollment.completedLessonIds.length / total) * 100);
 }
+
+export type AcademyStats = {
+  totalCourses: number;
+  totalStudents: number;
+  certificatesIssued: number;
+  averageProgress: number;
+  enrollmentsByCourse: { label: string; value: number }[];
+};
+
+export function computeAcademyStats(
+  courses: AcademyCourse[],
+  enrollments: AcademyEnrollment[]
+): AcademyStats {
+  const courseById = new Map(courses.map((c) => [c.id, c]));
+
+  const progressValues = enrollments.map((e) => progressPercent(e, courseById.get(e.courseId)));
+  const averageProgress = progressValues.length
+    ? Math.round(progressValues.reduce((sum, p) => sum + p, 0) / progressValues.length)
+    : 0;
+
+  const enrollmentCounts = new Map<string, number>();
+  for (const e of enrollments) {
+    enrollmentCounts.set(e.courseId, (enrollmentCounts.get(e.courseId) ?? 0) + 1);
+  }
+
+  const enrollmentsByCourse = courses
+    .map((c) => ({ label: c.en.title, value: enrollmentCounts.get(c.id) ?? 0 }))
+    .sort((a, b) => b.value - a.value);
+
+  return {
+    totalCourses: courses.length,
+    totalStudents: enrollments.length,
+    certificatesIssued: enrollments.filter((e) => e.certificateIssued).length,
+    averageProgress,
+    enrollmentsByCourse,
+  };
+}
+
+export async function getAcademyStats(): Promise<AcademyStats> {
+  const [courses, enrollments] = await Promise.all([getAcademyCourses(), getAcademyEnrollments()]);
+  return computeAcademyStats(courses, enrollments);
+}

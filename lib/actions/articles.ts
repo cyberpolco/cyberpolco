@@ -5,6 +5,12 @@ import { redirect } from "next/navigation";
 import { saveArticle, deleteArticle } from "@/lib/db/articles";
 import { requireRole } from "@/lib/auth/rbac";
 import type { Article } from "@/lib/content/articles";
+import { isTextAlign, type TextAlign } from "@/lib/types/text-align";
+
+function textAlign(formData: FormData, name: string): TextAlign {
+  const value = formData.get(name);
+  return isTextAlign(value) ? value : "left";
+}
 
 function slugify(input: string) {
   return input
@@ -33,18 +39,22 @@ export async function upsertArticleAction(formData: FormData) {
     fr: {
       title: title_fr,
       excerpt: String(formData.get("excerpt_fr") || ""),
+      excerptAlign: textAlign(formData, "excerptAlign_fr"),
       body: String(formData.get("body_fr") || "")
         .split(/\n\s*\n/)
         .map((p) => p.trim())
         .filter(Boolean),
+      bodyAlign: textAlign(formData, "bodyAlign_fr"),
     },
     en: {
       title: title_en,
       excerpt: String(formData.get("excerpt_en") || ""),
+      excerptAlign: textAlign(formData, "excerptAlign_en"),
       body: String(formData.get("body_en") || "")
         .split(/\n\s*\n/)
         .map((p) => p.trim())
         .filter(Boolean),
+      bodyAlign: textAlign(formData, "bodyAlign_en"),
     },
   };
 

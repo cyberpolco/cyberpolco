@@ -10,6 +10,12 @@ import {
 } from "@/lib/db/services";
 import { requireRole } from "@/lib/auth/rbac";
 import type { ServiceIconKey } from "@/lib/content/service-icons";
+import { isTextAlign, type TextAlign } from "@/lib/types/text-align";
+
+function textAlign(formData: FormData, name: string): TextAlign {
+  const value = formData.get(name);
+  return isTextAlign(value) ? value : "left";
+}
 
 function slugify(input: string) {
   return input
@@ -40,6 +46,7 @@ export async function upsertServiceAction(formData: FormData) {
       name: name_fr,
       tagline: String(formData.get("tagline_fr") || ""),
       description: String(formData.get("description_fr") || ""),
+      descriptionAlign: textAlign(formData, "descriptionAlign_fr"),
       bullets: String(formData.get("bullets_fr") || "")
         .split("\n")
         .map((b) => b.trim())
@@ -49,6 +56,7 @@ export async function upsertServiceAction(formData: FormData) {
       name: name_en,
       tagline: String(formData.get("tagline_en") || ""),
       description: String(formData.get("description_en") || ""),
+      descriptionAlign: textAlign(formData, "descriptionAlign_en"),
       bullets: String(formData.get("bullets_en") || "")
         .split("\n")
         .map((b) => b.trim())

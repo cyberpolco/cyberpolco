@@ -1,5 +1,6 @@
 import { upsertArticleAction } from "@/lib/actions/articles";
 import type { Article } from "@/lib/content/articles";
+import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 
 export default function ArticleForm({ article }: { article?: Article }) {
   return (
@@ -46,24 +47,26 @@ export default function ArticleForm({ article }: { article?: Article }) {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Extrait</label>
-            <textarea
+            <AlignedTextarea
               name="excerpt_fr"
+              alignName="excerptAlign_fr"
               defaultValue={article?.fr.excerpt}
+              defaultAlign={article?.fr.excerptAlign}
               rows={2}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
               Corps (séparez les paragraphes par une ligne vide)
             </label>
-            <textarea
+            <AlignedTextarea
               name="body_fr"
+              alignName="bodyAlign_fr"
               defaultValue={article?.fr.body.join("\n\n")}
+              defaultAlign={article?.fr.bodyAlign}
               rows={10}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
         </fieldset>
@@ -81,24 +84,26 @@ export default function ArticleForm({ article }: { article?: Article }) {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Excerpt</label>
-            <textarea
+            <AlignedTextarea
               name="excerpt_en"
+              alignName="excerptAlign_en"
               defaultValue={article?.en.excerpt}
+              defaultAlign={article?.en.excerptAlign}
               rows={2}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
               Body (separate paragraphs with a blank line)
             </label>
-            <textarea
+            <AlignedTextarea
               name="body_en"
+              alignName="bodyAlign_en"
               defaultValue={article?.en.body.join("\n\n")}
+              defaultAlign={article?.en.bodyAlign}
               rows={10}
               required
-              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
         </fieldset>

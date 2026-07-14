@@ -31,7 +31,12 @@ export default async function ServiceDetail({
 
       <h1 className="mt-6 text-4xl font-bold text-brand-dark">{content.name}</h1>
       <p className="mt-3 text-xl text-brand-gray">{content.tagline}</p>
-      <p className="mt-6 text-base leading-relaxed text-brand-gray">{content.description}</p>
+      <p
+        className="mt-6 text-base leading-relaxed text-brand-gray"
+        style={{ textAlign: content.descriptionAlign || "left" }}
+      >
+        {content.description}
+      </p>
 
       <ul className="mt-8 space-y-3">
         {content.bullets.map((bullet) => (

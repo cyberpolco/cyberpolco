@@ -1,11 +1,12 @@
 import type { ServiceIconKey } from "./service-icons";
+import type { TextAlign } from "@/lib/types/text-align";
 
 export type Service = {
   slug: string;
   icon: ServiceIconKey;
   displayOrder?: number;
-  fr: { name: string; tagline: string; description: string; bullets: string[] };
-  en: { name: string; tagline: string; description: string; bullets: string[] };
+  fr: { name: string; tagline: string; description: string; descriptionAlign?: TextAlign; bullets: string[] };
+  en: { name: string; tagline: string; description: string; descriptionAlign?: TextAlign; bullets: string[] };
 };
 
 export const services: Service[] = [

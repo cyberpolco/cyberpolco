@@ -39,8 +39,25 @@
   --color-brand-dark-2: #2f3555;
   --color-brand-gray: #424242;
 
+  /*
+   * Dashboard status palette — fixed/reserved meaning (good/warning/
+   * critical), never reused for series identity. Same steps in both
+   * themes (validated against both a light and this app's dark surface);
+   * always paired with an icon + label per the dataviz status-color rule.
+   */
+  --color-status-good: #0ca30c;
+  --color-status-warning: #fab219;
+  --color-status-critical: #d03b3b;
+
   --background: #ffffff;
   --foreground: #0f1220;
+}
+
+.dark {
+  /* Brighter step — this app's dark card surface (#2f3555) is lighter
+     than the reference dark surface, so the light-mode critical red
+     drops below 3:1 contrast; this step is validated against #2f3555. */
+  --color-status-critical: #e66767;
 }
 
 @theme inline {
@@ -50,6 +67,9 @@
   --color-brand-dark: var(--color-brand-dark);
   --color-brand-dark-2: var(--color-brand-dark-2);
   --color-brand-gray: var(--color-brand-gray);
+  --color-status-good: var(--color-status-good);
+  --color-status-warning: var(--color-status-warning);
+  --color-status-critical: var(--color-status-critical);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;

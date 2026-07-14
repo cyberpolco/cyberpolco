@@ -1,11 +1,13 @@
+import type { TextAlign } from "@/lib/types/text-align";
+
 export type Article = {
   slug: string;
   date: string;
   image?: string | null;
   viewCount?: number;
   shareCount?: number;
-  fr: { title: string; excerpt: string; body: string[] };
-  en: { title: string; excerpt: string; body: string[] };
+  fr: { title: string; excerpt: string; excerptAlign?: TextAlign; body: string[]; bodyAlign?: TextAlign };
+  en: { title: string; excerpt: string; excerptAlign?: TextAlign; body: string[]; bodyAlign?: TextAlign };
 };
 
 export const articles: Article[] = [
