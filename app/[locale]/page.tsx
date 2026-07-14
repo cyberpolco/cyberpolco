@@ -204,7 +204,7 @@ export default async function HomePage({
             {stats.map((s) => (
               <div key={s.value}>
                 {s.value.includes("%") ? (
-                  <StatsCounter value={s.value} durationMs={5000} />
+                  <StatsCounter value={s.value} durationMs={3000} />
                 ) : (
                   <p className="font-display text-4xl font-bold text-brand-yellow">{s.value}</p>
                 )}
