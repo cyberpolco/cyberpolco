@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { getBlockBoth } from "@/lib/content/blocks";
 import { updateServicesPageAction } from "@/lib/actions/content";
 import { TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
+import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function ServicesPageContentPage() {
   await requireRole(["super_admin", "content_editor"]);
@@ -10,7 +11,9 @@ export default async function ServicesPageContentPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">Services page</h1>
+      <BackLink href="/admin/cms/pages" label="Back to Pages" />
+
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Services page</h1>
       <p className="mt-1 text-brand-gray">
         Edit the intro subtitle shown under the Services page title. Individual services are
         managed separately.

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/rbac";
 import { saveContentBlock } from "@/lib/db/content";
+import { getSettings, saveSettings } from "@/lib/db/settings";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -87,6 +88,17 @@ export async function updateHomeContentAction(formData: FormData) {
       button: field(formData, "finalCta_button_en"),
     },
   });
+
+  // Stats live in the settings singleton, not content_blocks, but are
+  // edited from this same form since that's where they visually appear.
+  const currentSettings = await getSettings();
+  const stats = currentSettings.stats.map((s, i) => ({
+    ...s,
+    value: field(formData, `stat_value_${i}`) || s.value,
+    fr: field(formData, `stat_fr_${i}`) || s.fr,
+    en: field(formData, `stat_en_${i}`) || s.en,
+  }));
+  await saveSettings({ ...currentSettings, stats });
 
   revalidatePath("/[locale]", "page");
   revalidatePath("/admin/cms/pages/home");
@@ -176,8 +188,27 @@ export async function updateFooterContentAction(formData: FormData) {
     en: { tagline: field(formData, "tagline_en") },
   });
 
+  // Office contact info lives in the settings singleton, not content_blocks,
+  // but is edited from this same form since it's also shown in the footer.
+  const currentSettings = await getSettings();
+  const offices = currentSettings.offices.map((o, i) => ({
+    ...o,
+    fr: {
+      city: field(formData, `office_${i}_city_fr`) || o.fr.city,
+      label: field(formData, `office_${i}_label_fr`) || o.fr.label,
+    },
+    en: {
+      city: field(formData, `office_${i}_city_en`) || o.en.city,
+      label: field(formData, `office_${i}_label_en`) || o.en.label,
+    },
+    phone: field(formData, `office_${i}_phone`) || o.phone,
+    whatsapp: field(formData, `office_${i}_whatsapp`) || o.whatsapp,
+  }));
+  await saveSettings({ ...currentSettings, offices });
+
   // "layout" (not "page") since the footer is rendered by the shared
   // [locale] layout across every page, not just the homepage.
   revalidatePath("/[locale]", "layout");
+  revalidatePath("/[locale]/contact", "page");
   revalidatePath("/admin/cms/footer");
 }

@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { getApplicationById } from "@/lib/db/applications";
 import { requireRole } from "@/lib/auth/rbac";
 import ApplicationDetailPanel from "../_components/ApplicationDetailPanel";
+import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function ApplicationDetailPage({
   params,
@@ -18,12 +18,7 @@ export default async function ApplicationDetailPage({
 
   return (
     <div className="max-w-3xl">
-      <Link
-        href="/admin/applications"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-red"
-      >
-        <ArrowLeft size={16} /> Back to applications
-      </Link>
+      <BackLink href="/admin/applications" label="Back to applications" />
 
       <div className="mt-6 rounded-2xl border border-black/5 bg-white p-8">
         <h1 className="text-2xl font-bold text-brand-dark">{application.name}</h1>

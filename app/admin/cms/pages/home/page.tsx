@@ -1,27 +1,42 @@
 import { requireRole } from "@/lib/auth/rbac";
 import { getBlockBoth } from "@/lib/content/blocks";
+import { getSettings } from "@/lib/db/settings";
 import { updateHomeContentAction } from "@/lib/actions/content";
 import { TextInput, TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
+import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function HomeContentPage() {
   await requireRole(["super_admin", "content_editor"]);
 
-  const [hero, mission, vision, map, servicesIntro, clientsIntro, statsIntro, articlesIntro, finalCta] =
-    await Promise.all([
-      getBlockBoth("home.hero"),
-      getBlockBoth("home.mission"),
-      getBlockBoth("home.vision"),
-      getBlockBoth("home.map"),
-      getBlockBoth("home.servicesIntro"),
-      getBlockBoth("home.clientsIntro"),
-      getBlockBoth("home.statsIntro"),
-      getBlockBoth("home.articlesIntro"),
-      getBlockBoth("home.finalCta"),
-    ]);
+  const [
+    hero,
+    mission,
+    vision,
+    map,
+    servicesIntro,
+    clientsIntro,
+    statsIntro,
+    articlesIntro,
+    finalCta,
+    { stats },
+  ] = await Promise.all([
+    getBlockBoth("home.hero"),
+    getBlockBoth("home.mission"),
+    getBlockBoth("home.vision"),
+    getBlockBoth("home.map"),
+    getBlockBoth("home.servicesIntro"),
+    getBlockBoth("home.clientsIntro"),
+    getBlockBoth("home.statsIntro"),
+    getBlockBoth("home.articlesIntro"),
+    getBlockBoth("home.finalCta"),
+    getSettings(),
+  ]);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">Homepage content</h1>
+      <BackLink href="/admin/cms/pages" label="Back to Pages" />
+
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Homepage content</h1>
       <p className="mt-1 text-brand-gray">Edit the copy shown on the public homepage.</p>
 
       <form action={updateHomeContentAction} className="mt-8 space-y-6">
@@ -151,6 +166,24 @@ export default async function HomeContentPage() {
             <TextInput name="statsIntro_title_en" label="Title" defaultValue={statsIntro.en.title} />
           </LocaleColumn>
         </ContentSection>
+
+        <section className="rounded-2xl border border-black/5 bg-white p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-blue">
+            Stats numbers
+          </h2>
+          <div className="mt-4 space-y-4">
+            {stats.map((s, i) => (
+              <div
+                key={i}
+                className="grid gap-3 rounded-xl border border-black/5 p-4 sm:grid-cols-3"
+              >
+                <TextInput name={`stat_value_${i}`} label="Value" defaultValue={s.value} />
+                <TextInput name={`stat_fr_${i}`} label="Label (FR)" defaultValue={s.fr} />
+                <TextInput name={`stat_en_${i}`} label="Label (EN)" defaultValue={s.en} />
+              </div>
+            ))}
+          </div>
+        </section>
 
         <ContentSection title="Articles intro">
           <LocaleColumn label="Français">

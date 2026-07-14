@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Home, User, Layers, Briefcase, Mail } from "lucide-react";
 import { requireRole } from "@/lib/auth/rbac";
+import BackLink from "@/app/admin/_components/BackLink";
 
 const pages = [
   { href: "/admin/cms/pages/home", label: "Home", description: "Hero, mission, vision, and every section intro.", icon: Home },
@@ -15,7 +16,9 @@ export default async function PagesListPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">Pages</h1>
+      <BackLink href="/admin/cms" label="Back to CMS" />
+
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Pages</h1>
       <p className="mt-1 text-brand-gray">Edit the copy on each public page.</p>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

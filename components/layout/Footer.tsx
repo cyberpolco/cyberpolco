@@ -3,7 +3,6 @@ import Image from "next/image";
 import NextLink from "next/link";
 import { Link } from "@/i18n/navigation";
 import { MessageCircle } from "lucide-react";
-import { offices } from "@/lib/content/company";
 import { getServices } from "@/lib/db/services";
 import { getSettings } from "@/lib/db/settings";
 import { getBlock } from "@/lib/content/blocks";
@@ -49,7 +48,7 @@ export default async function Footer() {
   const t = await getTranslations("footer");
   const tNav = await getTranslations("nav");
   const locale = (await getLocale()) as "fr" | "en";
-  const { socialLinks } = await getSettings();
+  const { socialLinks, offices } = await getSettings();
   const services = await getServices();
   const { tagline } = await getBlock("footer.tagline", locale);
 

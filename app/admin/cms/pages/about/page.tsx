@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { getBlockBoth } from "@/lib/content/blocks";
 import { updateAboutContentAction } from "@/lib/actions/content";
 import { TextInput, TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
+import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function AboutContentPage() {
   await requireRole(["super_admin", "content_editor"]);
@@ -14,7 +15,9 @@ export default async function AboutContentPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">About page content</h1>
+      <BackLink href="/admin/cms/pages" label="Back to Pages" />
+
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark">About page content</h1>
       <p className="mt-1 text-brand-gray">Edit the company story, leadership bio, and sector overview.</p>
 
       <form action={updateAboutContentAction} className="mt-8 space-y-6">

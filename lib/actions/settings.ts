@@ -9,13 +9,6 @@ export async function updateSettingsAction(formData: FormData) {
 
   const current = await getSettings();
 
-  const stats = current.stats.map((s, i) => ({
-    ...s,
-    value: String(formData.get(`stat_value_${i}`) || s.value),
-    fr: String(formData.get(`stat_fr_${i}`) || s.fr),
-    en: String(formData.get(`stat_en_${i}`) || s.en),
-  }));
-
   const socialLinks = {
     x: String(formData.get("social_x") || current.socialLinks.x),
     linkedin: String(formData.get("social_linkedin") || current.socialLinks.linkedin),
@@ -27,7 +20,7 @@ export async function updateSettingsAction(formData: FormData) {
     ),
   };
 
-  await saveSettings({ stats, socialLinks });
+  await saveSettings({ ...current, socialLinks });
 
   // "layout" since social links are rendered in the footer across every
   // page, not just the homepage.

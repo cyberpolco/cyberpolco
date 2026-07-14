@@ -12,6 +12,13 @@ type SocialLinks = {
   github: string;
   whatsappChannel: string;
 };
+type Office = {
+  country: string;
+  fr: { city: string; label: string };
+  en: { city: string; label: string };
+  phone: string;
+  whatsapp: string;
+};
 
 export const articles = pgTable("articles", {
   slug: text("slug").primaryKey(),
@@ -67,6 +74,10 @@ export const settings = pgTable("settings", {
   id: text("id").primaryKey(),
   stats: jsonb("stats").$type<Stat[]>().notNull(),
   socialLinks: jsonb("social_links").$type<SocialLinks>().notNull(),
+  // Nullable (not notNull): adding a NOT NULL column to an existing row with
+  // no default would fail the migration. getSettings() falls back to the
+  // static defaults when this is null, same pattern as getBlock/getServices.
+  offices: jsonb("offices").$type<Office[]>(),
 });
 
 export const users = pgTable("users", {

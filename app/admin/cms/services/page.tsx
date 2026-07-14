@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { getServices } from "@/lib/db/services";
 import { deleteServiceAction } from "@/lib/actions/services";
 import { requireRole } from "@/lib/auth/rbac";
+import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function AdminServicesPage() {
   await requireRole(["super_admin", "content_editor"]);
@@ -11,7 +12,9 @@ export default async function AdminServicesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <BackLink href="/admin/cms" label="Back to CMS" />
+
+      <div className="mt-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-brand-dark">Services</h1>
         <Link
           href="/admin/cms/services/new"

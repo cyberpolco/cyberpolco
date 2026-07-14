@@ -18,13 +18,13 @@ const sections = [
   {
     href: "/admin/cms/footer",
     label: "Footer",
-    description: "Edit the tagline shown in the footer on every page.",
+    description: "Edit the tagline and office contact info shown in the footer.",
     icon: PanelBottom,
   },
   {
     href: "/admin/cms/settings",
     label: "Settings",
-    description: "Homepage stats and social media links.",
+    description: "Social media links.",
     icon: Settings,
   },
 ];

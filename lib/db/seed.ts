@@ -6,7 +6,7 @@ import {
   services as servicesTable,
 } from "./schema";
 import { articles as seedArticles } from "@/lib/content/articles";
-import { stats, socialLinks } from "@/lib/content/company";
+import { stats, socialLinks, offices } from "@/lib/content/company";
 import { blockDefaults } from "@/lib/content/blocks";
 import { services as seedServices } from "@/lib/content/services";
 
@@ -14,7 +14,7 @@ async function seed() {
   await db.insert(articlesTable).values(seedArticles).onConflictDoNothing();
   await db
     .insert(settingsTable)
-    .values({ id: "singleton", stats, socialLinks })
+    .values({ id: "singleton", stats, socialLinks, offices })
     .onConflictDoNothing();
 
   const now = new Date().toISOString();

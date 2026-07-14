@@ -43,6 +43,13 @@
       "when": 1784020559676,
       "tag": "0005_greedy_kitty_pryde",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784026635090,
+      "tag": "0006_noisy_malcolm_colcord",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Mail, Phone, MapPin } from "lucide-react";
 import ContactForm from "@/components/forms/ContactForm";
-import { offices, contactEmails } from "@/lib/content/company";
+import { contactEmails } from "@/lib/content/company";
 import { getSettings } from "@/lib/db/settings";
 import { getBlock } from "@/lib/content/blocks";
 
@@ -13,7 +13,7 @@ export default async function ContactPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("contact");
-  const { socialLinks } = await getSettings();
+  const { socialLinks, offices } = await getSettings();
   const intro = await getBlock("contact.intro", locale);
 
   return (

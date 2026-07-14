@@ -1,54 +1,24 @@
 import { getSettings } from "@/lib/db/settings";
 import { updateSettingsAction } from "@/lib/actions/settings";
 import { requireRole } from "@/lib/auth/rbac";
+import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function SettingsPage() {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "content_editor"]);
 
   const settings = await getSettings();
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">Settings</h1>
+      <BackLink href="/admin/cms" label="Back to CMS" />
+
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Settings</h1>
       <p className="mt-1 text-brand-gray">
-        Edit homepage stats and social links without a redeploy.
+        Social media links. Homepage stats live under CMS → Pages → Home, and office contact
+        info under CMS → Footer.
       </p>
 
       <form action={updateSettingsAction} className="mt-8 space-y-10">
-        <section>
-          <h2 className="text-lg font-semibold text-brand-dark">Homepage stats</h2>
-          <div className="mt-4 space-y-4">
-            {settings.stats.map((s, i) => (
-              <div key={i} className="grid gap-3 rounded-2xl border border-black/5 p-4 sm:grid-cols-3">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-brand-gray">Value</label>
-                  <input
-                    name={`stat_value_${i}`}
-                    defaultValue={s.value}
-                    className="w-full rounded-lg border border-black/10 px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-brand-gray">Label (FR)</label>
-                  <input
-                    name={`stat_fr_${i}`}
-                    defaultValue={s.fr}
-                    className="w-full rounded-lg border border-black/10 px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-brand-gray">Label (EN)</label>
-                  <input
-                    name={`stat_en_${i}`}
-                    defaultValue={s.en}
-                    className="w-full rounded-lg border border-black/10 px-3 py-2"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section>
           <h2 className="text-lg font-semibold text-brand-dark">Social links</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

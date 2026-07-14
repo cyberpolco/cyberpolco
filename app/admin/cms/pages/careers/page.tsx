@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { getBlockBoth } from "@/lib/content/blocks";
 import { updateCareersPageAction } from "@/lib/actions/content";
 import { TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
+import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function CareersPageContentPage() {
   await requireRole(["super_admin", "content_editor"]);
@@ -10,7 +11,9 @@ export default async function CareersPageContentPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">Careers page</h1>
+      <BackLink href="/admin/cms/pages" label="Back to Pages" />
+
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Careers page</h1>
       <p className="mt-1 text-brand-gray">
         Edit the intro subtitle shown under the Careers page title. Job listings are managed
         under Jobs.
