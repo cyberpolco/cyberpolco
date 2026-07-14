@@ -1,39 +1,45 @@
 import Link from "next/link";
-import { Home, User, FileStack } from "lucide-react";
+import { FileStack, Layers, PanelBottom, Settings } from "lucide-react";
 import { requireRole } from "@/lib/auth/rbac";
 
 const sections = [
   {
-    href: "/admin/content/home",
-    label: "Homepage",
-    description: "Hero, mission, vision, and every section intro on the homepage.",
-    icon: Home,
-  },
-  {
-    href: "/admin/content/about",
-    label: "About page",
-    description: "Company story, leadership bio, and sector overview.",
-    icon: User,
-  },
-  {
-    href: "/admin/content/page-intros",
-    label: "Page intros",
-    description: "Intro subtitles for Careers, Contact, and Services.",
+    href: "/admin/cms/pages",
+    label: "Pages",
+    description: "Edit the copy on Home, About, Services, Careers, and Contact.",
     icon: FileStack,
+  },
+  {
+    href: "/admin/cms/services",
+    label: "Services",
+    description: "Add, edit, or remove the services listed on the site.",
+    icon: Layers,
+  },
+  {
+    href: "/admin/cms/footer",
+    label: "Footer",
+    description: "Edit the tagline shown in the footer on every page.",
+    icon: PanelBottom,
+  },
+  {
+    href: "/admin/cms/settings",
+    label: "Settings",
+    description: "Homepage stats and social media links.",
+    icon: Settings,
   },
 ];
 
-export default async function ContentHubPage() {
+export default async function CmsHubPage() {
   await requireRole(["super_admin", "content_editor"]);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">Content</h1>
+      <h1 className="text-2xl font-bold text-brand-dark">CMS</h1>
       <p className="mt-1 text-brand-gray">
-        Edit the site&apos;s business copy without a redeploy. Services are managed separately.
+        Everything editable about the site&apos;s content, without a redeploy.
       </p>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {sections.map((s) => {
           const Icon = s.icon;
           return (

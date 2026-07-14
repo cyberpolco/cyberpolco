@@ -15,6 +15,7 @@ type Story = { p1: string; p2: string; p3: string; quote: string };
 type Leadership = { name: string; roleTitle: string; body: string };
 type BodyOnly = { body: string };
 type SubtitleOnly = { subtitle: string };
+type TaglineOnly = { tagline: string };
 
 // Literal current copy — also used as the seed source (lib/db/seed.ts) so
 // the CMS rollout changes nothing visually until someone edits a block.
@@ -174,6 +175,11 @@ export const blockDefaults = {
         "Cyber PolCo offers professional cybersecurity services and specialized consulting for businesses, institutions, and individuals.",
     },
   } satisfies Localized<SubtitleOnly>,
+
+  "footer.tagline": {
+    fr: { tagline: "Votre sécurité est votre priorité, heureusement, c'est aussi la nôtre." },
+    en: { tagline: "Your security is your first concern, fortunately we've made it ours." },
+  } satisfies Localized<TaglineOnly>,
 };
 
 export type BlockKey = keyof typeof blockDefaults;

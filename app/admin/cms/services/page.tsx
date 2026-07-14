@@ -14,7 +14,7 @@ export default async function AdminServicesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-brand-dark">Services</h1>
         <Link
-          href="/admin/services/new"
+          href="/admin/cms/services/new"
           className="flex items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white"
         >
           <Plus size={16} /> New service
@@ -39,7 +39,7 @@ export default async function AdminServicesPage() {
                 <td className="px-5 py-3 text-brand-gray">{s.slug}</td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-3">
-                    <Link href={`/admin/services/${s.slug}/edit`} className="text-brand-blue">
+                    <Link href={`/admin/cms/services/${s.slug}/edit`} className="text-brand-blue">
                       <Pencil size={16} />
                     </Link>
                     <form action={deleteServiceAction}>

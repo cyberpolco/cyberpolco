@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getServiceBySlug } from "@/lib/db/services";
 import { requireRole } from "@/lib/auth/rbac";
-import ServiceForm from "../../_components/ServiceForm";
+import ServiceForm from "@/app/admin/cms/services/_components/ServiceForm";
 
 export default async function EditServicePage({
   params,

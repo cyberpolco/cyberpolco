@@ -57,11 +57,13 @@ export async function upsertServiceAction(formData: FormData) {
   };
 
   await saveService(service);
-  revalidatePath("/admin/services");
+  revalidatePath("/admin/cms/services");
   revalidatePath("/[locale]/services", "page");
   revalidatePath("/[locale]/services/[slug]", "page");
-  revalidatePath("/[locale]", "page");
-  redirect("/admin/services");
+  // "layout" since services also appear in the footer (shared across every
+  // page) and on the homepage, not just the /services pages.
+  revalidatePath("/[locale]", "layout");
+  redirect("/admin/cms/services");
 }
 
 export async function deleteServiceAction(formData: FormData) {
@@ -69,7 +71,7 @@ export async function deleteServiceAction(formData: FormData) {
 
   const slug = String(formData.get("slug") || "");
   await deleteService(slug);
-  revalidatePath("/admin/services");
+  revalidatePath("/admin/cms/services");
   revalidatePath("/[locale]/services", "page");
-  revalidatePath("/[locale]", "page");
+  revalidatePath("/[locale]", "layout");
 }

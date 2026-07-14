@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth/rbac";
 import { getBlockBoth } from "@/lib/content/blocks";
 import { updateHomeContentAction } from "@/lib/actions/content";
-import { TextInput, TextArea, ContentSection, LocaleColumn } from "../_components/Fields";
+import { TextInput, TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
 
 export default async function HomeContentPage() {
   await requireRole(["super_admin", "content_editor"]);

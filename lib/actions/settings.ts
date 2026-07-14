@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from "@/lib/db/settings";
 import { requireRole } from "@/lib/auth/rbac";
 
 export async function updateSettingsAction(formData: FormData) {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "content_editor"]);
 
   const current = await getSettings();
 
@@ -29,6 +29,8 @@ export async function updateSettingsAction(formData: FormData) {
 
   await saveSettings({ stats, socialLinks });
 
-  revalidatePath("/[locale]", "page");
-  revalidatePath("/admin/settings");
+  // "layout" since social links are rendered in the footer across every
+  // page, not just the homepage.
+  revalidatePath("/[locale]", "layout");
+  revalidatePath("/admin/cms/settings");
 }

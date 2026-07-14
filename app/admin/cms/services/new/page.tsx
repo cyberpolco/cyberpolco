@@ -1,5 +1,5 @@
 import { requireRole } from "@/lib/auth/rbac";
-import ServiceForm from "../_components/ServiceForm";
+import ServiceForm from "@/app/admin/cms/services/_components/ServiceForm";
 
 export default async function NewServicePage() {
   await requireRole(["super_admin", "content_editor"]);

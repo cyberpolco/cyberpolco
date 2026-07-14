@@ -89,7 +89,7 @@ export async function updateHomeContentAction(formData: FormData) {
   });
 
   revalidatePath("/[locale]", "page");
-  revalidatePath("/admin/content/home");
+  revalidatePath("/admin/cms/pages/home");
 }
 
 export async function updateAboutContentAction(formData: FormData) {
@@ -129,29 +129,55 @@ export async function updateAboutContentAction(formData: FormData) {
   });
 
   revalidatePath("/[locale]/about", "page");
-  revalidatePath("/admin/content/about");
+  revalidatePath("/admin/cms/pages/about");
 }
 
-export async function updatePageIntrosAction(formData: FormData) {
+export async function updateServicesPageAction(formData: FormData) {
+  await requireRole(["super_admin", "content_editor"]);
+
+  await saveContentBlock("services.intro", {
+    fr: { subtitle: field(formData, "subtitle_fr") },
+    en: { subtitle: field(formData, "subtitle_en") },
+  });
+
+  revalidatePath("/[locale]/services", "page");
+  revalidatePath("/admin/cms/pages/services");
+}
+
+export async function updateCareersPageAction(formData: FormData) {
   await requireRole(["super_admin", "content_editor"]);
 
   await saveContentBlock("careers.intro", {
-    fr: { subtitle: field(formData, "careers_subtitle_fr") },
-    en: { subtitle: field(formData, "careers_subtitle_en") },
-  });
-
-  await saveContentBlock("contact.intro", {
-    fr: { subtitle: field(formData, "contact_subtitle_fr") },
-    en: { subtitle: field(formData, "contact_subtitle_en") },
-  });
-
-  await saveContentBlock("services.intro", {
-    fr: { subtitle: field(formData, "services_subtitle_fr") },
-    en: { subtitle: field(formData, "services_subtitle_en") },
+    fr: { subtitle: field(formData, "subtitle_fr") },
+    en: { subtitle: field(formData, "subtitle_en") },
   });
 
   revalidatePath("/[locale]/careers", "page");
+  revalidatePath("/admin/cms/pages/careers");
+}
+
+export async function updateContactPageAction(formData: FormData) {
+  await requireRole(["super_admin", "content_editor"]);
+
+  await saveContentBlock("contact.intro", {
+    fr: { subtitle: field(formData, "subtitle_fr") },
+    en: { subtitle: field(formData, "subtitle_en") },
+  });
+
   revalidatePath("/[locale]/contact", "page");
-  revalidatePath("/[locale]/services", "page");
-  revalidatePath("/admin/content/page-intros");
+  revalidatePath("/admin/cms/pages/contact");
+}
+
+export async function updateFooterContentAction(formData: FormData) {
+  await requireRole(["super_admin", "content_editor"]);
+
+  await saveContentBlock("footer.tagline", {
+    fr: { tagline: field(formData, "tagline_fr") },
+    en: { tagline: field(formData, "tagline_en") },
+  });
+
+  // "layout" (not "page") since the footer is rendered by the shared
+  // [locale] layout across every page, not just the homepage.
+  revalidatePath("/[locale]", "layout");
+  revalidatePath("/admin/cms/footer");
 }

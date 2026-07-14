@@ -4,8 +4,9 @@ import NextLink from "next/link";
 import { Link } from "@/i18n/navigation";
 import { MessageCircle } from "lucide-react";
 import { offices } from "@/lib/content/company";
-import { services } from "@/lib/content/services";
+import { getServices } from "@/lib/db/services";
 import { getSettings } from "@/lib/db/settings";
+import { getBlock } from "@/lib/content/blocks";
 
 // lucide-react dropped brand/logo icons — inline glyphs for the platforms we link to.
 function XGlyph() {
@@ -49,6 +50,8 @@ export default async function Footer() {
   const tNav = await getTranslations("nav");
   const locale = (await getLocale()) as "fr" | "en";
   const { socialLinks } = await getSettings();
+  const services = await getServices();
+  const { tagline } = await getBlock("footer.tagline", locale);
 
   const socialIcons = [
     { href: socialLinks.x, icon: <XGlyph />, label: "X" },
@@ -68,7 +71,7 @@ export default async function Footer() {
               <Image src="/images/logo-mark.png" alt="Cyber PolCo" width={36} height={36} className="rounded-full" />
               <span className="font-display text-lg font-bold text-white">Cyber PolCo</span>
             </div>
-            <p className="text-sm text-white/60">{t("tagline")}</p>
+            <p className="text-sm text-white/60">{tagline}</p>
           </div>
 
           <div>

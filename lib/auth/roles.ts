@@ -17,11 +17,10 @@ const ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/dashboard", roles: ALL_ROLES },
   { prefix: "/admin/change-password", roles: ALL_ROLES },
   { prefix: "/admin/articles", roles: ["super_admin", "content_editor"] },
-  { prefix: "/admin/content", roles: ["super_admin", "content_editor"] },
-  { prefix: "/admin/services", roles: ["super_admin", "content_editor"] },
+  // Content, Services, Footer, and Settings all live under one CMS section.
+  { prefix: "/admin/cms", roles: ["super_admin", "content_editor"] },
   { prefix: "/admin/jobs", roles: ["super_admin", "hr_recruiter"] },
   { prefix: "/admin/applications", roles: ["super_admin", "hr_recruiter"] },
-  { prefix: "/admin/settings", roles: ["super_admin"] },
   { prefix: "/admin/inquiries", roles: ["super_admin"] },
   { prefix: "/admin/users", roles: ["super_admin"] },
 ];

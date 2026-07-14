@@ -172,13 +172,18 @@ The repo is already linked to Vercel (`cyberpolco.vercel.app`). Every push to
 
 Go to `/admin/login`. Manage:
 
+- **Dashboard** — activity overview, plus article view/share insights
+  ("most read"/"most shared")
 - **Articles** — create/edit/delete, both FR and EN required per article
+- **CMS** — everything editable about the site's content, without a redeploy:
+  - **Pages** — Home, About, Services, Careers, and Contact page copy
+  - **Services** — add/edit/remove the services listed on the site
+  - **Footer** — the tagline shown on every page
+  - **Settings** — homepage stats and social media links
 - **Jobs** — create/edit/delete, open/closed status (Careers page shows
   "no openings" automatically when none are open)
+- **Applications** — hiring decision board (Kanban), CV downloads, notes
 - **Inquiries** — contact form submissions, mark read/unread
-- **Applications** — job applications with CV download links
-- **Settings** — homepage stats and social links, editable without a
-  redeploy
 - **Users** — manage admin accounts and roles (Super Admin only)
 
 ### Roles
@@ -187,8 +192,8 @@ Every admin account has exactly one role, set in `/admin/users`:
 
 | Role | Can access |
 |---|---|
-| Super Admin | Everything, including Users and Settings |
-| Content Editor | Articles |
+| Super Admin | Everything, including Users |
+| Content Editor | Articles, CMS |
 | HR / Recruiter | Jobs, Applications |
 | Viewer | Dashboard only, read-only |
 
