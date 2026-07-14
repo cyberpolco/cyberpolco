@@ -140,7 +140,13 @@ export const starlinkClients = pgTable("starlink_clients", {
   createdAt: text("created_at").notNull(),
 });
 
-type AcademyLesson = { id: string; title: string; description: string };
+type AcademyLesson = {
+  id: string;
+  title: string;
+  description: string;
+  materialUrl: string | null;
+  materialFileName: string | null;
+};
 type AcademyModule = { id: string; title: string; lessons: AcademyLesson[] };
 type LocalizedCourseText = { title: string; description: string };
 

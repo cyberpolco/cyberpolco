@@ -16,8 +16,13 @@ import {
   type Module,
   type Lesson,
 } from "@/lib/db/academy";
-import { storeCertificateFile } from "@/lib/db/file-storage";
-import { ALLOWED_CERTIFICATE_TYPES, MAX_CERTIFICATE_SIZE_BYTES } from "@/lib/validation/schemas";
+import { storeCertificateFile, storeLessonMaterialFile } from "@/lib/db/file-storage";
+import {
+  ALLOWED_CERTIFICATE_TYPES,
+  MAX_CERTIFICATE_SIZE_BYTES,
+  ALLOWED_LESSON_MATERIAL_TYPES,
+  MAX_LESSON_MATERIAL_SIZE_BYTES,
+} from "@/lib/validation/schemas";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -32,7 +37,7 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
-function parseModules(formData: FormData): Module[] {
+async function parseModules(formData: FormData, redirectTarget: string): Promise<Module[]> {
   const moduleCount = Number(formData.get("moduleCount") || 0);
   const modules: Module[] = [];
 
@@ -41,10 +46,28 @@ function parseModules(formData: FormData): Module[] {
     const lessons: Lesson[] = [];
 
     for (let j = 0; j < lessonCount; j++) {
+      let materialUrl = field(formData, `module_${i}_lesson_${j}_materialUrl`) || null;
+      let materialFileName = field(formData, `module_${i}_lesson_${j}_materialFileName`) || null;
+
+      const file = formData.get(`module_${i}_lesson_${j}_material`);
+      if (file instanceof File && file.size > 0) {
+        if (!ALLOWED_LESSON_MATERIAL_TYPES.includes(file.type)) {
+          redirect(`${redirectTarget}?error=file-type`);
+        }
+        if (file.size > MAX_LESSON_MATERIAL_SIZE_BYTES) {
+          redirect(`${redirectTarget}?error=file-size`);
+        }
+        const stored = await storeLessonMaterialFile(file);
+        materialUrl = stored.url;
+        materialFileName = stored.fileName;
+      }
+
       lessons.push({
         id: field(formData, `module_${i}_lesson_${j}_id`) || crypto.randomUUID(),
         title: field(formData, `module_${i}_lesson_${j}_title`),
         description: field(formData, `module_${i}_lesson_${j}_description`),
+        materialUrl,
+        materialFileName,
       });
     }
 
@@ -66,13 +89,16 @@ export async function upsertAcademyCourseAction(formData: FormData) {
   const titleFr = field(formData, "title_fr");
   const titleEn = field(formData, "title_en");
   const slug = existingSlug || slugify(titleEn || titleFr);
+  const redirectTarget = existingId
+    ? `/admin/academy/courses/${existingId}/edit`
+    : "/admin/academy/courses/new";
 
   const course: AcademyCourse = {
     id: existingId || crypto.randomUUID(),
     slug,
     fr: { title: titleFr, description: field(formData, "description_fr") },
     en: { title: titleEn, description: field(formData, "description_en") },
-    modules: parseModules(formData),
+    modules: await parseModules(formData, redirectTarget),
     createdAt: existingId ? field(formData, "createdAt") : new Date().toISOString(),
   };
 

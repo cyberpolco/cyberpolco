@@ -47,9 +47,19 @@ export default function AcademyViewerDashboard({
                     {completed.has(l.id) ? (
                       <CircleCheckBig size={16} className="text-brand-blue" />
                     ) : (
-                      <Circle size={16} className="text-black/20" />
+                      <Circle size={16} className="text-black/20 dark:text-white/20" />
                     )}
-                    {l.title}
+                    <span className="flex-1">{l.title}</span>
+                    {l.materialUrl && (
+                      <a
+                        href={l.materialUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-brand-blue hover:underline"
+                      >
+                        <FileDown size={13} /> {l.materialFileName ?? "Material"}
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>

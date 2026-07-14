@@ -2,7 +2,13 @@ import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { academyCourses as academyCoursesTable, academyEnrollments as academyEnrollmentsTable } from "./schema";
 
-export type Lesson = { id: string; title: string; description: string };
+export type Lesson = {
+  id: string;
+  title: string;
+  description: string;
+  materialUrl: string | null;
+  materialFileName: string | null;
+};
 export type Module = { id: string; title: string; lessons: Lesson[] };
 export type LocalizedCourseText = { title: string; description: string };
 

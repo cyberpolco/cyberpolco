@@ -58,3 +58,10 @@ export const MAX_CV_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 export const ALLOWED_CERTIFICATE_TYPES = ["application/pdf"];
 export const MAX_CERTIFICATE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
+export const ALLOWED_LESSON_MATERIAL_TYPES = [
+  "application/pdf",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+];
+export const MAX_LESSON_MATERIAL_SIZE_BYTES = 20 * 1024 * 1024; // 20MB

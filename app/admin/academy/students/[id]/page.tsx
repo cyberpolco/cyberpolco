@@ -76,15 +76,27 @@ export default async function StudentDetailPage({
                 <p className="text-sm font-semibold text-brand-dark dark:text-white">{m.title}</p>
                 <div className="mt-2 space-y-2">
                   {m.lessons.map((l) => (
-                    <label key={l.id} className="flex items-center gap-2 text-sm text-brand-gray dark:text-white/60">
-                      <input
-                        type="checkbox"
-                        name={`lesson_${l.id}`}
-                        defaultChecked={completed.has(l.id)}
-                        className="h-4 w-4 rounded border-black/20 dark:border-white/25"
-                      />
-                      {l.title}
-                    </label>
+                    <div key={l.id} className="flex items-center gap-2 text-sm text-brand-gray dark:text-white/60">
+                      <label className="flex flex-1 items-center gap-2">
+                        <input
+                          type="checkbox"
+                          name={`lesson_${l.id}`}
+                          defaultChecked={completed.has(l.id)}
+                          className="h-4 w-4 rounded border-black/20 dark:border-white/25"
+                        />
+                        {l.title}
+                      </label>
+                      {l.materialUrl && (
+                        <a
+                          href={l.materialUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-brand-blue hover:underline"
+                        >
+                          <FileText size={12} /> {l.materialFileName ?? "Material"}
+                        </a>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>

@@ -1,14 +1,19 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, FileText } from "lucide-react";
 import { upsertAcademyCourseAction } from "@/lib/actions/academy";
 import type { AcademyCourse, Lesson, Module } from "@/lib/db/academy";
 
 type LessonRow = { key: string; lesson?: Lesson };
 type ModuleRow = { key: string; module?: Module; lessonRows: LessonRow[] };
 
-export default function CourseForm({ course }: { course?: AcademyCourse }) {
+const ERROR_MESSAGES: Record<string, string> = {
+  "file-type": "Lesson material must be a PDF or PowerPoint file (.pdf, .ppt, .pptx).",
+  "file-size": "Lesson material must be under 20MB.",
+};
+
+export default function CourseForm({ course, error }: { course?: AcademyCourse; error?: string }) {
   const moduleCounter = useRef(0);
   const lessonCounter = useRef(0);
 
@@ -51,11 +56,15 @@ export default function CourseForm({ course }: { course?: AcademyCourse }) {
   }
 
   return (
-    <form action={upsertAcademyCourseAction} className="space-y-8">
+    <form action={upsertAcademyCourseAction} encType="multipart/form-data" className="space-y-8">
       {course && <input type="hidden" name="id" value={course.id} />}
       {course && <input type="hidden" name="existingSlug" value={course.slug} />}
       {course && <input type="hidden" name="createdAt" value={course.createdAt} />}
       <input type="hidden" name="moduleCount" value={modules.length} />
+
+      {error && ERROR_MESSAGES[error] && (
+        <p className="rounded-lg bg-brand-red/10 p-3 text-sm text-brand-red">{ERROR_MESSAGES[error]}</p>
+      )}
 
       <div className="grid gap-8 md:grid-cols-2">
         <fieldset className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 p-5">
@@ -149,6 +158,16 @@ export default function CourseForm({ course }: { course?: AcademyCourse }) {
                       name={`module_${i}_lesson_${j}_id`}
                       value={lrow.lesson?.id ?? ""}
                     />
+                    <input
+                      type="hidden"
+                      name={`module_${i}_lesson_${j}_materialUrl`}
+                      value={lrow.lesson?.materialUrl ?? ""}
+                    />
+                    <input
+                      type="hidden"
+                      name={`module_${i}_lesson_${j}_materialFileName`}
+                      value={lrow.lesson?.materialFileName ?? ""}
+                    />
                     <div className="flex items-center gap-2">
                       <input
                         name={`module_${i}_lesson_${j}_title`}
@@ -173,6 +192,27 @@ export default function CourseForm({ course }: { course?: AcademyCourse }) {
                       rows={2}
                       className="mt-2 w-full rounded-lg border border-black/10 dark:border-white/15 px-3 py-2 text-sm dark:bg-white/5 dark:text-white"
                     />
+                    <div className="mt-2">
+                      {lrow.lesson?.materialFileName && (
+                        <a
+                          href={lrow.lesson.materialUrl ?? undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mb-1 inline-flex items-center gap-1 text-xs text-brand-blue hover:underline"
+                        >
+                          <FileText size={12} /> Current: {lrow.lesson.materialFileName}
+                        </a>
+                      )}
+                      <label className="block text-xs font-medium text-brand-gray dark:text-white/60">
+                        Upload material (PDF or PowerPoint)
+                      </label>
+                      <input
+                        type="file"
+                        name={`module_${i}_lesson_${j}_material`}
+                        accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        className="mt-1 w-full text-xs text-brand-gray dark:text-white/60"
+                      />
+                    </div>
                   </div>
                 ))}
                 <button
