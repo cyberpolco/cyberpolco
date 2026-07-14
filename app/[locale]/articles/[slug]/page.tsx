@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { articles as seedArticles } from "@/lib/content/articles";
 import { getArticleBySlug } from "@/lib/db/articles";
 import ShareButton from "@/components/articles/ShareButton";
+import ArticleViewTracker from "@/components/articles/ArticleViewTracker";
 
 export function generateStaticParams() {
   return seedArticles.map((a) => ({ slug: a.slug }));
@@ -56,11 +57,17 @@ export default async function ArticleDetailPage({
 
   return (
     <article className="mx-auto max-w-3xl px-5 py-20 lg:px-8">
+      <ArticleViewTracker slug={slug} />
       <div className="flex items-center justify-between">
         <Link href="/articles" className="text-sm font-semibold text-brand-red">
           ← {t("back")}
         </Link>
-        <ShareButton title={content.title} shareLabel={t("share")} copiedLabel={t("copied")} />
+        <ShareButton
+          slug={slug}
+          title={content.title}
+          shareLabel={t("share")}
+          copiedLabel={t("copied")}
+        />
       </div>
 
       <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-brand-blue">

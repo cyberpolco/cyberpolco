@@ -1,24 +1,29 @@
-import { Newspaper, Briefcase, Inbox, FileText } from "lucide-react";
-import { getArticles } from "@/lib/db/articles";
+import { Newspaper, Briefcase, Inbox, FileText, Eye, Share2 } from "lucide-react";
+import { getArticles, getTopArticlesByViews, getTopArticlesByShares } from "@/lib/db/articles";
 import { getJobs } from "@/lib/db/jobs";
 import { getInquiries } from "@/lib/db/inquiries";
 import { getApplications } from "@/lib/db/applications";
 import { getSession } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/auth/roles";
+import RankedBarList from "./_components/RankedBarList";
 
 export default async function DashboardPage() {
   const session = await getSession();
   const role = session?.role as Role;
 
-  const [articles, jobs, inquiries, applications] = await Promise.all([
+  const [articles, jobs, inquiries, applications, topByViews, topByShares] = await Promise.all([
     getArticles(),
     getJobs(),
     getInquiries(),
     getApplications(),
+    getTopArticlesByViews(5),
+    getTopArticlesByShares(5),
   ]);
 
   const unreadInquiries = inquiries.filter((i) => !i.read).length;
   const openJobs = jobs.filter((j) => j.status === "open").length;
+  const totalViews = articles.reduce((sum, a) => sum + (a.viewCount ?? 0), 0);
+  const totalShares = articles.reduce((sum, a) => sum + (a.shareCount ?? 0), 0);
 
   const allCards = [
     {
@@ -48,6 +53,20 @@ export default async function DashboardPage() {
       icon: FileText,
       href: "/admin/applications",
       roles: ["super_admin", "hr_recruiter"] as Role[],
+    },
+    {
+      label: "Total article views",
+      value: totalViews,
+      icon: Eye,
+      href: "/admin/articles",
+      roles: ["super_admin", "content_editor", "hr_recruiter", "viewer"] as Role[],
+    },
+    {
+      label: "Total article shares",
+      value: totalShares,
+      icon: Share2,
+      href: "/admin/articles",
+      roles: ["super_admin", "content_editor", "hr_recruiter", "viewer"] as Role[],
     },
   ];
 
@@ -81,10 +100,17 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="mt-10 rounded-2xl border border-dashed border-black/15 p-6 text-sm text-brand-gray">
-        <strong className="text-brand-dark">Note:</strong> once analytics tracking is connected
-        (see README.md → Future Scalability), page view and article-share stats can be added
-        here too.
+      <div className="mt-8 grid gap-5 lg:grid-cols-2">
+        <RankedBarList
+          title="Most read articles"
+          colorClassName="bg-brand-blue"
+          items={topByViews.map((a) => ({ label: a.en.title, value: a.viewCount ?? 0 }))}
+        />
+        <RankedBarList
+          title="Most shared articles"
+          colorClassName="bg-brand-yellow"
+          items={topByShares.map((a) => ({ label: a.en.title, value: a.shareCount ?? 0 }))}
+        />
       </div>
     </div>
   );

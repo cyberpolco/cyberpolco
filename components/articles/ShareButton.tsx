@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { Share2, Check } from "lucide-react";
+import { trackArticleShareAction } from "@/lib/actions/analytics";
 
 export default function ShareButton({
+  slug,
   title,
   shareLabel,
   copiedLabel,
 }: {
+  slug: string;
   title: string;
   shareLabel: string;
   copiedLabel: string;
@@ -21,12 +24,15 @@ export default function ShareButton({
       try {
         await navigator.share({ title, url });
       } catch {
-        // user cancelled the native share sheet — nothing to do
+        // user cancelled the native share sheet — don't count it as a share
+        return;
       }
+      trackArticleShareAction(slug);
       return;
     }
 
     await navigator.clipboard.writeText(url);
+    trackArticleShareAction(slug);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

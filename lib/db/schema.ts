@@ -19,6 +19,8 @@ export const articles = pgTable("articles", {
   image: text("image"),
   fr: jsonb("fr").$type<LocalizedArticle>().notNull(),
   en: jsonb("en").$type<LocalizedArticle>().notNull(),
+  viewCount: integer("view_count").notNull().default(0),
+  shareCount: integer("share_count").notNull().default(0),
 });
 
 export const jobs = pgTable("jobs", {

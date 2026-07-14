@@ -2,6 +2,8 @@ export type Article = {
   slug: string;
   date: string;
   image?: string | null;
+  viewCount?: number;
+  shareCount?: number;
   fr: { title: string; excerpt: string; body: string[] };
   en: { title: string; excerpt: string; body: string[] };
 };

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "./client";
 import { articles as articlesTable } from "./schema";
 import type { Article } from "@/lib/content/articles";
@@ -33,4 +33,30 @@ export async function saveArticle(article: Article): Promise<void> {
 
 export async function deleteArticle(slug: string): Promise<void> {
   await db.delete(articlesTable).where(eq(articlesTable.slug, slug));
+}
+
+// Atomic increments (not read-then-write) so concurrent views/shares can't
+// clobber each other's counts.
+export async function incrementArticleView(slug: string): Promise<void> {
+  await db
+    .update(articlesTable)
+    .set({ viewCount: sql`${articlesTable.viewCount} + 1` })
+    .where(eq(articlesTable.slug, slug));
+}
+
+export async function incrementArticleShare(slug: string): Promise<void> {
+  await db
+    .update(articlesTable)
+    .set({ shareCount: sql`${articlesTable.shareCount} + 1` })
+    .where(eq(articlesTable.slug, slug));
+}
+
+export async function getTopArticlesByViews(count: number): Promise<Article[]> {
+  const items = await getArticles();
+  return [...items].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0)).slice(0, count);
+}
+
+export async function getTopArticlesByShares(count: number): Promise<Article[]> {
+  const items = await getArticles();
+  return [...items].sort((a, b) => (b.shareCount ?? 0) - (a.shareCount ?? 0)).slice(0, count);
 }

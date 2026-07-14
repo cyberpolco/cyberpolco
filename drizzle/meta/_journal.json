@@ -36,6 +36,13 @@
       "when": 1784001285380,
       "tag": "0004_chief_luke_cage",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784020559676,
+      "tag": "0005_greedy_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }
