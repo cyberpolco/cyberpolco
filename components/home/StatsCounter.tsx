@@ -26,22 +26,24 @@ export default function StatsCounter({
     const el = ref.current;
     if (!el || number === 0) return;
 
-    let started = false;
     let frame: number;
+
+    const animate = () => {
+      setDisplay(0);
+      const start = performance.now();
+      const tick = (now: number) => {
+        const progress = Math.min((now - start) / durationMs, 1);
+        setDisplay(Math.round(progress * number));
+        if (progress < 1) frame = requestAnimationFrame(tick);
+      };
+      frame = requestAnimationFrame(tick);
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting || started) return;
-        started = true;
-        observer.disconnect();
-
-        const start = performance.now();
-        const tick = (now: number) => {
-          const progress = Math.min((now - start) / durationMs, 1);
-          setDisplay(Math.round(progress * number));
-          if (progress < 1) frame = requestAnimationFrame(tick);
-        };
-        frame = requestAnimationFrame(tick);
+        if (!entry.isIntersecting) return;
+        cancelAnimationFrame(frame);
+        animate();
       },
       { threshold: 0.4 }
     );
