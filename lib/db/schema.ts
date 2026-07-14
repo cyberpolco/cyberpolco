@@ -52,6 +52,12 @@ export const applications = pgTable("applications", {
   cvFileName: text("cv_file_name").notNull(),
   cvUrl: text("cv_url").notNull(),
   createdAt: text("created_at").notNull(),
+  stage: text("stage", {
+    enum: ["new", "reviewing", "interview", "offer", "hired", "rejected"],
+  })
+    .notNull()
+    .default("new"),
+  notes: text("notes"),
 });
 
 export const settings = pgTable("settings", {
