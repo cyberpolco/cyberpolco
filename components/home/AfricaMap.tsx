@@ -104,7 +104,7 @@ export default function AfricaMap() {
       >
         <ComposableMap
           projectionConfig={{ scale: 470, center: [20, 2] }}
-          width={780}
+          width={800}
           height={800}
           style={{ width: "100%", height: "auto" }}
         >
