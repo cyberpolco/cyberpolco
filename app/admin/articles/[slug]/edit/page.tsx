@@ -19,7 +19,7 @@ export default async function EditArticlePage({
     <div>
       <BackLink href="/admin/articles" label="Back to articles" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Edit article</h1>
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Edit article</h1>
       <div className="mt-6">
         <ArticleForm article={article} />
       </div>

@@ -20,7 +20,7 @@ export default function ApplicationDetailPanel({ application }: { application: A
   return (
     <div className="space-y-6">
       <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark">Stage</label>
+        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Stage</label>
         <StageSelect value={stage} onChange={handleStageChange} />
       </div>
       <NotesEditor id={application.id} initialNotes={application.notes ?? ""} />

@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import type { Role } from "./roles";
+import type { ViewerType } from "@/lib/db/users";
 
 /**
  * Lightweight signed-cookie session — see roles.ts for the permission model.
@@ -23,6 +24,8 @@ export type SessionPayload = {
   email: string;
   role: Role;
   mustChangePassword: boolean;
+  viewerType?: ViewerType | null;
+  linkedId?: string | null;
 };
 
 function getSecret(): string {

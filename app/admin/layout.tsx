@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import {
   LayoutDashboard,
   Newspaper,
@@ -8,11 +9,18 @@ import {
   Inbox,
   FileText,
   Users,
+  SatelliteDish,
+  GraduationCap,
   LogOut,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/auth/roles";
+import { getStarlinkClientById } from "@/lib/db/starlink";
+import { getAcademyEnrollmentById } from "@/lib/db/academy";
+import ThemeToggle from "@/app/admin/_components/ThemeToggle";
 import "../globals.css";
+
+const THEME_COOKIE_NAME = "cp_admin_theme";
 
 export const metadata: Metadata = {
   title: "Cyber PolCo — Admin",
@@ -37,7 +45,42 @@ const navItems: { href: string; label: string; icon: typeof LayoutDashboard; rol
     roles: ["super_admin", "hr_recruiter"],
   },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["super_admin"] },
+  {
+    href: "/admin/starlink",
+    label: "Starlink Management",
+    icon: SatelliteDish,
+    roles: ["super_admin"],
+  },
+  {
+    href: "/admin/academy",
+    label: "Cyber PolCo Academy",
+    icon: GraduationCap,
+    roles: ["super_admin"],
+  },
 ];
+
+const ROLE_BADGES: Record<Exclude<Role, "viewer">, string> = {
+  super_admin: "Admin",
+  hr_recruiter: "HR",
+  content_editor: "Publisher",
+};
+
+async function getRoleBadge(
+  session: Awaited<ReturnType<typeof getSession>>
+): Promise<string> {
+  if (!session) return "Admin";
+  if (session.role !== "viewer") return ROLE_BADGES[session.role];
+
+  if (session.viewerType === "starlink_client" && session.linkedId) {
+    const client = await getStarlinkClientById(session.linkedId);
+    return client?.clientId ?? "Viewer";
+  }
+  if (session.viewerType === "academy_student" && session.linkedId) {
+    const enrollment = await getAcademyEnrollmentById(session.linkedId);
+    return enrollment?.studentId ?? "Student";
+  }
+  return "Viewer";
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -45,15 +88,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const visibleNavItems = session
     ? navItems.filter((item) => item.roles.includes(session.role))
     : [];
+  const roleBadge = await getRoleBadge(session);
+
+  const cookieStore = await cookies();
+  const isDark = cookieStore.get(THEME_COOKIE_NAME)?.value === "dark";
 
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-brand-dark-2/5 font-sans text-brand-dark antialiased">
+    <html lang="en" className={isDark ? "dark" : undefined}>
+      <body className="min-h-screen bg-brand-dark-2/5 font-sans text-brand-dark antialiased dark:bg-brand-dark dark:text-white">
         {showChrome ? (
           <div className="flex min-h-screen">
-            <aside className="hidden w-60 flex-col border-r border-black/5 bg-white p-5 md:flex">
-              <div className="mb-8 font-display text-lg font-bold text-brand-dark">
-                Cyber PolCo <span className="text-brand-red">Admin</span>
+            <aside className="hidden w-60 flex-col border-r border-black/5 bg-white p-5 dark:border-white/10 dark:bg-brand-dark-2 md:flex">
+              <div className="mb-8 font-display text-lg font-bold text-brand-dark dark:text-white">
+                Cyber PolCo <span className="text-brand-red">{roleBadge}</span>
               </div>
               <nav className="flex-1 space-y-1">
                 {visibleNavItems.map((item) => {
@@ -62,7 +109,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-gray hover:bg-brand-blue/10 hover:text-brand-blue"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-gray hover:bg-brand-blue/10 hover:text-brand-blue dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
                     >
                       <Icon size={18} />
                       {item.label}
@@ -70,8 +117,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                   );
                 })}
               </nav>
+              <ThemeToggle initialTheme={isDark ? "dark" : "light"} />
               <form action="/api/admin/logout" method="POST">
-                <button className="mt-4 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-gray hover:bg-brand-red/10 hover:text-brand-red">
+                <button className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-gray hover:bg-brand-red/10 hover:text-brand-red dark:text-white/60 dark:hover:bg-brand-red/20 dark:hover:text-white">
                   <LogOut size={18} /> Log out
                 </button>
               </form>

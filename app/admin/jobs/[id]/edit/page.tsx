@@ -20,7 +20,7 @@ export default async function EditJobPage({
     <div>
       <BackLink href="/admin/jobs" label="Back to jobs" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Edit job</h1>
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Edit job</h1>
       <div className="mt-6">
         <JobForm job={job} />
       </div>

@@ -23,6 +23,8 @@ const ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/applications", roles: ["super_admin", "hr_recruiter"] },
   { prefix: "/admin/inquiries", roles: ["super_admin"] },
   { prefix: "/admin/users", roles: ["super_admin"] },
+  { prefix: "/admin/starlink", roles: ["super_admin"] },
+  { prefix: "/admin/academy", roles: ["super_admin"] },
 ];
 
 /**

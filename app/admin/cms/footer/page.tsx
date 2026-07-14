@@ -17,8 +17,8 @@ export default async function FooterContentPage() {
     <div>
       <BackLink href="/admin/cms" label="Back to CMS" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Footer</h1>
-      <p className="mt-1 text-brand-gray">
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Footer</h1>
+      <p className="mt-1 text-brand-gray dark:text-white/60">
         Edit the tagline and office contact info shown in the footer (and on the Contact page)
         on every page. Social icons are managed under Settings.
       </p>
@@ -33,13 +33,13 @@ export default async function FooterContentPage() {
           </LocaleColumn>
         </ContentSection>
 
-        <section className="rounded-2xl border border-black/5 bg-white p-5">
+        <section className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-blue">
             Offices
           </h2>
           <div className="mt-4 space-y-6">
             {offices.map((o, i) => (
-              <div key={o.country} className="rounded-xl border border-black/5 p-4">
+              <div key={o.country} className="rounded-xl border border-black/5 dark:border-white/10 p-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <TextInput
                     name={`office_${i}_phone`}
@@ -54,7 +54,7 @@ export default async function FooterContentPage() {
                 </div>
                 <div className="mt-4 grid gap-6 sm:grid-cols-2">
                   <div className="space-y-3">
-                    <p className="text-xs font-semibold text-brand-gray">Français</p>
+                    <p className="text-xs font-semibold text-brand-gray dark:text-white/60">Français</p>
                     <TextInput
                       name={`office_${i}_city_fr`}
                       label="Ville"
@@ -67,7 +67,7 @@ export default async function FooterContentPage() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <p className="text-xs font-semibold text-brand-gray">English</p>
+                    <p className="text-xs font-semibold text-brand-gray dark:text-white/60">English</p>
                     <TextInput
                       name={`office_${i}_city_en`}
                       label="City"

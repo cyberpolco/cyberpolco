@@ -9,7 +9,7 @@ export default async function NewArticlePage() {
     <div>
       <BackLink href="/admin/articles" label="Back to articles" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">New article</h1>
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">New article</h1>
       <div className="mt-6">
         <ArticleForm />
       </div>

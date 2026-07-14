@@ -19,16 +19,16 @@ export default async function ApplicationsPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-brand-dark">Applications</h1>
-          <p className="mt-1 text-brand-gray">
+          <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Applications</h1>
+          <p className="mt-1 text-brand-gray dark:text-white/60">
             Job applications submitted through the Careers pages.
           </p>
         </div>
-        <div className="flex gap-1 rounded-full border border-black/10 p-1 text-sm">
+        <div className="flex gap-1 rounded-full border border-black/10 dark:border-white/15 p-1 text-sm">
           <Link
             href="/admin/applications"
             className={`rounded-full px-3 py-1.5 font-medium ${
-              !isListView ? "bg-brand-red text-white" : "text-brand-gray"
+              !isListView ? "bg-brand-red text-white" : "text-brand-gray dark:text-white/60"
             }`}
           >
             Board
@@ -36,7 +36,7 @@ export default async function ApplicationsPage({
           <Link
             href="/admin/applications?view=list"
             className={`rounded-full px-3 py-1.5 font-medium ${
-              isListView ? "bg-brand-red text-white" : "text-brand-gray"
+              isListView ? "bg-brand-red text-white" : "text-brand-gray dark:text-white/60"
             }`}
           >
             List

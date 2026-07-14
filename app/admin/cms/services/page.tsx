@@ -15,7 +15,7 @@ export default async function AdminServicesPage() {
       <BackLink href="/admin/cms" label="Back to CMS" />
 
       <div className="mt-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-dark">Services</h1>
+        <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Services</h1>
         <Link
           href="/admin/cms/services/new"
           className="flex items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white"
@@ -24,9 +24,9 @@ export default async function AdminServicesPage() {
         </Link>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 bg-white">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
         <table className="w-full text-left text-sm">
-          <thead className="bg-brand-dark-2/5 text-xs uppercase tracking-wide text-brand-gray">
+          <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
             <tr>
               <th className="px-5 py-3">Name (EN)</th>
               <th className="px-5 py-3">Icon</th>
@@ -36,10 +36,10 @@ export default async function AdminServicesPage() {
           </thead>
           <tbody>
             {services.map((s) => (
-              <tr key={s.slug} className="border-t border-black/5">
-                <td className="px-5 py-3 font-medium text-brand-dark">{s.en.name}</td>
-                <td className="px-5 py-3 text-brand-gray">{s.icon}</td>
-                <td className="px-5 py-3 text-brand-gray">{s.slug}</td>
+              <tr key={s.slug} className="border-t border-black/5 dark:border-white/10">
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{s.en.name}</td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">{s.icon}</td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">{s.slug}</td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-3">
                     <Link href={`/admin/cms/services/${s.slug}/edit`} className="text-brand-blue">
@@ -57,7 +57,7 @@ export default async function AdminServicesPage() {
             ))}
             {services.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-brand-gray">
+                <td colSpan={4} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                   No services yet.
                 </td>
               </tr>

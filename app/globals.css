@@ -2,6 +2,14 @@
 @import "tailwindcss";
 
 /*
+ * Toggle-controlled (not OS-controlled) dark mode: `dark:` variants apply
+ * whenever a `.dark` class is present on an ancestor. Only the admin
+ * section's own <html> (app/admin/layout.tsx) ever gets that class, so the
+ * public marketing site is unaffected.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
   Display font (Infinite Justice) and heading font (Telegraf) are licensed
   Canva/dafont assets -- add the actual .woff2 files to /public/fonts and
   uncomment the @font-face rules below. Until then, headings fall back to a

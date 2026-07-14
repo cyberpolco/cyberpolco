@@ -17,8 +17,8 @@ export default async function AboutContentPage() {
     <div>
       <BackLink href="/admin/cms/pages" label="Back to Pages" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">About page content</h1>
-      <p className="mt-1 text-brand-gray">Edit the company story, leadership bio, and sector overview.</p>
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">About page content</h1>
+      <p className="mt-1 text-brand-gray dark:text-white/60">Edit the company story, leadership bio, and sector overview.</p>
 
       <form action={updateAboutContentAction} className="mt-8 space-y-6">
         <ContentSection title="Our story">

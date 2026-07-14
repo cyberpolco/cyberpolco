@@ -17,7 +17,7 @@ export default function StageSelect({
       disabled={disabled}
       onClick={(e) => e.stopPropagation()}
       onChange={(e) => onChange(e.target.value as Stage)}
-      className="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-xs font-medium text-brand-dark outline-none focus:border-brand-blue disabled:opacity-60"
+      className="rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-brand-dark-2 px-2 py-1.5 text-xs font-medium text-brand-dark dark:text-white outline-none focus:border-brand-blue disabled:opacity-60"
     >
       {STAGES.map((s) => (
         <option key={s.value} value={s.value}>

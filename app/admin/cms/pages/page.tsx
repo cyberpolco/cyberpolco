@@ -18,8 +18,8 @@ export default async function PagesListPage() {
     <div>
       <BackLink href="/admin/cms" label="Back to CMS" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Pages</h1>
-      <p className="mt-1 text-brand-gray">Edit the copy on each public page.</p>
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Pages</h1>
+      <p className="mt-1 text-brand-gray dark:text-white/60">Edit the copy on each public page.</p>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {pages.map((p) => {
@@ -28,13 +28,13 @@ export default async function PagesListPage() {
             <Link
               key={p.href}
               href={p.href}
-              className="rounded-2xl border border-black/5 bg-white p-6 transition-shadow hover:shadow-md"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
                 <Icon size={22} />
               </div>
-              <h2 className="mt-4 text-lg font-semibold text-brand-dark">{p.label}</h2>
-              <p className="mt-2 text-sm text-brand-gray">{p.description}</p>
+              <h2 className="mt-4 text-lg font-semibold text-brand-dark dark:text-white">{p.label}</h2>
+              <p className="mt-2 text-sm text-brand-gray dark:text-white/60">{p.description}</p>
             </Link>
           );
         })}

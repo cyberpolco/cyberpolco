@@ -43,6 +43,8 @@ export async function changePasswordAction(formData: FormData) {
     email: user.email,
     role: user.role,
     mustChangePassword: false,
+    viewerType: user.viewerType,
+    linkedId: user.linkedId,
   });
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_COOKIE_NAME, token, {

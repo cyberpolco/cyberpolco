@@ -20,9 +20,9 @@ export default async function ApplicationDetailPage({
     <div className="max-w-3xl">
       <BackLink href="/admin/applications" label="Back to applications" />
 
-      <div className="mt-6 rounded-2xl border border-black/5 bg-white p-8">
-        <h1 className="text-2xl font-bold text-brand-dark">{application.name}</h1>
-        <p className="mt-1 text-brand-gray">Applied for {application.jobTitle}</p>
+      <div className="mt-6 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-8">
+        <h1 className="text-2xl font-bold text-brand-dark dark:text-white">{application.name}</h1>
+        <p className="mt-1 text-brand-gray dark:text-white/60">Applied for {application.jobTitle}</p>
 
         <div className="mt-4 flex flex-wrap gap-4 text-sm">
           <a href={`mailto:${application.email}`} className="text-brand-blue">
@@ -32,7 +32,7 @@ export default async function ApplicationDetailPage({
             {application.phone}
           </a>
           {application.cvUrl.startsWith("local-storage://") ? (
-            <span className="text-brand-gray">{application.cvFileName} (local dev storage)</span>
+            <span className="text-brand-gray dark:text-white/60">{application.cvFileName} (local dev storage)</span>
           ) : (
             <a
               href={application.cvUrl}
@@ -47,18 +47,18 @@ export default async function ApplicationDetailPage({
 
         {application.message && (
           <div className="mt-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-gray">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-gray dark:text-white/60">
               Message
             </h2>
-            <p className="mt-2 whitespace-pre-line text-brand-dark">{application.message}</p>
+            <p className="mt-2 whitespace-pre-line text-brand-dark dark:text-white">{application.message}</p>
           </div>
         )}
 
-        <p className="mt-6 text-xs text-brand-gray">
+        <p className="mt-6 text-xs text-brand-gray dark:text-white/60">
           Received {new Date(application.createdAt).toLocaleString()}
         </p>
 
-        <div className="mt-8 border-t border-black/5 pt-6">
+        <div className="mt-8 border-t border-black/5 dark:border-white/10 pt-6">
           <ApplicationDetailPanel application={application} />
         </div>
       </div>

@@ -3,6 +3,7 @@ import { db } from "./client";
 import { users as usersTable } from "./schema";
 
 export type Role = "super_admin" | "content_editor" | "hr_recruiter" | "viewer";
+export type ViewerType = "starlink_client" | "academy_student";
 
 export type User = {
   id: string;
@@ -13,6 +14,8 @@ export type User = {
   createdAt: string;
   createdBy: string | null;
   lastLoginAt: string | null;
+  viewerType: ViewerType | null;
+  linkedId: string | null;
 };
 
 function normalizeEmail(email: string): string {

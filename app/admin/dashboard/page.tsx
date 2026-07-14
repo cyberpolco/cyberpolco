@@ -3,13 +3,28 @@ import { getArticles, getTopArticlesByViews, getTopArticlesByShares } from "@/li
 import { getJobs } from "@/lib/db/jobs";
 import { getInquiries } from "@/lib/db/inquiries";
 import { getApplications } from "@/lib/db/applications";
+import { getStarlinkClientById } from "@/lib/db/starlink";
+import { getAcademyEnrollmentById, getAcademyCourseById } from "@/lib/db/academy";
 import { getSession } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/auth/roles";
 import RankedBarList from "./_components/RankedBarList";
+import StarlinkViewerDashboard from "./_components/StarlinkViewerDashboard";
+import AcademyViewerDashboard from "./_components/AcademyViewerDashboard";
 
 export default async function DashboardPage() {
   const session = await getSession();
   const role = session?.role as Role;
+
+  if (role === "viewer" && session?.viewerType === "starlink_client") {
+    const client = session.linkedId ? await getStarlinkClientById(session.linkedId) : undefined;
+    return <StarlinkViewerDashboard client={client} />;
+  }
+
+  if (role === "viewer" && session?.viewerType === "academy_student") {
+    const enrollment = session.linkedId ? await getAcademyEnrollmentById(session.linkedId) : undefined;
+    const course = enrollment ? await getAcademyCourseById(enrollment.courseId) : undefined;
+    return <AcademyViewerDashboard enrollment={enrollment} course={course} />;
+  }
 
   const [articles, jobs, inquiries, applications, topByViews, topByShares] = await Promise.all([
     getArticles(),
@@ -59,14 +74,14 @@ export default async function DashboardPage() {
       value: totalViews,
       icon: Eye,
       href: "/admin/articles",
-      roles: ["super_admin", "content_editor", "hr_recruiter", "viewer"] as Role[],
+      roles: ["super_admin", "content_editor", "hr_recruiter"] as Role[],
     },
     {
       label: "Total article shares",
       value: totalShares,
       icon: Share2,
       href: "/admin/articles",
-      roles: ["super_admin", "content_editor", "hr_recruiter", "viewer"] as Role[],
+      roles: ["super_admin", "content_editor", "hr_recruiter"] as Role[],
     },
   ];
 
@@ -74,8 +89,8 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">Dashboard</h1>
-      <p className="mt-1 text-brand-gray">Overview of Cyber PolCo&apos;s website activity.</p>
+      <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Dashboard</h1>
+      <p className="mt-1 text-brand-gray dark:text-white/60">Overview of Cyber PolCo&apos;s website activity.</p>
 
       {cards.length > 0 ? (
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -85,17 +100,17 @@ export default async function DashboardPage() {
               <a
                 key={card.label}
                 href={card.href}
-                className="rounded-2xl border border-black/5 bg-white p-6 transition-shadow hover:shadow-md"
+                className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
               >
                 <Icon className="text-brand-blue" size={22} />
-                <p className="mt-4 text-3xl font-bold text-brand-dark">{card.value}</p>
-                <p className="mt-1 text-sm text-brand-gray">{card.label}</p>
+                <p className="mt-4 text-3xl font-bold text-brand-dark dark:text-white">{card.value}</p>
+                <p className="mt-1 text-sm text-brand-gray dark:text-white/60">{card.label}</p>
               </a>
             );
           })}
         </div>
       ) : (
-        <div className="mt-8 rounded-2xl border border-dashed border-black/15 p-6 text-sm text-brand-gray">
+        <div className="mt-8 rounded-2xl border border-dashed border-black/15 dark:border-white/15 p-6 text-sm text-brand-gray dark:text-white/60">
           Nothing to show for your role yet.
         </div>
       )}

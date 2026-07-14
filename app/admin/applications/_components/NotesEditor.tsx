@@ -24,7 +24,7 @@ export default function NotesEditor({
 
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-brand-dark">Notes</label>
+      <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Notes</label>
       <textarea
         value={notes}
         onChange={(e) => {
@@ -33,7 +33,7 @@ export default function NotesEditor({
         }}
         rows={5}
         placeholder="Interview impressions, next steps, etc."
-        className="w-full rounded-lg border border-black/10 px-4 py-2.5 outline-none focus:border-brand-blue"
+        className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 outline-none focus:border-brand-blue dark:bg-white/5 dark:text-white"
       />
       <div className="mt-2 flex items-center gap-3">
         <button

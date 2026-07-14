@@ -34,8 +34,8 @@ export default async function CmsHubPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-brand-dark">CMS</h1>
-      <p className="mt-1 text-brand-gray">
+      <h1 className="text-2xl font-bold text-brand-dark dark:text-white">CMS</h1>
+      <p className="mt-1 text-brand-gray dark:text-white/60">
         Everything editable about the site&apos;s content, without a redeploy.
       </p>
 
@@ -46,13 +46,13 @@ export default async function CmsHubPage() {
             <Link
               key={s.href}
               href={s.href}
-              className="rounded-2xl border border-black/5 bg-white p-6 transition-shadow hover:shadow-md"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
                 <Icon size={22} />
               </div>
-              <h2 className="mt-4 text-lg font-semibold text-brand-dark">{s.label}</h2>
-              <p className="mt-2 text-sm text-brand-gray">{s.description}</p>
+              <h2 className="mt-4 text-lg font-semibold text-brand-dark dark:text-white">{s.label}</h2>
+              <p className="mt-2 text-sm text-brand-gray dark:text-white/60">{s.description}</p>
             </Link>
           );
         })}

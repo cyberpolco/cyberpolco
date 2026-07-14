@@ -91,6 +91,10 @@ export const users = pgTable("users", {
   createdAt: text("created_at").notNull(),
   createdBy: text("created_by"),
   lastLoginAt: text("last_login_at"),
+  // Nullable: only set when role === "viewer" — same reasoning as
+  // settings.offices above (existing rows, no default to backfill with).
+  viewerType: text("viewer_type", { enum: ["starlink_client", "academy_student"] }),
+  linkedId: text("linked_id"),
 });
 
 // Generic keyed content for one-off page sections (hero, mission, vision,
@@ -111,4 +115,53 @@ export const services = pgTable("services", {
   displayOrder: integer("display_order").notNull().default(0),
   fr: jsonb("fr").$type<LocalizedService>().notNull(),
   en: jsonb("en").$type<LocalizedService>().notNull(),
+});
+
+type StarlinkSite = {
+  id: string;
+  siteName: string;
+  subscriptionType: "residential" | "business" | "roam" | "maritime";
+  dishType: "enterprise" | "standard" | "mini";
+  installationStatus: "pending" | "scheduled" | "in_progress" | "completed";
+  kitOrderRef: string;
+  deliveryDate: string | null;
+  deploymentStatus: "not_deployed" | "deployed" | "active" | "suspended";
+  wifiPassword: string;
+  paymentStatus: "paid" | "pending" | "overdue";
+};
+
+export const starlinkClients = pgTable("starlink_clients", {
+  id: text("id").primaryKey(),
+  clientId: text("client_id").notNull().unique(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  sites: jsonb("sites").$type<StarlinkSite[]>().notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+type AcademyLesson = { id: string; title: string; description: string };
+type AcademyModule = { id: string; title: string; lessons: AcademyLesson[] };
+type LocalizedCourseText = { title: string; description: string };
+
+export const academyCourses = pgTable("academy_courses", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  fr: jsonb("fr").$type<LocalizedCourseText>().notNull(),
+  en: jsonb("en").$type<LocalizedCourseText>().notNull(),
+  modules: jsonb("modules").$type<AcademyModule[]>().notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const academyEnrollments = pgTable("academy_enrollments", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().unique(),
+  studentName: text("student_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  courseId: text("course_id").notNull(),
+  completedLessonIds: jsonb("completed_lesson_ids").$type<string[]>().notNull(),
+  certificateIssued: boolean("certificate_issued").notNull().default(false),
+  certificateFileUrl: text("certificate_file_url"),
+  createdAt: text("created_at").notNull(),
 });

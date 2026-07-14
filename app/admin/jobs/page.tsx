@@ -12,7 +12,7 @@ export default async function AdminJobsPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-dark">Jobs</h1>
+        <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Jobs</h1>
         <Link
           href="/admin/jobs/new"
           className="flex items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white"
@@ -21,9 +21,9 @@ export default async function AdminJobsPage() {
         </Link>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 bg-white">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
         <table className="w-full text-left text-sm">
-          <thead className="bg-brand-dark-2/5 text-xs uppercase tracking-wide text-brand-gray">
+          <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
             <tr>
               <th className="px-5 py-3">Title (EN)</th>
               <th className="px-5 py-3">Status</th>
@@ -33,20 +33,20 @@ export default async function AdminJobsPage() {
           </thead>
           <tbody>
             {jobs.map((j) => (
-              <tr key={j.id} className="border-t border-black/5">
-                <td className="px-5 py-3 font-medium text-brand-dark">{j.en.title}</td>
+              <tr key={j.id} className="border-t border-black/5 dark:border-white/10">
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{j.en.title}</td>
                 <td className="px-5 py-3">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                       j.status === "open"
                         ? "bg-brand-blue/10 text-brand-blue"
-                        : "bg-black/5 text-brand-gray"
+                        : "bg-black/5 dark:bg-white/10 text-brand-gray dark:text-white/60"
                     }`}
                   >
                     {j.status}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-brand-gray">{j.slug}</td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">{j.slug}</td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-3">
                     <Link href={`/admin/jobs/${j.id}/edit`} className="text-brand-blue">
@@ -64,7 +64,7 @@ export default async function AdminJobsPage() {
             ))}
             {jobs.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-brand-gray">
+                <td colSpan={4} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                   No jobs yet — the public Careers page will show &quot;No open positions&quot;.
                 </td>
               </tr>

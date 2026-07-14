@@ -9,11 +9,11 @@ export default function JobForm({ job }: { job?: Job }) {
       <input type="hidden" name="createdAt" value={job?.createdAt || ""} />
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark">Status</label>
+        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Status</label>
         <select
           name="status"
           defaultValue={job?.status || "open"}
-          className="rounded-lg border border-black/10 px-4 py-2.5"
+          className="rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
         >
           <option value="open">Open</option>
           <option value="closed">Closed</option>
@@ -21,36 +21,36 @@ export default function JobForm({ job }: { job?: Job }) {
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
-        <fieldset className="space-y-4 rounded-2xl border border-black/5 p-5">
+        <fieldset className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 p-5">
           <legend className="px-1 text-sm font-semibold text-brand-blue">Français</legend>
           <Field label="Titre du poste" name="title_fr" defaultValue={job?.fr.title} />
           <Field label="Lieu" name="location_fr" defaultValue={job?.fr.location} />
           <Field label="Type de contrat" name="type_fr" defaultValue={job?.fr.type} />
           <div>
-            <label className="mb-1 block text-sm font-medium text-brand-dark">Description</label>
+            <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Description</label>
             <textarea
               name="description_fr"
               defaultValue={job?.fr.description}
               rows={8}
               required
-              className="w-full rounded-lg border border-black/10 px-4 py-2.5"
+              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
         </fieldset>
 
-        <fieldset className="space-y-4 rounded-2xl border border-black/5 p-5">
+        <fieldset className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 p-5">
           <legend className="px-1 text-sm font-semibold text-brand-blue">English</legend>
           <Field label="Job title" name="title_en" defaultValue={job?.en.title} />
           <Field label="Location" name="location_en" defaultValue={job?.en.location} />
           <Field label="Contract type" name="type_en" defaultValue={job?.en.type} />
           <div>
-            <label className="mb-1 block text-sm font-medium text-brand-dark">Description</label>
+            <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Description</label>
             <textarea
               name="description_en"
               defaultValue={job?.en.description}
               rows={8}
               required
-              className="w-full rounded-lg border border-black/10 px-4 py-2.5"
+              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />
           </div>
         </fieldset>
@@ -77,12 +77,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-brand-dark">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">{label}</label>
       <input
         name={name}
         defaultValue={defaultValue}
         required
-        className="w-full rounded-lg border border-black/10 px-4 py-2.5"
+        className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
       />
     </div>
   );

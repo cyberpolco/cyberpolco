@@ -19,7 +19,7 @@ export default async function EditServicePage({
     <div>
       <BackLink href="/admin/cms/services" label="Back to Services" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Edit service</h1>
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Edit service</h1>
       <div className="mt-6">
         <ServiceForm service={service} />
       </div>

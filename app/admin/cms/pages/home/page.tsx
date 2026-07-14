@@ -36,8 +36,8 @@ export default async function HomeContentPage() {
     <div>
       <BackLink href="/admin/cms/pages" label="Back to Pages" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Homepage content</h1>
-      <p className="mt-1 text-brand-gray">Edit the copy shown on the public homepage.</p>
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Homepage content</h1>
+      <p className="mt-1 text-brand-gray dark:text-white/60">Edit the copy shown on the public homepage.</p>
 
       <form action={updateHomeContentAction} className="mt-8 space-y-6">
         <ContentSection title="Hero">
@@ -167,7 +167,7 @@ export default async function HomeContentPage() {
           </LocaleColumn>
         </ContentSection>
 
-        <section className="rounded-2xl border border-black/5 bg-white p-5">
+        <section className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-blue">
             Stats numbers
           </h2>
@@ -175,7 +175,7 @@ export default async function HomeContentPage() {
             {stats.map((s, i) => (
               <div
                 key={i}
-                className="grid gap-3 rounded-xl border border-black/5 p-4 sm:grid-cols-3"
+                className="grid gap-3 rounded-xl border border-black/5 dark:border-white/10 p-4 sm:grid-cols-3"
               >
                 <TextInput name={`stat_value_${i}`} label="Value" defaultValue={s.value} />
                 <TextInput name={`stat_fr_${i}`} label="Label (FR)" defaultValue={s.fr} />

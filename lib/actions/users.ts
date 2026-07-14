@@ -13,13 +13,28 @@ import {
   getUserById,
   countSuperAdmins,
   type User,
+  type ViewerType,
 } from "@/lib/db/users";
 
 const MIN_PASSWORD_LENGTH = 10;
+const VIEWER_TYPES: ViewerType[] = ["starlink_client", "academy_student"];
 
 function parseRole(value: FormDataEntryValue | null): Role {
   const role = String(value || "");
   return ROLES.includes(role as Role) ? (role as Role) : "viewer";
+}
+
+function parseViewerLink(
+  formData: FormData,
+  role: Role
+): { viewerType: ViewerType | null; linkedId: string | null } | null {
+  if (role !== "viewer") return { viewerType: null, linkedId: null };
+
+  const viewerType = String(formData.get("viewerType") || "");
+  const linkedId = String(formData.get("linkedId") || "");
+  if (!VIEWER_TYPES.includes(viewerType as ViewerType) || !linkedId) return null;
+
+  return { viewerType: viewerType as ViewerType, linkedId };
 }
 
 export async function createUserAction(formData: FormData) {
@@ -38,6 +53,11 @@ export async function createUserAction(formData: FormData) {
     redirect("/admin/users/new?error=duplicate");
   }
 
+  const viewerLink = parseViewerLink(formData, role);
+  if (!viewerLink) {
+    redirect("/admin/users/new?error=viewer-link");
+  }
+
   const passwordHash = await bcrypt.hash(tempPassword, 10);
 
   const user: User = {
@@ -49,6 +69,8 @@ export async function createUserAction(formData: FormData) {
     createdAt: new Date().toISOString(),
     createdBy: session.userId,
     lastLoginAt: null,
+    viewerType: viewerLink.viewerType,
+    linkedId: viewerLink.linkedId,
   };
 
   await saveUser(user);
@@ -79,6 +101,11 @@ export async function updateUserAction(formData: FormData) {
     redirect(`/admin/users/${id}/edit?error=duplicate`);
   }
 
+  const viewerLink = parseViewerLink(formData, role);
+  if (!viewerLink) {
+    redirect(`/admin/users/${id}/edit?error=viewer-link`);
+  }
+
   let passwordHash = existingUser.passwordHash;
   let mustChangePassword = existingUser.mustChangePassword;
   if (tempPassword) {
@@ -95,6 +122,8 @@ export async function updateUserAction(formData: FormData) {
     role,
     passwordHash,
     mustChangePassword,
+    viewerType: viewerLink.viewerType,
+    linkedId: viewerLink.linkedId,
   };
 
   await saveUser(user);

@@ -55,3 +55,6 @@ export const ALLOWED_CV_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 export const MAX_CV_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
+export const ALLOWED_CERTIFICATE_TYPES = ["application/pdf"];
+export const MAX_CERTIFICATE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB

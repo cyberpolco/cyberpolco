@@ -13,8 +13,8 @@ export default async function CareersPageContentPage() {
     <div>
       <BackLink href="/admin/cms/pages" label="Back to Pages" />
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark">Careers page</h1>
-      <p className="mt-1 text-brand-gray">
+      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Careers page</h1>
+      <p className="mt-1 text-brand-gray dark:text-white/60">
         Edit the intro subtitle shown under the Careers page title. Job listings are managed
         under Jobs.
       </p>

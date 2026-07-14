@@ -13,7 +13,7 @@ export default async function AdminArticlesPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-dark">Articles</h1>
+        <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Articles</h1>
         <Link
           href="/admin/articles/new"
           className="flex items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white"
@@ -22,9 +22,9 @@ export default async function AdminArticlesPage() {
         </Link>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 bg-white">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
         <table className="w-full text-left text-sm">
-          <thead className="bg-brand-dark-2/5 text-xs uppercase tracking-wide text-brand-gray">
+          <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
             <tr>
               <th className="px-5 py-3">Title (EN)</th>
               <th className="px-5 py-3">Date</th>
@@ -34,10 +34,10 @@ export default async function AdminArticlesPage() {
           </thead>
           <tbody>
             {sorted.map((a) => (
-              <tr key={a.slug} className="border-t border-black/5">
-                <td className="px-5 py-3 font-medium text-brand-dark">{a.en.title}</td>
-                <td className="px-5 py-3 text-brand-gray">{a.date}</td>
-                <td className="px-5 py-3 text-brand-gray">{a.slug}</td>
+              <tr key={a.slug} className="border-t border-black/5 dark:border-white/10">
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{a.en.title}</td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">{a.date}</td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">{a.slug}</td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-3">
                     <Link href={`/admin/articles/${a.slug}/edit`} className="text-brand-blue">
@@ -55,7 +55,7 @@ export default async function AdminArticlesPage() {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-brand-gray">
+                <td colSpan={4} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                   No articles yet.
                 </td>
               </tr>

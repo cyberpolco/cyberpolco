@@ -22,7 +22,7 @@ export default async function AdminUsersPage({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-dark">Users</h1>
+        <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Users</h1>
         <Link
           href="/admin/users/new"
           className="flex items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white"
@@ -35,9 +35,9 @@ export default async function AdminUsersPage({
         <p className="mt-4 text-sm text-brand-red">{ERROR_MESSAGES[error]}</p>
       )}
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 bg-white">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
         <table className="w-full text-left text-sm">
-          <thead className="bg-brand-dark-2/5 text-xs uppercase tracking-wide text-brand-gray">
+          <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
             <tr>
               <th className="px-5 py-3">Email</th>
               <th className="px-5 py-3">Role</th>
@@ -48,9 +48,9 @@ export default async function AdminUsersPage({
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-t border-black/5">
-                <td className="px-5 py-3 font-medium text-brand-dark">{u.email}</td>
-                <td className="px-5 py-3 text-brand-gray">{ROLE_LABELS[u.role]}</td>
+              <tr key={u.id} className="border-t border-black/5 dark:border-white/10">
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{u.email}</td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">{ROLE_LABELS[u.role]}</td>
                 <td className="px-5 py-3">
                   {u.mustChangePassword ? (
                     <span className="rounded-full bg-brand-yellow/10 px-2.5 py-1 text-xs font-semibold text-brand-yellow">
@@ -62,7 +62,7 @@ export default async function AdminUsersPage({
                     </span>
                   )}
                 </td>
-                <td className="px-5 py-3 text-brand-gray">
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">
                   {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "Never"}
                 </td>
                 <td className="px-5 py-3">
@@ -84,7 +84,7 @@ export default async function AdminUsersPage({
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-brand-gray">
+                <td colSpan={5} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                   No users yet.
                 </td>
               </tr>

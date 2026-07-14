@@ -7,7 +7,14 @@ export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const result = verifySessionToken(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
   if (!result.valid) return null;
-  return { userId: result.userId, email: result.email, role: result.role, mustChangePassword: result.mustChangePassword };
+  return {
+    userId: result.userId,
+    email: result.email,
+    role: result.role,
+    mustChangePassword: result.mustChangePassword,
+    viewerType: result.viewerType,
+    linkedId: result.linkedId,
+  };
 }
 
 /**

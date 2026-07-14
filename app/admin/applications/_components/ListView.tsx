@@ -18,9 +18,9 @@ export default function ListView({ applications }: { applications: Application[]
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-black/5 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
       <table className="w-full text-left text-sm">
-        <thead className="bg-brand-dark-2/5 text-xs uppercase tracking-wide text-brand-gray">
+        <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
           <tr>
             <th className="px-5 py-3">Candidate</th>
             <th className="px-5 py-3">Role</th>
@@ -32,21 +32,21 @@ export default function ListView({ applications }: { applications: Application[]
         </thead>
         <tbody>
           {items.map((app) => (
-            <tr key={app.id} className="border-t border-black/5 align-top">
-              <td className="px-5 py-3 font-medium text-brand-dark">
+            <tr key={app.id} className="border-t border-black/5 dark:border-white/10 align-top">
+              <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
                 <Link href={`/admin/applications/${app.id}`} className="hover:text-brand-blue">
                   {app.name}
                 </Link>
               </td>
-              <td className="px-5 py-3 text-brand-gray">{app.jobTitle}</td>
-              <td className="px-5 py-3 text-brand-gray">
+              <td className="px-5 py-3 text-brand-gray dark:text-white/60">{app.jobTitle}</td>
+              <td className="px-5 py-3 text-brand-gray dark:text-white/60">
                 {app.email}
                 <br />
                 {app.phone}
               </td>
               <td className="px-5 py-3">
                 {app.cvUrl.startsWith("local-storage://") ? (
-                  <span className="text-xs text-brand-gray">
+                  <span className="text-xs text-brand-gray dark:text-white/60">
                     {app.cvFileName} (local dev storage)
                   </span>
                 ) : (
@@ -63,14 +63,14 @@ export default function ListView({ applications }: { applications: Application[]
               <td className="px-5 py-3">
                 <StageSelect value={app.stage} onChange={(stage) => moveRow(app.id, stage)} />
               </td>
-              <td className="px-5 py-3 text-brand-gray">
+              <td className="px-5 py-3 text-brand-gray dark:text-white/60">
                 {new Date(app.createdAt).toLocaleDateString()}
               </td>
             </tr>
           ))}
           {items.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-5 py-8 text-center text-brand-gray">
+              <td colSpan={6} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                 No applications yet.
               </td>
             </tr>

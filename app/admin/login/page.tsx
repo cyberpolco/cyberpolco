@@ -29,6 +29,8 @@ async function login(formData: FormData) {
       email: user.email,
       role: user.role,
       mustChangePassword: user.mustChangePassword,
+      viewerType: user.viewerType,
+      linkedId: user.linkedId,
     });
   } catch {
     redirect("/admin/login?error=config");

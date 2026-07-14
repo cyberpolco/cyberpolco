@@ -28,6 +28,8 @@ export async function ensureBootstrapSuperAdmin(): Promise<void> {
       createdAt: new Date().toISOString(),
       createdBy: null,
       lastLoginAt: null,
+      viewerType: null,
+      linkedId: null,
     });
   } catch {
     // Another concurrent request already bootstrapped the table — fine.
