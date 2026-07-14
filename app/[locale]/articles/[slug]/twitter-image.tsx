@@ -8,5 +8,9 @@ export default async function Image({
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
   const imagePath = article?.image || "/images/placeholder-article.png";
-  return Response.redirect(new URL(imagePath, "https://cyberpolco.com"));
+  const res = await fetch(new URL(imagePath, "https://cyberpolco.com"));
+  const buffer = await res.arrayBuffer();
+  return new Response(buffer, {
+    headers: { "Content-Type": res.headers.get("content-type") || "image/jpeg" },
+  });
 }
