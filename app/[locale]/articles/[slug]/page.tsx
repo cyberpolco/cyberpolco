@@ -21,21 +21,22 @@ export async function generateMetadata({
   if (!article) return {};
 
   const content = article[locale];
-  const image = article.image || "/images/placeholder-article.png";
 
+  // og:image / twitter:image come from the sibling opengraph-image.tsx and
+  // twitter-image.tsx files instead — file-based metadata always overrides
+  // whatever this function returns for those fields, so setting them here
+  // would be dead code.
   return {
     title: content.title,
     description: content.excerpt,
     openGraph: {
       title: content.title,
       description: content.excerpt,
-      images: [{ url: image }],
     },
     twitter: {
       card: "summary_large_image",
       title: content.title,
       description: content.excerpt,
-      images: [image],
     },
   };
 }
