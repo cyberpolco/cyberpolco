@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { FileText } from "lucide-react";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { getAcademyEnrollmentById, getAcademyCourseById, progressPercent } from "@/lib/db/academy";
 import { getUsers } from "@/lib/db/users";
 import { updateEnrollmentProgressAction } from "@/lib/actions/academy";
@@ -141,12 +142,7 @@ export default async function StudentDetailPage({
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-          >
-            Save progress
-          </button>
+          <SubmitButton>Save progress</SubmitButton>
         </form>
       </div>
     </div>

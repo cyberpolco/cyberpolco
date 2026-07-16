@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth/rbac";
 import { getBlockBoth } from "@/lib/content/blocks";
 import { updateAboutContentAction } from "@/lib/actions/content";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { TextInput, TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
 import BackLink from "@/app/admin/_components/BackLink";
 
@@ -66,12 +67,7 @@ export default async function AboutContentPage() {
           </LocaleColumn>
         </ContentSection>
 
-        <button
-          type="submit"
-          className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-        >
-          Save about page content
-        </button>
+        <SubmitButton>Save about page content</SubmitButton>
       </form>
     </div>
   );

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { getStarlinkClients } from "@/lib/db/starlink";
 import { deleteStarlinkClientAction } from "@/lib/actions/starlink";
 import { requireRole } from "@/lib/auth/rbac";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 
 export default async function StarlinkClientsPage() {
   await requireRole(["super_admin"]);
@@ -43,12 +44,12 @@ export default async function StarlinkClientsPage() {
                     <Link href={`/admin/starlink/${c.id}/edit`} className="text-brand-blue">
                       <Pencil size={16} />
                     </Link>
-                    <form action={deleteStarlinkClientAction}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <button type="submit" className="text-brand-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </form>
+                    <DeleteButton
+                      action={deleteStarlinkClientAction}
+                      id={c.id}
+                      confirmTitle="Delete this client?"
+                      confirmBody={`"${c.name}" and its sites will be permanently removed.`}
+                    />
                   </div>
                 </td>
               </tr>

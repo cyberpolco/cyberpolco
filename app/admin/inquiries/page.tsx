@@ -1,5 +1,6 @@
 import { getInquiries } from "@/lib/db/inquiries";
 import { toggleInquiryReadAction } from "@/lib/actions/inquiries";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { requireRole } from "@/lib/auth/rbac";
 
 export default async function InquiriesPage() {
@@ -31,12 +32,9 @@ export default async function InquiriesPage() {
               <form action={toggleInquiryReadAction}>
                 <input type="hidden" name="id" value={inq.id} />
                 <input type="hidden" name="nextState" value={(!inq.read).toString()} />
-                <button
-                  type="submit"
-                  className="rounded-full border border-black/10 dark:border-white/15 px-3 py-1 text-xs font-semibold text-brand-gray dark:text-white/60 hover:border-brand-blue hover:text-brand-blue"
-                >
+                <SubmitButton variant="compact" pendingLabel="Updating...">
                   {inq.read ? "Mark unread" : "Mark read"}
-                </button>
+                </SubmitButton>
               </form>
             </div>
             <p className="mt-3 whitespace-pre-line text-sm text-brand-gray dark:text-white/60">{inq.message}</p>

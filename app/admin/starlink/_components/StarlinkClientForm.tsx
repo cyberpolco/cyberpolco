@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import RevealField from "@/app/admin/_components/RevealField";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { upsertStarlinkClientAction } from "@/lib/actions/starlink";
 import {
   SUBSCRIPTION_TYPE_OPTIONS,
@@ -162,12 +163,9 @@ export default function StarlinkClientForm({ client }: { client?: StarlinkClient
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
+      <SubmitButton pendingLabel={client ? "Saving..." : "Creating..."}>
         {client ? "Save changes" : "Create client"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

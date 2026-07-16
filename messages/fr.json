@@ -86,6 +86,7 @@
     "formSubject": "Sujet",
     "formMessage": "Message",
     "formSubmit": "Envoyer le message",
+    "formSubmitting": "Envoi en cours...",
     "formSuccess": "Merci ! Votre message a été envoyé, nous vous répondrons rapidement.",
     "formError": "Une erreur est survenue. Veuillez réessayer ou nous écrire directement.",
     "errorRequired": "Ce champ est obligatoire.",

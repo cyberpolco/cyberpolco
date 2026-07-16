@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { getAcademyCourses } from "@/lib/db/academy";
 import { deleteAcademyCourseAction } from "@/lib/actions/academy";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 
 export default async function AcademyCoursesPage() {
   await requireRole(["super_admin"]);
@@ -50,12 +51,12 @@ export default async function AcademyCoursesPage() {
                     <Link href={`/admin/academy/courses/${c.id}/edit`} className="text-brand-blue">
                       <Pencil size={16} />
                     </Link>
-                    <form action={deleteAcademyCourseAction}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <button type="submit" className="text-brand-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </form>
+                    <DeleteButton
+                      action={deleteAcademyCourseAction}
+                      id={c.id}
+                      confirmTitle="Delete this course?"
+                      confirmBody={`"${c.en.title}" and all its modules and lessons will be permanently removed.`}
+                    />
                   </div>
                 </td>
               </tr>

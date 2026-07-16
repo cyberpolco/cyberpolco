@@ -10,6 +10,13 @@ import { createSessionToken, ADMIN_COOKIE_NAME, ADMIN_SESSION_MAX_AGE_SECONDS } 
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import PasswordField from "@/app/admin/_components/PasswordField";
 import SignInButton from "@/app/admin/_components/SignInButton";
+import ErrorToast from "@/app/admin/_components/ErrorToast";
+
+const LOGIN_ERROR_MESSAGES: Record<string, string> = {
+  invalid: "Incorrect email or password. Please contact your admin or Lam.",
+  config: "Server isn't configured yet. Set ADMIN_SESSION_SECRET (see README.md).",
+  "rate-limit": "Too many login attempts. Please wait a few minutes and try again.",
+};
 
 async function login(formData: FormData) {
   "use server";
@@ -158,6 +165,7 @@ export default async function AdminLoginPage({
               Too many login attempts. Please wait a few minutes and try again.
             </p>
           )}
+          <ErrorToast message={error ? LOGIN_ERROR_MESSAGES[error] : undefined} />
 
           <SignInButton />
         </form>

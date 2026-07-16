@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { getArticles } from "@/lib/db/articles";
 import { deleteArticleAction } from "@/lib/actions/articles";
 import { requireRole } from "@/lib/auth/rbac";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 
 export default async function AdminArticlesPage() {
   await requireRole(["super_admin", "content_editor"]);
@@ -44,12 +45,13 @@ export default async function AdminArticlesPage() {
                     <Link href={`/admin/articles/${a.slug}/edit`} className="text-brand-blue">
                       <Pencil size={16} />
                     </Link>
-                    <form action={deleteArticleAction}>
-                      <input type="hidden" name="slug" value={a.slug} />
-                      <button type="submit" className="text-brand-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </form>
+                    <DeleteButton
+                      action={deleteArticleAction}
+                      id={a.slug}
+                      fieldName="slug"
+                      confirmTitle="Delete this article?"
+                      confirmBody={`"${a.en.title}" will be permanently removed.`}
+                    />
                   </div>
                 </td>
               </tr>

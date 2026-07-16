@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Plus, Trash2, FileText } from "lucide-react";
 import { upsertAcademyCourseAction } from "@/lib/actions/academy";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import type { AcademyCourse, Lesson, Module } from "@/lib/db/academy";
 
 type LessonRow = { key: string; lesson?: Lesson };
@@ -233,12 +234,9 @@ export default function CourseForm({ course, error }: { course?: AcademyCourse; 
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
+      <SubmitButton pendingLabel={course ? "Saving..." : "Creating..."}>
         {course ? "Save changes" : "Create course"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

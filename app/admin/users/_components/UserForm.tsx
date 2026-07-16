@@ -1,4 +1,5 @@
 import PasswordField from "@/app/admin/_components/PasswordField";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import ViewerLinkFields from "@/app/admin/users/_components/ViewerLinkFields";
 import { createUserAction, updateUserAction } from "@/lib/actions/users";
 import type { User } from "@/lib/db/users";
@@ -63,12 +64,9 @@ export default function UserForm({
         <p className="text-sm text-brand-red">{ERROR_MESSAGES[error]}</p>
       )}
 
-      <button
-        type="submit"
-        className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
+      <SubmitButton pendingLabel={user ? "Saving..." : "Creating..."}>
         {user ? "Save changes" : "Create user"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

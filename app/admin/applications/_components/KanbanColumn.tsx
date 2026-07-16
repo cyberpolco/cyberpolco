@@ -7,12 +7,14 @@ export default function KanbanColumn({
   label,
   stage,
   applications,
+  pendingIds,
   onDrop,
   onStageChange,
 }: {
   label: string;
   stage: Stage;
   applications: Application[];
+  pendingIds: Set<string>;
   onDrop: (id: string, stage: Stage) => void;
   onStageChange: (id: string, stage: Stage) => void;
 }) {
@@ -34,7 +36,12 @@ export default function KanbanColumn({
       </div>
       <div className="flex flex-1 flex-col gap-2">
         {applications.map((app) => (
-          <ApplicationCard key={app.id} application={app} onStageChange={onStageChange} />
+          <ApplicationCard
+            key={app.id}
+            application={app}
+            isPending={pendingIds.has(app.id)}
+            onStageChange={onStageChange}
+          />
         ))}
         {applications.length === 0 && (
           <p className="rounded-xl border border-dashed border-black/10 dark:border-white/15 p-4 text-center text-xs text-brand-gray dark:text-white/60">

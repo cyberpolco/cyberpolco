@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Plus, Trash2, BadgeCheck } from "lucide-react";
+import { Plus, BadgeCheck } from "lucide-react";
 import { getAcademyEnrollments, getAcademyCourses, progressPercent } from "@/lib/db/academy";
 import { deleteEnrollmentAction } from "@/lib/actions/academy";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 
 export default async function AcademyStudentsPage() {
   await requireRole(["super_admin"]);
@@ -55,12 +56,12 @@ export default async function AcademyStudentsPage() {
                       <Link href={`/admin/academy/students/${e.id}`} className="text-brand-blue">
                         View
                       </Link>
-                      <form action={deleteEnrollmentAction}>
-                        <input type="hidden" name="id" value={e.id} />
-                        <button type="submit" className="text-brand-red">
-                          <Trash2 size={16} />
-                        </button>
-                      </form>
+                      <DeleteButton
+                        action={deleteEnrollmentAction}
+                        id={e.id}
+                        confirmTitle="Remove this enrollment?"
+                        confirmBody={`${e.studentName}'s enrollment will be permanently removed.`}
+                      />
                     </div>
                   </td>
                 </tr>

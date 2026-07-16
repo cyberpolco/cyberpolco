@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { getServices } from "@/lib/db/services";
 import { deleteServiceAction } from "@/lib/actions/services";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 
 export default async function AdminServicesPage() {
   await requireRole(["super_admin", "content_editor"]);
@@ -46,12 +47,13 @@ export default async function AdminServicesPage() {
                     <Link href={`/admin/cms/services/${s.slug}/edit`} className="text-brand-blue">
                       <Pencil size={16} />
                     </Link>
-                    <form action={deleteServiceAction}>
-                      <input type="hidden" name="slug" value={s.slug} />
-                      <button type="submit" className="text-brand-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </form>
+                    <DeleteButton
+                      action={deleteServiceAction}
+                      id={s.slug}
+                      fieldName="slug"
+                      confirmTitle="Delete this service?"
+                      confirmBody={`"${s.en.name}" will be permanently removed.`}
+                    />
                   </div>
                 </td>
               </tr>

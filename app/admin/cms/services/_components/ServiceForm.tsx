@@ -1,4 +1,5 @@
 import { upsertServiceAction } from "@/lib/actions/services";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { SERVICE_ICON_OPTIONS } from "@/lib/content/service-icons";
 import type { Service } from "@/lib/db/services";
 import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
@@ -133,12 +134,7 @@ export default function ServiceForm({ service }: { service?: Service }) {
         </fieldset>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
-        Save service
-      </button>
+      <SubmitButton>Save service</SubmitButton>
     </form>
   );
 }

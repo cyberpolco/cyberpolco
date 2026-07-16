@@ -2,18 +2,39 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 import type { Application, Stage } from "@/lib/types/applications";
 import { moveApplicationStageAction } from "@/lib/actions/applications";
+import { useToast } from "@/components/ui/toast";
 import StageSelect from "./StageSelect";
 
 export default function ListView({ applications }: { applications: Application[] }) {
   const [items, setItems] = useState(applications);
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
+  const { push } = useToast();
 
   function moveRow(id: string, stage: Stage) {
+    const prevStage = items.find((a) => a.id === id)?.stage;
     setItems((prev) => prev.map((a) => (a.id === id ? { ...a, stage } : a)));
-    startTransition(() => {
-      moveApplicationStageAction(id, stage);
+    setPendingIds((prev) => new Set(prev).add(id));
+
+    startTransition(async () => {
+      try {
+        await moveApplicationStageAction(id, stage);
+      } catch (err) {
+        unstable_rethrow(err);
+        if (prevStage) {
+          setItems((prev) => prev.map((a) => (a.id === id ? { ...a, stage: prevStage } : a)));
+        }
+        push("Failed to update stage. Please try again.", { variant: "error" });
+      } finally {
+        setPendingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }
     });
   }
 
@@ -62,7 +83,11 @@ export default function ListView({ applications }: { applications: Application[]
                   )}
                 </td>
                 <td className="px-5 py-3">
-                  <StageSelect value={app.stage} onChange={(stage) => moveRow(app.id, stage)} />
+                  <StageSelect
+                    value={app.stage}
+                    onChange={(stage) => moveRow(app.id, stage)}
+                    disabled={pendingIds.has(app.id)}
+                  />
                 </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">
                   {new Date(app.createdAt).toLocaleDateString()}

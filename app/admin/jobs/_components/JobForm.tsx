@@ -1,4 +1,5 @@
 import { upsertJobAction } from "@/lib/actions/jobs";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import type { Job } from "@/lib/db/jobs";
 import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 
@@ -59,12 +60,7 @@ export default function JobForm({ job }: { job?: Job }) {
         </fieldset>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
-        Save job
-      </button>
+      <SubmitButton>Save job</SubmitButton>
     </form>
   );
 }

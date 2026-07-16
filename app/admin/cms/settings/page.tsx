@@ -1,5 +1,6 @@
 import { getSettings } from "@/lib/db/settings";
 import { updateSettingsAction } from "@/lib/actions/settings";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 
@@ -35,12 +36,7 @@ export default async function SettingsPage() {
           </div>
         </section>
 
-        <button
-          type="submit"
-          className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-        >
-          Save settings
-        </button>
+        <SubmitButton>Save settings</SubmitButton>
       </form>
     </div>
   );

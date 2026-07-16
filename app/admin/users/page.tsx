@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { requireRole } from "@/lib/auth/rbac";
 import { getUsers } from "@/lib/db/users";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { deleteUserAction } from "@/lib/actions/users";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
+import ErrorToast from "@/app/admin/_components/ErrorToast";
 
 const ERROR_MESSAGES: Record<string, string> = {
   "self-delete": "You can't delete your own account.",
@@ -34,6 +36,7 @@ export default async function AdminUsersPage({
       {error && ERROR_MESSAGES[error] && (
         <p className="mt-4 text-sm text-brand-red">{ERROR_MESSAGES[error]}</p>
       )}
+      <ErrorToast message={error ? ERROR_MESSAGES[error] : undefined} />
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
         <div className="overflow-x-auto">
@@ -72,12 +75,12 @@ export default async function AdminUsersPage({
                       <Pencil size={16} />
                     </Link>
                     {u.id !== session.userId && (
-                      <form action={deleteUserAction}>
-                        <input type="hidden" name="id" value={u.id} />
-                        <button type="submit" className="text-brand-red">
-                          <Trash2 size={16} />
-                        </button>
-                      </form>
+                      <DeleteButton
+                        action={deleteUserAction}
+                        id={u.id}
+                        confirmTitle="Delete this user?"
+                        confirmBody={`${u.email} will lose access immediately.`}
+                      />
                     )}
                   </div>
                 </td>

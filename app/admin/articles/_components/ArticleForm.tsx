@@ -1,4 +1,5 @@
 import { upsertArticleAction } from "@/lib/actions/articles";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import type { Article } from "@/lib/content/articles";
 import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 
@@ -109,12 +110,7 @@ export default function ArticleForm({ article }: { article?: Article }) {
         </fieldset>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
-        Save article
-      </button>
+      <SubmitButton>Save article</SubmitButton>
     </form>
   );
 }

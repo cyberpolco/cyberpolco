@@ -7,18 +7,22 @@ import StageSelect from "./StageSelect";
 
 export default function ApplicationCard({
   application,
+  isPending,
   onStageChange,
 }: {
   application: Application;
+  isPending?: boolean;
   onStageChange: (id: string, stage: Stage) => void;
 }) {
   return (
     <div
-      draggable
+      draggable={!isPending}
       onDragStart={(e) => {
         e.dataTransfer.setData("text/plain", application.id);
       }}
-      className="cursor-grab rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-3 text-sm shadow-sm active:cursor-grabbing"
+      className={`cursor-grab rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-3 text-sm shadow-sm active:cursor-grabbing ${
+        isPending ? "opacity-60" : ""
+      }`}
     >
       <Link
         href={`/admin/applications/${application.id}`}
@@ -47,6 +51,7 @@ export default function ApplicationCard({
         <StageSelect
           value={application.stage}
           onChange={(stage) => onStageChange(application.id, stage)}
+          disabled={isPending}
         />
       </div>
 

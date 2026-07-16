@@ -86,6 +86,7 @@
     "formSubject": "Subject",
     "formMessage": "Message",
     "formSubmit": "Send message",
+    "formSubmitting": "Sending...",
     "formSuccess": "Thank you! Your message has been sent — we'll get back to you shortly.",
     "formError": "Something went wrong. Please try again or email us directly.",
     "errorRequired": "This field is required.",

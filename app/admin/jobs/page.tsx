@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { getJobs } from "@/lib/db/jobs";
 import { deleteJobAction } from "@/lib/actions/jobs";
 import { requireRole } from "@/lib/auth/rbac";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 
 export default async function AdminJobsPage() {
   await requireRole(["super_admin", "hr_recruiter"]);
@@ -53,12 +54,12 @@ export default async function AdminJobsPage() {
                     <Link href={`/admin/jobs/${j.id}/edit`} className="text-brand-blue">
                       <Pencil size={16} />
                     </Link>
-                    <form action={deleteJobAction}>
-                      <input type="hidden" name="id" value={j.id} />
-                      <button type="submit" className="text-brand-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </form>
+                    <DeleteButton
+                      action={deleteJobAction}
+                      id={j.id}
+                      confirmTitle="Delete this job posting?"
+                      confirmBody={`"${j.en.title}" will be permanently removed.`}
+                    />
                   </div>
                 </td>
               </tr>

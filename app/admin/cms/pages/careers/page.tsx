@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth/rbac";
 import { getBlockBoth } from "@/lib/content/blocks";
 import { updateCareersPageAction } from "@/lib/actions/content";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
 import BackLink from "@/app/admin/_components/BackLink";
 
@@ -29,12 +30,7 @@ export default async function CareersPageContentPage() {
           </LocaleColumn>
         </ContentSection>
 
-        <button
-          type="submit"
-          className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-        >
-          Save
-        </button>
+        <SubmitButton>Save</SubmitButton>
       </form>
     </div>
   );

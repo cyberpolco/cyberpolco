@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import RouteChangeProgressBar from "@/components/layout/RouteChangeProgressBar";
+import { ToastProvider } from "@/components/ui/toast";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -38,9 +40,12 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <body className="min-h-screen bg-white font-sans text-brand-dark antialiased">
         <NextIntlClientProvider messages={messages}>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <ToastProvider>
+            <RouteChangeProgressBar />
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </ToastProvider>
         </NextIntlClientProvider>
       </body>
     </html>

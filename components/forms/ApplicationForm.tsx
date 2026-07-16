@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/ui/toast";
+import SubmitButton from "@/components/ui/SubmitButton";
 import TurnstileWidget from "./TurnstileWidget";
 
 export default function ApplicationForm({
@@ -18,6 +20,7 @@ export default function ApplicationForm({
   const [errorMsg, setErrorMsg] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const { push } = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,10 +38,18 @@ export default function ApplicationForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       setStatus("success");
+      push(
+        locale === "fr"
+          ? "Votre candidature a bien été envoyée."
+          : "Your application has been submitted.",
+        { variant: "success" }
+      );
       form.reset();
     } catch (err) {
       setStatus("error");
-      setErrorMsg(err instanceof Error ? err.message : "Error");
+      const message = err instanceof Error ? err.message : "Error";
+      setErrorMsg(message);
+      push(message || t("formError"), { variant: "error" });
     }
   }
 
@@ -124,17 +135,14 @@ export default function ApplicationForm({
         <p className="text-sm text-brand-red">{errorMsg || t("formError")}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={status === "loading" || (captchaRequired && !turnstileToken)}
-        className="w-full rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white disabled:opacity-60"
+      <SubmitButton
+        pending={status === "loading"}
+        disabled={captchaRequired && !turnstileToken}
+        pendingLabel={t("formSubmitting")}
+        className="w-full"
       >
-        {status === "loading"
-          ? "..."
-          : locale === "fr"
-            ? "Envoyer ma candidature"
-            : "Submit application"}
-      </button>
+        {locale === "fr" ? "Envoyer ma candidature" : "Submit application"}
+      </SubmitButton>
     </form>
   );
 }

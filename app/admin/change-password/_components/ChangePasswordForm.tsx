@@ -1,4 +1,5 @@
 import PasswordField from "@/app/admin/_components/PasswordField";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { changePasswordAction } from "@/lib/actions/auth";
 
 export default function ChangePasswordForm({ error }: { error?: string }) {
@@ -26,12 +27,9 @@ export default function ChangePasswordForm({ error }: { error?: string }) {
         <p className="text-sm text-brand-red">New password and confirmation don&apos;t match.</p>
       )}
 
-      <button
-        type="submit"
-        className="w-full rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
+      <SubmitButton pendingLabel="Changing password..." className="w-full">
         Change password
-      </button>
+      </SubmitButton>
     </form>
   );
 }

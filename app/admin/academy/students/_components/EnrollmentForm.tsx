@@ -1,4 +1,5 @@
 import { createEnrollmentAction } from "@/lib/actions/academy";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import type { AcademyCourse } from "@/lib/db/academy";
 
 export default function EnrollmentForm({ courses }: { courses: AcademyCourse[] }) {
@@ -43,12 +44,7 @@ export default function EnrollmentForm({ courses }: { courses: AcademyCourse[] }
         </select>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-      >
-        Enroll student
-      </button>
+      <SubmitButton pendingLabel="Enrolling...">Enroll student</SubmitButton>
     </form>
   );
 }

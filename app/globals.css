@@ -234,3 +234,97 @@
     transform: translateX(0%);
   }
 }
+
+/* Feedback motion — snappy, sub-second, distinct from the ambient hero-* set above */
+.fb-toast-enter {
+  animation: fb-toast-in 180ms ease-out;
+}
+
+.fb-toast-exit {
+  animation: fb-toast-out 150ms ease-in forwards;
+}
+
+.fb-dialog-overlay {
+  animation: fb-fade-in 150ms ease-out;
+}
+
+.fb-dialog-panel {
+  animation: fb-fade-in 150ms ease-out, fb-toast-in 150ms ease-out;
+}
+
+.fb-progress-bar {
+  animation: fb-progress 1s ease-in-out infinite;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 18, 32, 0.06) 25%,
+    rgba(15, 18, 32, 0.12) 37%,
+    rgba(15, 18, 32, 0.06) 63%
+  );
+  background-size: 400% 100%;
+  animation: fb-shimmer 1.2s ease-in-out infinite;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.14) 37%,
+    rgba(255, 255, 255, 0.06) 63%
+  );
+  background-size: 400% 100%;
+}
+
+@keyframes fb-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fb-toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes fb-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fb-progress {
+  0% {
+    transform: translateX(-100%) scaleX(0.4);
+  }
+  50% {
+    transform: translateX(20%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.4);
+  }
+}
+
+@keyframes fb-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

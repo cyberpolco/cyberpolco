@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import AdminNavLink from "./AdminNavLink";
+import LogoutButton from "./LogoutButton";
 
 type NavItem = { href: string; label: string; icon: React.ReactNode };
 
@@ -53,7 +54,7 @@ export default function MobileNav({
             </div>
             <nav className="flex-1 space-y-1">
               {navItems.map((item) => (
-                <Link
+                <AdminNavLink
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
@@ -61,14 +62,12 @@ export default function MobileNav({
                 >
                   {item.icon}
                   {item.label}
-                </Link>
+                </AdminNavLink>
               ))}
             </nav>
             <ThemeToggle initialTheme={isDark ? "dark" : "light"} />
             <form action="/api/admin/logout" method="POST">
-              <button className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-gray hover:bg-brand-red/10 hover:text-brand-red dark:text-white/60 dark:hover:bg-brand-red/20 dark:hover:text-white">
-                <LogOut size={18} /> Log out
-              </button>
+              <LogoutButton />
             </form>
           </div>
         </div>
