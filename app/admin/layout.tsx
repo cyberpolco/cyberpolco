@@ -18,6 +18,7 @@ import type { Role } from "@/lib/auth/roles";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById } from "@/lib/db/academy";
 import ThemeToggle from "@/app/admin/_components/ThemeToggle";
+import MobileNav from "@/app/admin/_components/MobileNav";
 import "../globals.css";
 
 const THEME_COOKIE_NAME = "cp_admin_theme";
@@ -97,7 +98,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <html lang="en" className={isDark ? "dark" : undefined}>
       <body className="min-h-screen bg-brand-dark-2/5 font-sans text-brand-dark antialiased dark:bg-brand-dark dark:text-white">
         {showChrome ? (
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen flex-col md:flex-row">
+            <MobileNav
+              navItems={visibleNavItems.map((item) => ({
+                href: item.href,
+                label: item.label,
+                icon: <item.icon size={18} />,
+              }))}
+              roleBadge={roleBadge}
+              isDark={isDark}
+            />
             <aside className="hidden w-60 flex-col border-r border-black/5 bg-white p-5 dark:border-white/10 dark:bg-brand-dark-2 md:flex">
               <div className="mb-8 font-display text-lg font-bold text-brand-dark dark:text-white">
                 Cyber PolCo <span className="text-brand-red">{roleBadge}</span>

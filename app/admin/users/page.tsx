@@ -21,7 +21,7 @@ export default async function AdminUsersPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Users</h1>
         <Link
           href="/admin/users/new"
@@ -36,6 +36,7 @@ export default async function AdminUsersPage({
       )}
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
+        <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
             <tr>
@@ -91,6 +92,7 @@ export default async function AdminUsersPage({
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
