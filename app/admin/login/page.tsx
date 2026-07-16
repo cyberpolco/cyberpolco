@@ -9,6 +9,7 @@ import { touchLastLogin } from "@/lib/db/users";
 import { createSessionToken, ADMIN_COOKIE_NAME, ADMIN_SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import PasswordField from "@/app/admin/_components/PasswordField";
+import SignInButton from "@/app/admin/_components/SignInButton";
 
 async function login(formData: FormData) {
   "use server";
@@ -158,12 +159,7 @@ export default async function AdminLoginPage({
             </p>
           )}
 
-          <button
-            type="submit"
-            className="w-full rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
-          >
-            Sign in
-          </button>
+          <SignInButton />
         </form>
       </div>
     </div>
