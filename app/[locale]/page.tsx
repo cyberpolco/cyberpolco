@@ -65,19 +65,26 @@ export default async function HomePage({
   ] as const;
 
   // Keywords now carry the decrypt animation themselves (see render below).
+  // FIREWALL used to sit at left:62%, right where the logo mark's horizontal
+  // span lands at typical desktop widths — the opaque mark was covering it.
+  // Moved above the logo's vertical band instead. DDoS/IAM are new: the left
+  // column had no decoration at all, so they're zoned to the empty margins
+  // above the eyebrow badge and below the CTA buttons, clear of the heading.
   const heroKeywords = [
     { term: "ENCRYPTION", top: "3%", left: "68%" },
-    { term: "FIREWALL", top: "18%", left: "62%" },
+    { term: "FIREWALL", top: "4%", left: "56%" },
     { term: "ZERO-DAY", top: "33%", left: "78%" },
     { term: "MALWARE", top: "10%", left: "88%" },
-    { term: "THREAT INTEL", top: "44%", left: "62%" },
+    { term: "THREAT INTEL", top: "8%", left: "80%" },
     { term: "RANSOMWARE", top: "60%", left: "78%" },
     { term: "SIEM", top: "51%", left: "90%" },
     { term: "SOC 24/7", top: "70%", left: "62%" },
     { term: "OSINT", top: "91%", left: "84%" },
     { term: "CVE-2024", top: "24%", left: "62%" },
     { term: "PENTEST", top: "89%", left: "56%" },
-    { term: "PHISHING", top: "37%", left: "62%" },
+    { term: "PHISHING", top: "82%", left: "70%" },
+    { term: "DDOS", top: "6%", left: "8%" },
+    { term: "IAM", top: "90%", left: "10%" },
   ] as const;
 
   const heroBinary = [
