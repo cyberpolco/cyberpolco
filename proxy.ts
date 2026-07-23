@@ -9,11 +9,6 @@ const intlProxy = createMiddleware(routing);
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Sanity Studio: has its own auth, skip locale routing entirely
-  if (pathname.startsWith("/studio")) {
-    return NextResponse.next();
-  }
-
   // Admin area: guard everything except /admin/login
   if (pathname.startsWith("/admin")) {
     const isLoginPage = pathname === "/admin/login";

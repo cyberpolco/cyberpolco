@@ -10,12 +10,6 @@ import { SERVICE_ICONS } from "@/lib/content/service-icons";
 import { getSettings } from "@/lib/db/settings";
 import { getLatestArticles } from "@/lib/db/articles";
 import { getBlock } from "@/lib/content/blocks";
-import { client } from "@/lib/sanity/client";
-
-type SanityPost = {
-  _id: string;
-  title: string;
-};
 
 export default async function HomePage({
   params,
@@ -28,7 +22,6 @@ export default async function HomePage({
   const latestArticles = await getLatestArticles(3);
   const services = await getServices();
   const { stats } = await getSettings();
-  const posts = await client.fetch<SanityPost[]>(`*[_type == "post"]{ _id, title }`);
   const [hero, mission, vision, map, servicesIntro, clientsIntro, statsIntro, articlesIntro, finalCta] =
     await Promise.all([
       getBlock("home.hero", locale),
@@ -266,23 +259,6 @@ export default async function HomePage({
           ))}
         </div>
       </section>
-
-      {/* Posts */}
-      {posts.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
-          <h2 className="text-3xl font-bold text-brand-dark">{t("postsTitle")}</h2>
-          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
-              <li
-                key={post._id}
-                className="rounded-2xl border border-black/5 p-6 text-brand-dark"
-              >
-                {post.title}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {/* Final CTA */}
       <section className="bg-brand-red">
