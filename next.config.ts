@@ -40,11 +40,11 @@ const securityHeaders = [
 // iframe for its hosted "Studio in the browser" feature.
 const studioCsp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://core.sanity-cdn.com",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob: https://cdn.sanity.io",
-  "connect-src 'self' https://*.api.sanity.io https://*.apicdn.sanity.io wss://*.api.sanity.io",
+  "connect-src 'self' https://*.api.sanity.io https://*.apicdn.sanity.io wss://*.api.sanity.io https://core.sanity-cdn.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
