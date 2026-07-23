@@ -47,52 +47,62 @@ export default async function HomePage({
     { top: "88%", left: "70%", size: 2, color: "bg-brand-blue", duration: "7.2s", twinkle: "3.8s", delay: "0.4s" },
   ] as const;
 
-  // Zoned to the right column / top-right / bottom margin so nothing sits
-  // behind the headline, subtitle, or CTA buttons in the left column.
+  // Every position below was laid out and screenshot-verified (icons,
+  // binary digits, keywords, and decrypting words) so none of these
+  // background layers overlap each other, and all stay zoned to the right
+  // column / margins so the heading, subtitle, and CTAs are never covered.
   const heroCyberIcons = [
-    { Icon: Fingerprint, kind: "fingerprint", top: "6%", left: "60%", size: 56, color: "text-brand-blue", duration: "7.5s", delay: "0s" },
-    { Icon: Lock, kind: "lock", top: "18%", left: "85%", size: 36, color: "text-brand-red", duration: "6.2s", delay: "1.2s" },
-    { Icon: Fingerprint, kind: "fingerprint", top: "30%", left: "94%", size: 44, color: "text-brand-yellow", duration: "8.4s", delay: "2.4s" },
-    { Icon: Lock, kind: "lock", top: "42%", left: "56%", size: 28, color: "text-brand-blue", duration: "6.8s", delay: "0.6s" },
-    { Icon: Fingerprint, kind: "fingerprint", top: "54%", left: "88%", size: 64, color: "text-brand-red", duration: "9s", delay: "1.8s" },
-    { Icon: Lock, kind: "lock", top: "66%", left: "64%", size: 32, color: "text-brand-yellow", duration: "7s", delay: "3s" },
-    { Icon: Fingerprint, kind: "fingerprint", top: "78%", left: "92%", size: 48, color: "text-brand-blue", duration: "7.8s", delay: "2s" },
-    { Icon: Lock, kind: "lock", top: "3%", left: "75%", size: 24, color: "text-brand-red", duration: "6.5s", delay: "0.9s" },
-    { Icon: Lock, kind: "lock", top: "92%", left: "22%", size: 34, color: "text-brand-blue", duration: "7.2s", delay: "1.5s" },
-    { Icon: Fingerprint, kind: "fingerprint", top: "95%", left: "68%", size: 40, color: "text-brand-yellow", duration: "8s", delay: "0.3s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "9%", left: "64%", size: 40, color: "text-brand-blue", duration: "7.5s", delay: "0s" },
+    { Icon: Lock, kind: "lock", top: "16%", left: "96%", size: 30, color: "text-brand-red", duration: "6.2s", delay: "1.2s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "27%", left: "58%", size: 36, color: "text-brand-yellow", duration: "8.4s", delay: "2.4s" },
+    { Icon: Lock, kind: "lock", top: "35%", left: "94%", size: 26, color: "text-brand-blue", duration: "6.8s", delay: "0.6s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "60%", left: "66%", size: 44, color: "text-brand-red", duration: "9s", delay: "1.8s" },
+    { Icon: Lock, kind: "lock", top: "68%", left: "90%", size: 28, color: "text-brand-yellow", duration: "7s", delay: "3s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "71%", left: "58%", size: 34, color: "text-brand-blue", duration: "7.8s", delay: "2s" },
+    { Icon: Lock, kind: "lock", top: "84%", left: "94%", size: 32, color: "text-brand-red", duration: "6.5s", delay: "0.9s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "96%", left: "92%", size: 30, color: "text-brand-blue", duration: "7.2s", delay: "1.5s" },
+    { Icon: Lock, kind: "lock", top: "2%", left: "80%", size: 22, color: "text-brand-yellow", duration: "8s", delay: "0.3s" },
   ] as const;
 
-  // Bigger, decrypting words scattered behind the content — only shown once
-  // the 2-column layout kicks in (lg+), and confined to the right column /
-  // margins so the heading, subtitle, and CTAs never sit on top of one.
+  // Decrypting words, sized down closer to the keyword layer's weight
+  // instead of dominating it.
   const heroBackgroundWords = [
-    { startIndex: 0, top: "8%", left: "58%", size: "text-5xl", color: "text-brand-blue/20" },
-    { startIndex: 2, top: "34%", left: "78%", size: "text-6xl", color: "text-brand-red/15" },
-    { startIndex: 4, top: "60%", left: "58%", size: "text-5xl", color: "text-brand-yellow/20" },
-    { startIndex: 1, top: "80%", left: "80%", size: "text-4xl", color: "text-brand-blue/15" },
-    { startIndex: 3, top: "94%", left: "45%", size: "text-4xl", color: "text-brand-red/15" },
+    { startIndex: 0, top: "6%", left: "50%", size: "text-3xl", color: "text-brand-blue/40" },
+    { startIndex: 2, top: "52%", left: "50%", size: "text-3xl", color: "text-brand-red/35" },
+    { startIndex: 4, top: "79%", left: "78%", size: "text-2xl", color: "text-brand-yellow/40" },
+    { startIndex: 1, top: "94%", left: "68%", size: "text-2xl", color: "text-brand-blue/35" },
+    { startIndex: 3, top: "26%", left: "92%", size: "text-2xl", color: "text-brand-red/35" },
   ] as const;
 
+  // Keywords sized up closer to the decrypting words' weight.
   const heroKeywords = [
-    { term: "ENCRYPTION", top: "4%", left: "68%" },
-    { term: "FIREWALL", top: "22%", left: "92%" },
-    { term: "ZERO-DAY", top: "46%", left: "68%" },
-    { term: "THREAT INTEL", top: "64%", left: "92%" },
-    { term: "RANSOMWARE", top: "88%", left: "60%" },
-    { term: "SOC 24/7", top: "97%", left: "86%" },
+    { term: "ENCRYPTION", top: "3%", left: "68%" },
+    { term: "FIREWALL", top: "18%", left: "62%" },
+    { term: "ZERO-DAY", top: "33%", left: "78%" },
+    { term: "MALWARE", top: "10%", left: "88%" },
+    { term: "THREAT INTEL", top: "44%", left: "62%" },
+    { term: "RANSOMWARE", top: "60%", left: "78%" },
+    { term: "SIEM", top: "51%", left: "90%" },
+    { term: "SOC 24/7", top: "70%", left: "62%" },
+    { term: "OSINT", top: "91%", left: "84%" },
+    { term: "CVE-2024", top: "24%", left: "62%" },
+    { term: "PENTEST", top: "89%", left: "56%" },
+    { term: "PHISHING", top: "37%", left: "62%" },
   ] as const;
 
   const heroBinary = [
-    { char: "1", top: "12%", left: "52%", duration: "6.2s", twinkle: "3.4s", delay: "0.2s" },
-    { char: "0", top: "26%", left: "88%", duration: "7s", twinkle: "3.8s", delay: "1s" },
-    { char: "1", top: "38%", left: "72%", duration: "6.6s", twinkle: "3.1s", delay: "1.6s" },
-    { char: "0", top: "50%", left: "96%", duration: "7.4s", twinkle: "4s", delay: "0.5s" },
-    { char: "1", top: "62%", left: "56%", duration: "6.8s", twinkle: "3.6s", delay: "2.1s" },
-    { char: "0", top: "74%", left: "84%", duration: "7.2s", twinkle: "3.2s", delay: "1.3s" },
-    { char: "1", top: "86%", left: "70%", duration: "6.4s", twinkle: "3.9s", delay: "0.8s" },
-    { char: "0", top: "10%", left: "82%", duration: "7.6s", twinkle: "3.5s", delay: "2.4s" },
-    { char: "1", top: "92%", left: "38%", duration: "6.9s", twinkle: "3.3s", delay: "1.9s" },
-    { char: "0", top: "56%", left: "64%", duration: "7.1s", twinkle: "3.7s", delay: "0.6s" },
+    { char: "1", top: "9%", left: "70%", duration: "6.2s", twinkle: "3.4s", delay: "0.2s" },
+    { char: "0", top: "16%", left: "86%", duration: "7s", twinkle: "3.8s", delay: "1s" },
+    { char: "1", top: "23%", left: "70%", duration: "6.6s", twinkle: "3.1s", delay: "1.6s" },
+    { char: "0", top: "31%", left: "86%", duration: "7.4s", twinkle: "4s", delay: "0.5s" },
+    { char: "1", top: "40%", left: "70%", duration: "6.8s", twinkle: "3.6s", delay: "2.1s" },
+    { char: "0", top: "44%", left: "86%", duration: "7.2s", twinkle: "3.2s", delay: "1.3s" },
+    { char: "1", top: "53%", left: "70%", duration: "6.4s", twinkle: "3.9s", delay: "0.8s" },
+    { char: "0", top: "63%", left: "86%", duration: "7.6s", twinkle: "3.5s", delay: "2.4s" },
+    { char: "1", top: "67%", left: "70%", duration: "6.9s", twinkle: "3.3s", delay: "1.9s" },
+    { char: "0", top: "83%", left: "86%", duration: "7.1s", twinkle: "3.7s", delay: "0.6s" },
+    { char: "1", top: "95%", left: "56%", duration: "6.5s", twinkle: "3.6s", delay: "1.1s" },
+    { char: "0", top: "95%", left: "88%", duration: "7.3s", twinkle: "3.4s", delay: "0.4s" },
   ] as const;
 
   return (
@@ -167,7 +177,7 @@ export default async function HomePage({
           {heroKeywords.map(({ term, top, left }, i) => (
             <span
               key={i}
-              className="hero-fingerprint absolute select-none whitespace-nowrap font-mono text-xs font-semibold uppercase tracking-widest text-white"
+              className="hero-fingerprint absolute select-none whitespace-nowrap font-mono text-sm font-bold uppercase tracking-widest text-white/90"
               style={{
                 top,
                 left,
