@@ -208,6 +208,82 @@
   }
 }
 
+/* Hero decrypt-word cycler */
+.decrypt-word-in {
+  animation: decrypt-pop-in 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.decrypt-word-out {
+  animation: decrypt-pop-out 380ms ease-in both;
+}
+
+@keyframes decrypt-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) translateY(10px);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes decrypt-pop-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+    filter: blur(6px);
+  }
+}
+
+/* Hero background: glowing fingerprints + pulsing locks */
+.hero-fingerprint {
+  animation: hero-fingerprint-glow var(--hero-fx-duration, 7s) ease-in-out infinite,
+    hero-float var(--hero-fx-duration, 7s) ease-in-out infinite;
+}
+
+.hero-lock {
+  animation: hero-lock-pulse var(--hero-fx-duration, 6s) ease-in-out infinite;
+}
+
+@keyframes hero-fingerprint-glow {
+  0%,
+  100% {
+    opacity: 0.12;
+    filter: drop-shadow(0 0 0px currentColor);
+  }
+  50% {
+    opacity: 0.55;
+    filter: drop-shadow(0 0 16px currentColor);
+  }
+}
+
+@keyframes hero-lock-pulse {
+  0%,
+  88%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px currentColor);
+  }
+  94% {
+    opacity: 0.75;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+}
+
 /* Client logos marquee */
 .logo-marquee {
   overflow: hidden;

@@ -1,10 +1,11 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { ArrowRight, Target, Eye } from "lucide-react";
+import { ArrowRight, Target, Eye, Fingerprint, Lock } from "lucide-react";
 import AfricaMap from "@/components/home/AfricaMap";
 import ClientLogos from "@/components/home/ClientLogos";
 import StatsCounter from "@/components/home/StatsCounter";
+import DecryptWordCycler from "@/components/home/DecryptWordCycler";
 import { getServices } from "@/lib/db/services";
 import { SERVICE_ICONS } from "@/lib/content/service-icons";
 import { getSettings } from "@/lib/db/settings";
@@ -46,6 +47,15 @@ export default async function HomePage({
     { top: "88%", left: "70%", size: 2, color: "bg-brand-blue", duration: "7.2s", twinkle: "3.8s", delay: "0.4s" },
   ] as const;
 
+  const heroCyberIcons = [
+    { Icon: Fingerprint, kind: "fingerprint", top: "14%", left: "78%", size: 72, color: "text-brand-blue", duration: "7.5s", delay: "0s" },
+    { Icon: Lock, kind: "lock", top: "72%", left: "8%", size: 40, color: "text-brand-red", duration: "6.2s", delay: "1.2s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "62%", left: "90%", size: 48, color: "text-brand-yellow", duration: "8.4s", delay: "2.4s" },
+    { Icon: Lock, kind: "lock", top: "24%", left: "20%", size: 32, color: "text-brand-blue", duration: "6.8s", delay: "0.6s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "85%", left: "48%", size: 40, color: "text-brand-red", duration: "9s", delay: "1.8s" },
+    { Icon: Lock, kind: "lock", top: "8%", left: "48%", size: 28, color: "text-brand-yellow", duration: "7s", delay: "3s" },
+  ] as const;
+
   return (
     <>
       {/* Hero */}
@@ -79,6 +89,22 @@ export default async function HomePage({
             />
           ))}
         </div>
+        {/* glowing fingerprints + pulsing locks */}
+        <div className="pointer-events-none absolute inset-0 hidden sm:block">
+          {heroCyberIcons.map(({ Icon, kind, top, left, size, color, duration, delay }, i) => (
+            <Icon
+              key={i}
+              size={size}
+              className={`absolute ${kind === "lock" ? "hero-lock" : "hero-fingerprint"} ${color}`}
+              style={{
+                top,
+                left,
+                animationDelay: delay,
+                ["--hero-fx-duration" as string]: duration,
+              }}
+            />
+          ))}
+        </div>
 
         <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
           <div>
@@ -89,6 +115,11 @@ export default async function HomePage({
               {hero.heroTitle}
             </h1>
             <p className="mt-6 max-w-xl text-lg text-white/70">{hero.heroSubtitle}</p>
+            <div className="mt-5 flex items-center gap-2 font-mono text-sm text-white/50">
+              <span className="text-brand-blue">{"//"}</span>
+              <span>decrypting_identity:</span>
+              <DecryptWordCycler />
+            </div>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/services"
@@ -169,24 +200,32 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Mission / Vision */}
+      {/* Vision / Mission */}
       <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-        <div className="grid gap-8 md:grid-cols-2">
-          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-blue/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
-              <Target size={24} />
-            </div>
-            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{mission.title}</h2>
-            <p className="relative mt-3 text-brand-gray">{mission.body}</p>
-          </div>
-          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <div className="grid gap-8 sm:grid-cols-3">
+          <div className="group relative flex aspect-square flex-col overflow-hidden rounded-2xl border border-black/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-red/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
             <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red/10 text-brand-red">
               <Eye size={24} />
             </div>
             <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{vision.title}</h2>
-            <p className="relative mt-3 text-brand-gray">{vision.body}</p>
+            <p className="relative mt-3 line-clamp-4 text-sm text-brand-gray">{vision.body}</p>
+          </div>
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-black/5">
+            <Image
+              src="/images/cofounder-photo.png"
+              alt=""
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="group relative flex aspect-square flex-col overflow-hidden rounded-2xl border border-black/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-blue/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+              <Target size={24} />
+            </div>
+            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{mission.title}</h2>
+            <p className="relative mt-3 line-clamp-4 text-sm text-brand-gray">{mission.body}</p>
           </div>
         </div>
       </section>
