@@ -27,6 +27,7 @@ import { careersPage } from "./documents/careersPage";
 import { contactPage } from "./documents/contactPage";
 import { footer } from "./documents/footer";
 import { siteSettings } from "./documents/siteSettings";
+import { postType } from "./postType";
 
 // Document types with exactly one instance, edited directly rather than as a
 // list — see sanity/structure.ts for how these are pinned in the Studio nav.
@@ -54,6 +55,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     contactPage,
     footer,
     siteSettings,
+    postType,
     // objects
     localizedArticleText,
     localizedJobText,
