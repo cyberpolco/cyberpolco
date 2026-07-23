@@ -20,9 +20,15 @@ function buildDisplay(word: string, revealed: number) {
     .join("");
 }
 
-export default function DecryptWordCycler() {
-  const [wordIndex, setWordIndex] = useState(0);
-  const [display, setDisplay] = useState(() => buildDisplay(WORDS[0], 0));
+export default function DecryptWordCycler({
+  startIndex = 0,
+  className = "",
+}: {
+  startIndex?: number;
+  className?: string;
+}) {
+  const [wordIndex, setWordIndex] = useState(startIndex % WORDS.length);
+  const [display, setDisplay] = useState(() => buildDisplay(WORDS[startIndex % WORDS.length], 0));
   const [leaving, setLeaving] = useState(false);
 
   const word = WORDS[wordIndex];
@@ -97,10 +103,10 @@ export default function DecryptWordCycler() {
   return (
     <span
       key={wordIndex}
-      aria-live="polite"
+      aria-hidden="true"
       className={`decrypt-word inline-block min-w-[5ch] font-mono tracking-[0.15em] ${
         leaving ? "decrypt-word-out" : "decrypt-word-in"
-      }`}
+      } ${className}`}
     >
       {display}
     </span>

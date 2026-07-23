@@ -47,13 +47,52 @@ export default async function HomePage({
     { top: "88%", left: "70%", size: 2, color: "bg-brand-blue", duration: "7.2s", twinkle: "3.8s", delay: "0.4s" },
   ] as const;
 
+  // Zoned to the right column / top-right / bottom margin so nothing sits
+  // behind the headline, subtitle, or CTA buttons in the left column.
   const heroCyberIcons = [
-    { Icon: Fingerprint, kind: "fingerprint", top: "14%", left: "78%", size: 72, color: "text-brand-blue", duration: "7.5s", delay: "0s" },
-    { Icon: Lock, kind: "lock", top: "72%", left: "8%", size: 40, color: "text-brand-red", duration: "6.2s", delay: "1.2s" },
-    { Icon: Fingerprint, kind: "fingerprint", top: "62%", left: "90%", size: 48, color: "text-brand-yellow", duration: "8.4s", delay: "2.4s" },
-    { Icon: Lock, kind: "lock", top: "24%", left: "20%", size: 32, color: "text-brand-blue", duration: "6.8s", delay: "0.6s" },
-    { Icon: Fingerprint, kind: "fingerprint", top: "85%", left: "48%", size: 40, color: "text-brand-red", duration: "9s", delay: "1.8s" },
-    { Icon: Lock, kind: "lock", top: "8%", left: "48%", size: 28, color: "text-brand-yellow", duration: "7s", delay: "3s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "6%", left: "60%", size: 56, color: "text-brand-blue", duration: "7.5s", delay: "0s" },
+    { Icon: Lock, kind: "lock", top: "18%", left: "85%", size: 36, color: "text-brand-red", duration: "6.2s", delay: "1.2s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "30%", left: "94%", size: 44, color: "text-brand-yellow", duration: "8.4s", delay: "2.4s" },
+    { Icon: Lock, kind: "lock", top: "42%", left: "56%", size: 28, color: "text-brand-blue", duration: "6.8s", delay: "0.6s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "54%", left: "88%", size: 64, color: "text-brand-red", duration: "9s", delay: "1.8s" },
+    { Icon: Lock, kind: "lock", top: "66%", left: "64%", size: 32, color: "text-brand-yellow", duration: "7s", delay: "3s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "78%", left: "92%", size: 48, color: "text-brand-blue", duration: "7.8s", delay: "2s" },
+    { Icon: Lock, kind: "lock", top: "3%", left: "75%", size: 24, color: "text-brand-red", duration: "6.5s", delay: "0.9s" },
+    { Icon: Lock, kind: "lock", top: "92%", left: "22%", size: 34, color: "text-brand-blue", duration: "7.2s", delay: "1.5s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "95%", left: "68%", size: 40, color: "text-brand-yellow", duration: "8s", delay: "0.3s" },
+  ] as const;
+
+  // Bigger, decrypting words scattered behind the content — only shown once
+  // the 2-column layout kicks in (lg+), and confined to the right column /
+  // margins so the heading, subtitle, and CTAs never sit on top of one.
+  const heroBackgroundWords = [
+    { startIndex: 0, top: "8%", left: "58%", size: "text-5xl", color: "text-brand-blue/20" },
+    { startIndex: 2, top: "34%", left: "78%", size: "text-6xl", color: "text-brand-red/15" },
+    { startIndex: 4, top: "60%", left: "58%", size: "text-5xl", color: "text-brand-yellow/20" },
+    { startIndex: 1, top: "80%", left: "80%", size: "text-4xl", color: "text-brand-blue/15" },
+    { startIndex: 3, top: "94%", left: "45%", size: "text-4xl", color: "text-brand-red/15" },
+  ] as const;
+
+  const heroKeywords = [
+    { term: "ENCRYPTION", top: "4%", left: "68%" },
+    { term: "FIREWALL", top: "22%", left: "92%" },
+    { term: "ZERO-DAY", top: "46%", left: "68%" },
+    { term: "THREAT INTEL", top: "64%", left: "92%" },
+    { term: "RANSOMWARE", top: "88%", left: "60%" },
+    { term: "SOC 24/7", top: "97%", left: "86%" },
+  ] as const;
+
+  const heroBinary = [
+    { char: "1", top: "12%", left: "52%", duration: "6.2s", twinkle: "3.4s", delay: "0.2s" },
+    { char: "0", top: "26%", left: "88%", duration: "7s", twinkle: "3.8s", delay: "1s" },
+    { char: "1", top: "38%", left: "72%", duration: "6.6s", twinkle: "3.1s", delay: "1.6s" },
+    { char: "0", top: "50%", left: "96%", duration: "7.4s", twinkle: "4s", delay: "0.5s" },
+    { char: "1", top: "62%", left: "56%", duration: "6.8s", twinkle: "3.6s", delay: "2.1s" },
+    { char: "0", top: "74%", left: "84%", duration: "7.2s", twinkle: "3.2s", delay: "1.3s" },
+    { char: "1", top: "86%", left: "70%", duration: "6.4s", twinkle: "3.9s", delay: "0.8s" },
+    { char: "0", top: "10%", left: "82%", duration: "7.6s", twinkle: "3.5s", delay: "2.4s" },
+    { char: "1", top: "92%", left: "38%", duration: "6.9s", twinkle: "3.3s", delay: "1.9s" },
+    { char: "0", top: "56%", left: "64%", duration: "7.1s", twinkle: "3.7s", delay: "0.6s" },
   ] as const;
 
   return (
@@ -105,6 +144,49 @@ export default async function HomePage({
             />
           ))}
         </div>
+        {/* floating binary digits */}
+        <div className="pointer-events-none absolute inset-0 hidden sm:block">
+          {heroBinary.map((b, i) => (
+            <span
+              key={i}
+              className="login-binary absolute select-none font-mono text-sm font-bold text-brand-blue/25"
+              style={{
+                top: b.top,
+                left: b.left,
+                animationDelay: b.delay,
+                ["--hero-particle-duration" as string]: b.duration,
+                ["--hero-particle-twinkle" as string]: b.twinkle,
+              }}
+            >
+              {b.char}
+            </span>
+          ))}
+        </div>
+        {/* cybersecurity keyword chatter */}
+        <div className="pointer-events-none absolute inset-0 hidden lg:block">
+          {heroKeywords.map(({ term, top, left }, i) => (
+            <span
+              key={i}
+              className="hero-fingerprint absolute select-none whitespace-nowrap font-mono text-xs font-semibold uppercase tracking-widest text-white"
+              style={{
+                top,
+                left,
+                animationDelay: `${i * 0.7}s`,
+                ["--hero-fx-duration" as string]: "8s",
+              }}
+            >
+              {term}
+            </span>
+          ))}
+        </div>
+        {/* big decrypting words scattered behind the content */}
+        <div className="pointer-events-none absolute inset-0 hidden lg:block">
+          {heroBackgroundWords.map(({ startIndex, top, left, size, color }, i) => (
+            <div key={i} className="absolute" style={{ top, left }}>
+              <DecryptWordCycler startIndex={startIndex} className={`${size} font-bold ${color}`} />
+            </div>
+          ))}
+        </div>
 
         <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
           <div>
@@ -115,11 +197,6 @@ export default async function HomePage({
               {hero.heroTitle}
             </h1>
             <p className="mt-6 max-w-xl text-lg text-white/70">{hero.heroSubtitle}</p>
-            <div className="mt-5 flex items-center gap-2 font-mono text-sm text-white/50">
-              <span className="text-brand-blue">{"//"}</span>
-              <span>decrypting_identity:</span>
-              <DecryptWordCycler />
-            </div>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/services"
@@ -208,8 +285,8 @@ export default async function HomePage({
             <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red/10 text-brand-red">
               <Eye size={24} />
             </div>
-            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{vision.title}</h2>
-            <p className="relative mt-3 line-clamp-4 text-sm text-brand-gray">{vision.body}</p>
+            <h2 className="relative mt-5 text-3xl font-bold text-brand-dark">{vision.title}</h2>
+            <p className="relative mt-3 line-clamp-4 text-base text-brand-gray">{vision.body}</p>
           </div>
           <div className="relative aspect-square overflow-hidden rounded-2xl border border-black/5">
             <Image
@@ -224,8 +301,8 @@ export default async function HomePage({
             <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
               <Target size={24} />
             </div>
-            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{mission.title}</h2>
-            <p className="relative mt-3 line-clamp-4 text-sm text-brand-gray">{mission.body}</p>
+            <h2 className="relative mt-5 text-3xl font-bold text-brand-dark">{mission.title}</h2>
+            <p className="relative mt-3 line-clamp-4 text-base text-brand-gray">{mission.body}</p>
           </div>
         </div>
       </section>
