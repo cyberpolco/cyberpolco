@@ -64,17 +64,7 @@ export default async function HomePage({
     { Icon: Lock, kind: "lock", top: "2%", left: "80%", size: 22, color: "text-brand-yellow", duration: "8s", delay: "0.3s" },
   ] as const;
 
-  // Decrypting words, sized down closer to the keyword layer's weight
-  // instead of dominating it.
-  const heroBackgroundWords = [
-    { startIndex: 0, top: "6%", left: "50%", size: "text-3xl", color: "text-brand-blue/40" },
-    { startIndex: 2, top: "52%", left: "50%", size: "text-3xl", color: "text-brand-red/35" },
-    { startIndex: 4, top: "79%", left: "78%", size: "text-2xl", color: "text-brand-yellow/40" },
-    { startIndex: 1, top: "94%", left: "68%", size: "text-2xl", color: "text-brand-blue/35" },
-    { startIndex: 3, top: "26%", left: "92%", size: "text-2xl", color: "text-brand-red/35" },
-  ] as const;
-
-  // Keywords sized up closer to the decrypting words' weight.
+  // Keywords now carry the decrypt animation themselves (see render below).
   const heroKeywords = [
     { term: "ENCRYPTION", top: "3%", left: "68%" },
     { term: "FIREWALL", top: "18%", left: "62%" },
@@ -172,28 +162,14 @@ export default async function HomePage({
             </span>
           ))}
         </div>
-        {/* cybersecurity keyword chatter */}
+        {/* cybersecurity keywords, decrypting in place */}
         <div className="pointer-events-none absolute inset-0 hidden lg:block">
           {heroKeywords.map(({ term, top, left }, i) => (
-            <span
-              key={i}
-              className="hero-fingerprint absolute select-none whitespace-nowrap font-mono text-sm font-bold uppercase tracking-widest text-white/90"
-              style={{
-                top,
-                left,
-                animationDelay: `${i * 0.7}s`,
-                ["--hero-fx-duration" as string]: "8s",
-              }}
-            >
-              {term}
-            </span>
-          ))}
-        </div>
-        {/* big decrypting words scattered behind the content */}
-        <div className="pointer-events-none absolute inset-0 hidden lg:block">
-          {heroBackgroundWords.map(({ startIndex, top, left, size, color }, i) => (
             <div key={i} className="absolute" style={{ top, left }}>
-              <DecryptWordCycler startIndex={startIndex} className={`${size} font-bold ${color}`} />
+              <DecryptWordCycler
+                words={[term]}
+                className="whitespace-nowrap text-sm font-bold uppercase text-white/90"
+              />
             </div>
           ))}
         </div>
