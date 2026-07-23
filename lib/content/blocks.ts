@@ -81,7 +81,7 @@ export const blockDefaults = {
 
   "home.clientsIntro": {
     fr: { title: "Nos clients fidèles et satisfaits" },
-    en: { title: "Our valued and satisfied clients" },
+    en: { title: "Our valued clients and partners" },
   } satisfies Localized<TitleOnly>,
 
   "home.statsIntro": {

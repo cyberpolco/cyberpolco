@@ -15,6 +15,7 @@ export default function Header() {
     { href: "/", label: t("home") },
     { href: "/services", label: t("services") },
     { href: "/about", label: t("about") },
+    { href: "/achievements", label: t("achievements") },
     { href: "/articles", label: t("articles") },
     { href: "/careers", label: t("careers") },
   ];

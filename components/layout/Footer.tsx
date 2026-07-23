@@ -94,6 +94,7 @@ export default async function Footer() {
             </h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/about" className="hover:text-white">{tNav("about")}</Link></li>
+              <li><Link href="/achievements" className="hover:text-white">{tNav("achievements")}</Link></li>
               <li><Link href="/articles" className="hover:text-white">{tNav("articles")}</Link></li>
               <li><Link href="/careers" className="hover:text-white">{tNav("careers")}</Link></li>
               <li><Link href="/contact" className="hover:text-white">{tNav("contact")}</Link></li>

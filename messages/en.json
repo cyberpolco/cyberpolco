@@ -3,6 +3,7 @@
     "home": "Home",
     "services": "Services",
     "about": "About",
+    "achievements": "Achievements",
     "articles": "Articles",
     "careers": "Careers",
     "contact": "Contact",
@@ -37,7 +38,7 @@
     "servicesTitle": "Our services",
     "servicesSubtitle": "Professional cybersecurity solutions and specialized consulting for businesses, institutions, and individuals.",
     "findMoreServices": "Find more services",
-    "clientsTitle": "Our valued and satisfied clients",
+    "clientsTitle": "Our valued clients and partners",
     "statsTitle": "Cyber PolCo at a glance",
     "articlesTitle": "Latest articles",
     "articlesSubtitle": "Our insights and advice for navigating the internet safely.",
@@ -57,6 +58,10 @@
     "storyTitle": "Our story",
     "leadershipTitle": "Leadership",
     "sectorTitle": "The sector at large"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "subtitle": "Milestones and recognition from our work across Central and Southern Africa."
   },
   "articles": {
     "title": "Articles",

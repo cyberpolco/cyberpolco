@@ -3,6 +3,7 @@
     "home": "Accueil",
     "services": "Services",
     "about": "À propos",
+    "achievements": "Réalisations",
     "articles": "Articles",
     "careers": "Carrières",
     "contact": "Contact",
@@ -57,6 +58,10 @@
     "storyTitle": "Notre histoire",
     "leadershipTitle": "Le leadership",
     "sectorTitle": "Le secteur dans son ensemble"
+  },
+  "achievements": {
+    "title": "Réalisations",
+    "subtitle": "Nos étapes clés et reconnaissances à travers l'Afrique centrale et australe."
   },
   "articles": {
     "title": "Articles",

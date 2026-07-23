@@ -119,39 +119,6 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Mission / Vision */}
-      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-        <div className="grid gap-8 md:grid-cols-2">
-          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-blue/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
-              <Target size={24} />
-            </div>
-            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{mission.title}</h2>
-            <p className="relative mt-3 text-brand-gray">{mission.body}</p>
-          </div>
-          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-red/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red/10 text-brand-red">
-              <Eye size={24} />
-            </div>
-            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{vision.title}</h2>
-            <p className="relative mt-3 text-brand-gray">{vision.body}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Africa Map */}
-      <section className="bg-brand-dark py-16 text-white">
-        <div className="mx-auto max-w-5xl px-5 text-center lg:px-8">
-          <h2 className="text-3xl font-bold">{map.title}</h2>
-          <p className="mt-2 text-white/60">{map.subtitle}</p>
-        </div>
-        <div className="mx-auto mt-10 max-w-5xl px-5 lg:px-8">
-          <AfricaMap />
-        </div>
-      </section>
-
       {/* Services */}
       <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
         <div className="max-w-2xl">
@@ -199,6 +166,39 @@ export default async function HomePage({
           <div className="mt-10">
             <ClientLogos />
           </div>
+        </div>
+      </section>
+
+      {/* Mission / Vision */}
+      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-blue/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+              <Target size={24} />
+            </div>
+            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{mission.title}</h2>
+            <p className="relative mt-3 text-brand-gray">{mission.body}</p>
+          </div>
+          <div className="group relative overflow-hidden rounded-2xl border border-black/5 bg-brand-dark-2/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-red/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red/10 text-brand-red">
+              <Eye size={24} />
+            </div>
+            <h2 className="relative mt-5 text-2xl font-bold text-brand-dark">{vision.title}</h2>
+            <p className="relative mt-3 text-brand-gray">{vision.body}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Africa Map */}
+      <section className="bg-brand-dark py-16 text-white">
+        <div className="mx-auto max-w-5xl px-5 text-center lg:px-8">
+          <h2 className="text-3xl font-bold">{map.title}</h2>
+          <p className="mt-2 text-white/60">{map.subtitle}</p>
+        </div>
+        <div className="mx-auto mt-10 max-w-5xl px-5 lg:px-8">
+          <AfricaMap />
         </div>
       </section>
 
