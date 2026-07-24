@@ -42,7 +42,7 @@ export default async function HomePage({
     { top: "68%", left: "18%", size: 3, color: "bg-brand-red", duration: "5.5s", twinkle: "2.8s", delay: "1.1s" },
     { top: "80%", left: "35%", size: 2, color: "bg-brand-blue", duration: "8s", twinkle: "3.6s", delay: "0.3s" },
     { top: "15%", left: "62%", size: 2, color: "bg-brand-blue", duration: "6.8s", twinkle: "3s", delay: "1.6s" },
-    { top: "48%", left: "88%", size: 3, color: "bg-brand-yellow", duration: "7s", twinkle: "4.4s", delay: "0.8s" },
+    { top: "48%", left: "78%", size: 3, color: "bg-brand-yellow", duration: "7s", twinkle: "4.4s", delay: "0.8s" },
     { top: "34%", left: "24%", size: 2, color: "bg-brand-red", duration: "6.2s", twinkle: "3.4s", delay: "1.9s" },
     { top: "88%", left: "70%", size: 2, color: "bg-brand-blue", duration: "7.2s", twinkle: "3.8s", delay: "0.4s" },
   ] as const;
@@ -51,72 +51,62 @@ export default async function HomePage({
   // binary digits, keywords, and decrypting words) so none of these
   // background layers overlap each other, and all stay zoned to the right
   // column / margins so the heading, subtitle, and CTAs are never covered.
+  // left is capped at 82% so nothing sits in the far-right strip now
+  // reserved for the heroKeywords vertical list (see below).
   const heroCyberIcons = [
     { Icon: Fingerprint, kind: "fingerprint", top: "9%", left: "64%", size: 40, color: "text-brand-blue", duration: "7.5s", delay: "0s" },
-    { Icon: Lock, kind: "lock", top: "16%", left: "96%", size: 30, color: "text-brand-red", duration: "6.2s", delay: "1.2s" },
+    { Icon: Lock, kind: "lock", top: "16%", left: "82%", size: 30, color: "text-brand-red", duration: "6.2s", delay: "1.2s" },
     { Icon: Fingerprint, kind: "fingerprint", top: "27%", left: "58%", size: 36, color: "text-brand-yellow", duration: "8.4s", delay: "2.4s" },
-    { Icon: Lock, kind: "lock", top: "35%", left: "94%", size: 26, color: "text-brand-blue", duration: "6.8s", delay: "0.6s" },
+    { Icon: Lock, kind: "lock", top: "35%", left: "76%", size: 26, color: "text-brand-blue", duration: "6.8s", delay: "0.6s" },
     { Icon: Fingerprint, kind: "fingerprint", top: "60%", left: "66%", size: 44, color: "text-brand-red", duration: "9s", delay: "1.8s" },
-    { Icon: Lock, kind: "lock", top: "68%", left: "90%", size: 28, color: "text-brand-yellow", duration: "7s", delay: "3s" },
+    { Icon: Lock, kind: "lock", top: "68%", left: "72%", size: 28, color: "text-brand-yellow", duration: "7s", delay: "3s" },
     { Icon: Fingerprint, kind: "fingerprint", top: "71%", left: "58%", size: 34, color: "text-brand-blue", duration: "7.8s", delay: "2s" },
-    { Icon: Lock, kind: "lock", top: "84%", left: "94%", size: 32, color: "text-brand-red", duration: "6.5s", delay: "0.9s" },
-    { Icon: Fingerprint, kind: "fingerprint", top: "96%", left: "92%", size: 30, color: "text-brand-blue", duration: "7.2s", delay: "1.5s" },
+    { Icon: Lock, kind: "lock", top: "84%", left: "78%", size: 32, color: "text-brand-red", duration: "6.5s", delay: "0.9s" },
+    { Icon: Fingerprint, kind: "fingerprint", top: "96%", left: "74%", size: 30, color: "text-brand-blue", duration: "7.2s", delay: "1.5s" },
     { Icon: Lock, kind: "lock", top: "2%", left: "80%", size: 22, color: "text-brand-yellow", duration: "8s", delay: "0.3s" },
   ] as const;
 
-  // Keywords now carry the decrypt animation themselves (see render below).
-  // FIREWALL/ZERO-DAY/RANSOMWARE used to sit inside the logo mark's vertical
-  // band (top:18.5%-81.5% of the section, measured — the mark's height is
-  // fixed by the image, so this band holds at every viewport width) and
-  // horizontal span (roughly left:55-93%, this one does shift with viewport
-  // width, so anything in the vertical band also avoids that column range) —
-  // the opaque mark was covering them. Moved out of that band instead.
-  // DDOS/IAM/VPN/MFA are zoned to the empty margins above the eyebrow badge
-  // (top < 22.9%) and below the CTA buttons (top > 79.1%), also stable
-  // across viewport widths. BOTNET sits in the one genuinely safe true-
-  // middle corridor: measured across 1024-2560px, the subtitle never wraps
-  // past 48.1% and the logo's left edge never comes in closer than 54.8%,
-  // so left:49-54% is clear of both at any row. CVE-2024 had the same
-  // logo-band problem as the three above (top:24%/left:62% sat inside both
-  // ranges) but was missed in that pass — moved up to top:9% (left
-  // unchanged) into the same top-margin zone as FIREWALL/THREAT INTEL.
-  // MALWARE also clipped THREAT INTEL's corner at the lg breakpoint
-  // (1024-1280px, where both are close enough for their nowrap text to
-  // touch) — nudged right from left:88% to left:92%, clear at every
-  // measured width.
-  const heroKeywords: { term: string; top: string; left: string; center?: boolean }[] = [
-    { term: "ENCRYPTION", top: "3%", left: "68%" },
-    { term: "FIREWALL", top: "4%", left: "56%" },
-    { term: "ZERO-DAY", top: "15%", left: "72%" },
-    { term: "MALWARE", top: "10%", left: "92%" },
-    { term: "THREAT INTEL", top: "8%", left: "80%" },
-    { term: "RANSOMWARE", top: "88%", left: "66%" },
-    { term: "SIEM", top: "84%", left: "90%" },
-    { term: "SOC 24/7", top: "14%", left: "50%" },
-    { term: "OSINT", top: "91%", left: "84%" },
-    { term: "CVE-2024", top: "9%", left: "62%" },
-    { term: "PENTEST", top: "89%", left: "56%" },
-    { term: "PHISHING", top: "82%", left: "70%" },
-    { term: "DDOS", top: "6%", left: "8%" },
-    { term: "IAM", top: "90%", left: "10%" },
-    { term: "VPN", top: "17%", left: "30%" },
-    { term: "MFA", top: "84%", left: "32%" },
-    { term: "BOTNET", top: "48%", left: "52%", center: true },
-  ];
+  // Keywords render as a single vertical list in the far-right strip
+  // (right-8 of the section, reserved above from heroCyberIcons/heroBinary/
+  // heroParticles), vertically centered via a full-height flex column.
+  // Only shows from 1400px up: below that the two-column grid fills nearly
+  // the whole section width, so the list's longest word ("THREAT INTEL")
+  // would land on the logo or the heading/subtitle column — verified there's
+  // no overlap at any width from 1400-2560px, with ~100px of margin below
+  // the actual crossover point (~1295px) to absorb font-metric differences.
+  const heroKeywords = [
+    "ENCRYPTION",
+    "FIREWALL",
+    "ZERO-DAY",
+    "MALWARE",
+    "THREAT INTEL",
+    "RANSOMWARE",
+    "SIEM",
+    "SOC 24/7",
+    "OSINT",
+    "CVE-2024",
+    "PENTEST",
+    "PHISHING",
+    "DDOS",
+    "IAM",
+    "VPN",
+    "MFA",
+    "BOTNET",
+  ] as const;
 
   const heroBinary = [
     { char: "1", top: "9%", left: "70%", duration: "6.2s", twinkle: "3.4s", delay: "0.2s" },
-    { char: "0", top: "16%", left: "86%", duration: "7s", twinkle: "3.8s", delay: "1s" },
+    { char: "0", top: "16%", left: "80%", duration: "7s", twinkle: "3.8s", delay: "1s" },
     { char: "1", top: "23%", left: "70%", duration: "6.6s", twinkle: "3.1s", delay: "1.6s" },
-    { char: "0", top: "31%", left: "86%", duration: "7.4s", twinkle: "4s", delay: "0.5s" },
+    { char: "0", top: "31%", left: "80%", duration: "7.4s", twinkle: "4s", delay: "0.5s" },
     { char: "1", top: "40%", left: "70%", duration: "6.8s", twinkle: "3.6s", delay: "2.1s" },
-    { char: "0", top: "44%", left: "86%", duration: "7.2s", twinkle: "3.2s", delay: "1.3s" },
+    { char: "0", top: "44%", left: "80%", duration: "7.2s", twinkle: "3.2s", delay: "1.3s" },
     { char: "1", top: "53%", left: "70%", duration: "6.4s", twinkle: "3.9s", delay: "0.8s" },
-    { char: "0", top: "63%", left: "86%", duration: "7.6s", twinkle: "3.5s", delay: "2.4s" },
+    { char: "0", top: "63%", left: "80%", duration: "7.6s", twinkle: "3.5s", delay: "2.4s" },
     { char: "1", top: "67%", left: "70%", duration: "6.9s", twinkle: "3.3s", delay: "1.9s" },
-    { char: "0", top: "83%", left: "86%", duration: "7.1s", twinkle: "3.7s", delay: "0.6s" },
+    { char: "0", top: "83%", left: "80%", duration: "7.1s", twinkle: "3.7s", delay: "0.6s" },
     { char: "1", top: "95%", left: "56%", duration: "6.5s", twinkle: "3.6s", delay: "1.1s" },
-    { char: "0", top: "95%", left: "88%", duration: "7.3s", twinkle: "3.4s", delay: "0.4s" },
+    { char: "0", top: "95%", left: "80%", duration: "7.3s", twinkle: "3.4s", delay: "0.4s" },
   ] as const;
 
   return (
@@ -187,18 +177,13 @@ export default async function HomePage({
           ))}
         </div>
         {/* cybersecurity keywords, decrypting in place */}
-        <div className="pointer-events-none absolute inset-0 hidden lg:block">
-          {heroKeywords.map(({ term, top, left, center }, i) => (
-            <div
+        <div className="pointer-events-none absolute inset-y-0 right-8 hidden min-[1400px]:flex min-[1400px]:flex-col min-[1400px]:items-end min-[1400px]:justify-center min-[1400px]:gap-3">
+          {heroKeywords.map((term, i) => (
+            <DecryptWordCycler
               key={i}
-              className="absolute"
-              style={{ top, left, transform: center ? "translateX(-50%)" : undefined }}
-            >
-              <DecryptWordCycler
-                words={[term]}
-                className="whitespace-nowrap text-sm font-bold uppercase text-white/90"
-              />
-            </div>
+              words={[term]}
+              className="whitespace-nowrap text-sm font-bold uppercase text-white/90"
+            />
           ))}
         </div>
 
