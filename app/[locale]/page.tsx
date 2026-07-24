@@ -65,35 +65,44 @@ export default async function HomePage({
   ] as const;
 
   // Keywords now carry the decrypt animation themselves (see render below).
-  // FIREWALL used to sit at left:62%, right where the logo mark's horizontal
-  // span lands at typical desktop widths — the opaque mark was covering it.
-  // Moved above the logo's vertical band instead. DDOS/IAM/VPN/MFA are new:
-  // the left column had no decoration at all, so they're zoned to the empty
-  // margins above the eyebrow badge (top < 22.9%) and below the CTA buttons
-  // (top > 79.1%) — those two thresholds are pinned by the fixed-size logo
-  // circle's height and hold at every viewport width (measured 1024–2560px),
-  // so any x is clear of the heading/subtitle/CTA there. A true vertical-
-  // middle spot on the left isn't safe: the subtitle wraps to ~47% of the
-  // section width at some viewport sizes.
-  const heroKeywords = [
+  // FIREWALL/ZERO-DAY/RANSOMWARE used to sit inside the logo mark's vertical
+  // band (top:18.5%-81.5% of the section, measured — the mark's height is
+  // fixed by the image, so this band holds at every viewport width) and
+  // horizontal span (roughly left:55-93%, this one does shift with viewport
+  // width, so anything in the vertical band also avoids that column range) —
+  // the opaque mark was covering them. Moved out of that band instead.
+  // DDOS/IAM/VPN/MFA are zoned to the empty margins above the eyebrow badge
+  // (top < 22.9%) and below the CTA buttons (top > 79.1%), also stable
+  // across viewport widths. BOTNET sits in the one genuinely safe true-
+  // middle corridor: measured across 1024-2560px, the subtitle never wraps
+  // past 48.1% and the logo's left edge never comes in closer than 54.8%,
+  // so left:49-54% is clear of both at any row. CVE-2024 had the same
+  // logo-band problem as the three above (top:24%/left:62% sat inside both
+  // ranges) but was missed in that pass — moved up to top:9% (left
+  // unchanged) into the same top-margin zone as FIREWALL/THREAT INTEL.
+  // MALWARE also clipped THREAT INTEL's corner at the lg breakpoint
+  // (1024-1280px, where both are close enough for their nowrap text to
+  // touch) — nudged right from left:88% to left:92%, clear at every
+  // measured width.
+  const heroKeywords: { term: string; top: string; left: string; center?: boolean }[] = [
     { term: "ENCRYPTION", top: "3%", left: "68%" },
     { term: "FIREWALL", top: "4%", left: "56%" },
-    { term: "ZERO-DAY", top: "33%", left: "78%" },
-    { term: "MALWARE", top: "10%", left: "88%" },
+    { term: "ZERO-DAY", top: "15%", left: "72%" },
+    { term: "MALWARE", top: "10%", left: "92%" },
     { term: "THREAT INTEL", top: "8%", left: "80%" },
-    { term: "RANSOMWARE", top: "60%", left: "78%" },
-    { term: "SIEM", top: "51%", left: "90%" },
-    { term: "SOC 24/7", top: "70%", left: "62%" },
+    { term: "RANSOMWARE", top: "88%", left: "66%" },
+    { term: "SIEM", top: "84%", left: "90%" },
+    { term: "SOC 24/7", top: "14%", left: "50%" },
     { term: "OSINT", top: "91%", left: "84%" },
-    { term: "CVE-2024", top: "24%", left: "62%" },
+    { term: "CVE-2024", top: "9%", left: "62%" },
     { term: "PENTEST", top: "89%", left: "56%" },
     { term: "PHISHING", top: "82%", left: "70%" },
     { term: "DDOS", top: "6%", left: "8%" },
     { term: "IAM", top: "90%", left: "10%" },
     { term: "VPN", top: "17%", left: "30%" },
     { term: "MFA", top: "84%", left: "32%" },
-    { term: "BOTNET", top: "18%", left: "9%" },
-  ] as const;
+    { term: "BOTNET", top: "48%", left: "52%", center: true },
+  ];
 
   const heroBinary = [
     { char: "1", top: "9%", left: "70%", duration: "6.2s", twinkle: "3.4s", delay: "0.2s" },
@@ -179,8 +188,12 @@ export default async function HomePage({
         </div>
         {/* cybersecurity keywords, decrypting in place */}
         <div className="pointer-events-none absolute inset-0 hidden lg:block">
-          {heroKeywords.map(({ term, top, left }, i) => (
-            <div key={i} className="absolute" style={{ top, left }}>
+          {heroKeywords.map(({ term, top, left, center }, i) => (
+            <div
+              key={i}
+              className="absolute"
+              style={{ top, left, transform: center ? "translateX(-50%)" : undefined }}
+            >
               <DecryptWordCycler
                 words={[term]}
                 className="whitespace-nowrap text-sm font-bold uppercase text-white/90"
