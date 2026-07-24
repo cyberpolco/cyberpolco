@@ -92,7 +92,7 @@ export default async function HomePage({
     { term: "IAM", top: "90%", left: "10%" },
     { term: "VPN", top: "17%", left: "30%" },
     { term: "MFA", top: "84%", left: "32%" },
-    { term: "BOTNET", top: "12%", left: "9%" },
+    { term: "BOTNET", top: "18%", left: "9%" },
   ] as const;
 
   const heroBinary = [
