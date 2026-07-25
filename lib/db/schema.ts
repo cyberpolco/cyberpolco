@@ -136,6 +136,28 @@ export const services = pgTable("services", {
   en: jsonb("en").$type<LocalizedService>().notNull(),
 });
 
+type LocalizedTeamMember = { title: string; bio: string };
+
+export const teamMembers = pgTable("team_members", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  photo: text("photo"),
+  displayOrder: integer("display_order").notNull().default(0),
+  fr: jsonb("fr").$type<LocalizedTeamMember>().notNull(),
+  en: jsonb("en").$type<LocalizedTeamMember>().notNull(),
+});
+
+type LocalizedAchievement = { title: string; description: string };
+
+export const achievements = pgTable("achievements", {
+  id: text("id").primaryKey(),
+  date: text("date").notNull(),
+  image1: text("image1"),
+  image2: text("image2"),
+  fr: jsonb("fr").$type<LocalizedAchievement>().notNull(),
+  en: jsonb("en").$type<LocalizedAchievement>().notNull(),
+});
+
 type StarlinkSite = {
   id: string;
   siteName: string;

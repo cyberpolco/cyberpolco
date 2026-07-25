@@ -1,0 +1,79 @@
+import Image from "next/image";
+import Link from "next/link";
+import { Plus, Pencil } from "lucide-react";
+import { getTeamMembers } from "@/lib/db/team";
+import { deleteTeamMemberAction } from "@/lib/actions/team";
+import { requireRole } from "@/lib/auth/rbac";
+import BackLink from "@/app/admin/_components/BackLink";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
+
+export default async function AdminTeamPage() {
+  await requireRole(["super_admin", "content_editor"]);
+
+  const members = await getTeamMembers();
+
+  return (
+    <div>
+      <BackLink href="/admin/cms" label="Back to CMS" />
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Team</h1>
+        <Link
+          href="/admin/cms/team/new"
+          className="flex items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white"
+        >
+          <Plus size={16} /> New team member
+        </Link>
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
+        <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
+            <tr>
+              <th className="px-5 py-3">Photo</th>
+              <th className="px-5 py-3">Name</th>
+              <th className="px-5 py-3">Title (EN)</th>
+              <th className="px-5 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {members.map((m) => (
+              <tr key={m.id} className="border-t border-black/5 dark:border-white/10">
+                <td className="px-5 py-3">
+                  <div className="relative h-9 w-9 overflow-hidden rounded-full border border-black/5 dark:border-white/10">
+                    <Image src={m.photo || "/images/logo-mark.png"} alt="" fill sizes="36px" className="object-cover" />
+                  </div>
+                </td>
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{m.name}</td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">{m.en.title}</td>
+                <td className="px-5 py-3">
+                  <div className="flex justify-end gap-3">
+                    <Link href={`/admin/cms/team/${m.id}/edit`} className="text-brand-blue">
+                      <Pencil size={16} />
+                    </Link>
+                    <DeleteButton
+                      action={deleteTeamMemberAction}
+                      id={m.id}
+                      fieldName="id"
+                      confirmTitle="Delete this team member?"
+                      confirmBody={`"${m.name}" will be permanently removed.`}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {members.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
+                  No team members yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  );
+}

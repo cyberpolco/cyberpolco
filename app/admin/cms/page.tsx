@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileStack, Layers, PanelBottom, Settings } from "lucide-react";
+import { FileStack, Layers, PanelBottom, Settings, Users, Milestone } from "lucide-react";
 import { requireRole } from "@/lib/auth/rbac";
 
 const sections = [
@@ -14,6 +14,18 @@ const sections = [
     label: "Services",
     description: "Add, edit, or remove the services listed on the site.",
     icon: Layers,
+  },
+  {
+    href: "/admin/cms/team",
+    label: "Team",
+    description: "Add, edit, or remove the team members shown on the About page.",
+    icon: Users,
+  },
+  {
+    href: "/admin/cms/achievements",
+    label: "Achievements",
+    description: "Manage the milestone timeline shown on the Achievements page.",
+    icon: Milestone,
   },
   {
     href: "/admin/cms/footer",

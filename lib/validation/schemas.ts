@@ -66,3 +66,6 @@ export const ALLOWED_LESSON_MATERIAL_TYPES = [
   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 ];
 export const MAX_LESSON_MATERIAL_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
+
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB

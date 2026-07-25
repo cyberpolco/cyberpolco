@@ -57,11 +57,15 @@
     "title": "About Cyber PolCo",
     "storyTitle": "Our story",
     "leadershipTitle": "Leadership",
+    "teamTitle": "Our team",
+    "teamSubtitle": "The people behind Cyber PolCo's mission.",
+    "teamBioToggle": "Read bio",
     "sectorTitle": "The sector at large"
   },
   "achievements": {
     "title": "Achievements",
-    "subtitle": "Milestones and recognition from our work across Central and Southern Africa."
+    "subtitle": "Milestones and recognition from our work across Central and Southern Africa.",
+    "empty": "No achievements yet — check back soon."
   },
   "articles": {
     "title": "Articles",

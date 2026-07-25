@@ -1,9 +1,12 @@
+import crypto from "crypto";
 import { db } from "./client";
 import {
   articles as articlesTable,
   settings as settingsTable,
   contentBlocks as contentBlocksTable,
   services as servicesTable,
+  teamMembers as teamMembersTable,
+  achievements as achievementsTable,
 } from "./schema";
 import { articles as seedArticles } from "@/lib/content/articles";
 import { stats, socialLinks, offices } from "@/lib/content/company";
@@ -35,8 +38,28 @@ async function seed() {
   }));
   await db.insert(servicesTable).values(serviceRows).onConflictDoNothing();
 
+  const teamMemberRows = Array.from({ length: 6 }, (_, i) => ({
+    id: crypto.randomUUID(),
+    name: "TBD",
+    photo: null,
+    displayOrder: i,
+    fr: { title: "Poste à définir", bio: "Description à venir." },
+    en: { title: "Title TBD", bio: "Bio coming soon." },
+  }));
+  await db.insert(teamMembersTable).values(teamMemberRows).onConflictDoNothing();
+
+  const achievementRows = Array.from({ length: 5 }, (_, i) => ({
+    id: crypto.randomUUID(),
+    date: `${2021 + i}-01-01`,
+    image1: "/images/logo-mark.png",
+    image2: null,
+    fr: { title: "Étape à définir", description: "Description à venir." },
+    en: { title: "Milestone TBD", description: "Description coming soon." },
+  }));
+  await db.insert(achievementsTable).values(achievementRows).onConflictDoNothing();
+
   console.log(
-    `Seeded ${seedArticles.length} articles, default settings, ${contentBlockRows.length} content blocks, and ${serviceRows.length} services.`
+    `Seeded ${seedArticles.length} articles, default settings, ${contentBlockRows.length} content blocks, ${serviceRows.length} services, ${teamMemberRows.length} team members, and ${achievementRows.length} achievements.`
   );
 }
 
