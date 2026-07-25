@@ -107,6 +107,7 @@ export const services: Service[] = [
         "Sessions destinées aux écoles et universités",
         "Ateliers pratiques sur le phishing, les mots de passe, les VPN",
         "Contenus disponibles en formule mensuelle ou par session",
+        "Frenglify Academy — cours d'anglais et de français en ligne",
       ],
     },
     en: {
@@ -119,6 +120,7 @@ export const services: Service[] = [
         "Sessions for schools and universities",
         "Hands-on workshops on phishing, passwords, and VPNs",
         "Available as a monthly program or per-session booking",
+        "Frenglify Academy — online English and French language courses",
       ],
     },
   },
