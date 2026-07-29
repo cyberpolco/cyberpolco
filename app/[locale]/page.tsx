@@ -279,13 +279,13 @@ export default async function HomePage({
       {/* Vision / Mission */}
       <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-3">
-          <div className="group relative flex aspect-square flex-col overflow-hidden rounded-2xl border border-black/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-black/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-red/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
             <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red/10 text-brand-red">
               <Eye size={24} />
             </div>
             <h2 className="relative mt-5 text-3xl font-bold text-brand-dark">{vision.title}</h2>
-            <p className="relative mt-3 line-clamp-4 text-base text-brand-gray">{vision.body}</p>
+            <p className="relative mt-3 text-justify text-base text-brand-gray">{vision.body}</p>
           </div>
           <div className="relative aspect-square overflow-hidden rounded-2xl border border-black/5">
             <Image
@@ -295,13 +295,13 @@ export default async function HomePage({
               className="object-cover"
             />
           </div>
-          <div className="group relative flex aspect-square flex-col overflow-hidden rounded-2xl border border-black/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-black/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-blue/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
             <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
               <Target size={24} />
             </div>
             <h2 className="relative mt-5 text-3xl font-bold text-brand-dark">{mission.title}</h2>
-            <p className="relative mt-3 line-clamp-4 text-base text-brand-gray">{mission.body}</p>
+            <p className="relative mt-3 text-justify text-base text-brand-gray">{mission.body}</p>
           </div>
         </div>
       </section>
