@@ -35,6 +35,14 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
   },
+  experimental: {
+    // Next's default Server Action body cap is 1MB, below our own upload
+    // limits (lesson materials up to 20MB, see lib/validation/schemas.ts).
+    // Without this, uploads over 1MB are rejected before the action runs.
+    serverActions: {
+      bodySizeLimit: "25mb",
+    },
+  },
   async headers() {
     return [
       {
