@@ -1,11 +1,17 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { upsertTeamMemberAction } from "@/lib/actions/team";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
+import BlobFileField from "@/app/admin/_components/BlobFileField";
 import type { TeamMember } from "@/lib/db/team";
 
 export default function TeamMemberForm({ member }: { member?: TeamMember }) {
+  const [photo, setPhoto] = useState(member?.photo || "");
+
   return (
-    <form action={upsertTeamMemberAction} encType="multipart/form-data" className="space-y-8">
+    <form action={upsertTeamMemberAction} className="space-y-8">
       <input type="hidden" name="originalId" value={member?.id || ""} />
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -13,13 +19,15 @@ export default function TeamMemberForm({ member }: { member?: TeamMember }) {
           <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Photo</label>
           <div className="mb-3 flex items-center gap-3">
             <div className="relative h-16 w-16 overflow-hidden rounded-full border border-black/5 dark:border-white/10">
-              <Image src={member?.photo || "/images/logo-mark.png"} alt="" fill sizes="64px" className="object-cover object-top" />
+              <Image src={photo || "/images/logo-mark.png"} alt="" fill sizes="64px" className="object-cover object-top" />
             </div>
           </div>
-          <input
-            type="file"
+          <BlobFileField
+            kind="team-photo"
             name="photo"
             accept="image/jpeg,image/png,image/webp"
+            value={photo}
+            onChange={setPhoto}
             className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 text-sm dark:bg-white/5 dark:text-white"
           />
           <p className="mt-1 text-xs text-brand-gray dark:text-white/60">

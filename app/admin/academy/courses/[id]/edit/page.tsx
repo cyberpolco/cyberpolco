@@ -6,15 +6,12 @@ import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function EditCoursePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
 }) {
   await requireRole(["super_admin"]);
 
   const { id } = await params;
-  const { error } = await searchParams;
   const course = await getAcademyCourseById(id);
   if (!course) notFound();
 
@@ -24,7 +21,7 @@ export default async function EditCoursePage({
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Edit course</h1>
       <div className="mt-6">
-        <CourseForm course={course} error={error} />
+        <CourseForm course={course} />
       </div>
     </div>
   );

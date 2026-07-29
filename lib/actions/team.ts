@@ -11,31 +11,15 @@ import {
   type TeamMember,
 } from "@/lib/db/team";
 import { requireRole } from "@/lib/auth/rbac";
-import { storeTeamPhotoFile } from "@/lib/db/file-storage";
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from "@/lib/validation/schemas";
 
 export async function upsertTeamMemberAction(formData: FormData) {
   await requireRole(["super_admin", "content_editor"]);
 
   const originalId = String(formData.get("originalId") || "");
   const id = originalId || crypto.randomUUID();
-  const redirectTarget = originalId ? `/admin/cms/team/${originalId}/edit` : "/admin/cms/team/new";
 
-  const file = formData.get("photo");
-  if (file instanceof File && file.size > 0) {
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      redirect(`${redirectTarget}?error=file-type`);
-    }
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      redirect(`${redirectTarget}?error=file-size`);
-    }
-  }
-
-  const [existing, stored] = await Promise.all([
-    originalId ? getTeamMemberById(originalId) : Promise.resolve(undefined),
-    file instanceof File && file.size > 0 ? storeTeamPhotoFile(file) : Promise.resolve(undefined),
-  ]);
-  const photo = stored?.url ?? existing?.photo ?? null;
+  const existing = originalId ? await getTeamMemberById(originalId) : undefined;
+  const photo = String(formData.get("photo") || "") || existing?.photo || null;
 
   const displayOrder = originalId
     ? Number(formData.get("displayOrder") || 0)

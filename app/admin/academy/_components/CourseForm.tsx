@@ -4,17 +4,18 @@ import { useRef, useState } from "react";
 import { Plus, Trash2, FileText } from "lucide-react";
 import { upsertAcademyCourseAction } from "@/lib/actions/academy";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
+import BlobFileField from "@/app/admin/_components/BlobFileField";
 import type { AcademyCourse, Lesson, Module } from "@/lib/db/academy";
 
-type LessonRow = { key: string; lesson?: Lesson };
+type LessonRow = {
+  key: string;
+  lesson?: Lesson;
+  materialUrl: string;
+  materialFileName: string;
+};
 type ModuleRow = { key: string; module?: Module; lessonRows: LessonRow[] };
 
-const ERROR_MESSAGES: Record<string, string> = {
-  "file-type": "Lesson material must be a PDF or PowerPoint file (.pdf, .ppt, .pptx).",
-  "file-size": "Lesson material must be under 20MB.",
-};
-
-export default function CourseForm({ course, error }: { course?: AcademyCourse; error?: string }) {
+export default function CourseForm({ course }: { course?: AcademyCourse }) {
   const moduleCounter = useRef(0);
   const lessonCounter = useRef(0);
 
@@ -22,7 +23,12 @@ export default function CourseForm({ course, error }: { course?: AcademyCourse; 
     (course?.modules ?? []).map((m) => ({
       key: m.id,
       module: m,
-      lessonRows: m.lessons.map((l) => ({ key: l.id, lesson: l })),
+      lessonRows: m.lessons.map((l) => ({
+        key: l.id,
+        lesson: l,
+        materialUrl: l.materialUrl ?? "",
+        materialFileName: l.materialFileName ?? "",
+      })),
     }))
   );
 
@@ -40,7 +46,13 @@ export default function CourseForm({ course, error }: { course?: AcademyCourse; 
     setModules((m) =>
       m.map((row) =>
         row.key === moduleKey
-          ? { ...row, lessonRows: [...row.lessonRows, { key: `new-lesson-${lessonCounter.current}` }] }
+          ? {
+              ...row,
+              lessonRows: [
+                ...row.lessonRows,
+                { key: `new-lesson-${lessonCounter.current}`, materialUrl: "", materialFileName: "" },
+              ],
+            }
           : row
       )
     );
@@ -56,16 +68,29 @@ export default function CourseForm({ course, error }: { course?: AcademyCourse; 
     );
   }
 
+  function updateLessonMaterial(
+    moduleKey: string,
+    lessonKey: string,
+    update: Partial<Pick<LessonRow, "materialUrl" | "materialFileName">>
+  ) {
+    setModules((m) =>
+      m.map((row) =>
+        row.key === moduleKey
+          ? {
+              ...row,
+              lessonRows: row.lessonRows.map((l) => (l.key === lessonKey ? { ...l, ...update } : l)),
+            }
+          : row
+      )
+    );
+  }
+
   return (
-    <form action={upsertAcademyCourseAction} encType="multipart/form-data" className="space-y-8">
+    <form action={upsertAcademyCourseAction} className="space-y-8">
       {course && <input type="hidden" name="id" value={course.id} />}
       {course && <input type="hidden" name="existingSlug" value={course.slug} />}
       {course && <input type="hidden" name="createdAt" value={course.createdAt} />}
       <input type="hidden" name="moduleCount" value={modules.length} />
-
-      {error && ERROR_MESSAGES[error] && (
-        <p className="rounded-lg bg-brand-red/10 p-3 text-sm text-brand-red">{ERROR_MESSAGES[error]}</p>
-      )}
 
       <div className="grid gap-8 md:grid-cols-2">
         <fieldset className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 p-5">
@@ -161,13 +186,8 @@ export default function CourseForm({ course, error }: { course?: AcademyCourse; 
                     />
                     <input
                       type="hidden"
-                      name={`module_${i}_lesson_${j}_materialUrl`}
-                      value={lrow.lesson?.materialUrl ?? ""}
-                    />
-                    <input
-                      type="hidden"
                       name={`module_${i}_lesson_${j}_materialFileName`}
-                      value={lrow.lesson?.materialFileName ?? ""}
+                      value={lrow.materialFileName}
                     />
                     <div className="flex items-center gap-2">
                       <input
@@ -194,23 +214,28 @@ export default function CourseForm({ course, error }: { course?: AcademyCourse; 
                       className="mt-2 w-full rounded-lg border border-black/10 dark:border-white/15 px-3 py-2 text-sm dark:bg-white/5 dark:text-white"
                     />
                     <div className="mt-2">
-                      {lrow.lesson?.materialFileName && (
+                      {lrow.materialFileName && (
                         <a
-                          href={lrow.lesson.materialUrl ?? undefined}
+                          href={lrow.materialUrl || undefined}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="mb-1 inline-flex items-center gap-1 text-xs text-brand-blue hover:underline"
                         >
-                          <FileText size={12} /> Current: {lrow.lesson.materialFileName}
+                          <FileText size={12} /> Current: {lrow.materialFileName}
                         </a>
                       )}
                       <label className="block text-xs font-medium text-brand-gray dark:text-white/60">
                         Upload material (PDF or PowerPoint)
                       </label>
-                      <input
-                        type="file"
-                        name={`module_${i}_lesson_${j}_material`}
+                      <BlobFileField
+                        kind="lesson-material"
+                        name={`module_${i}_lesson_${j}_materialUrl`}
                         accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        value={lrow.materialUrl}
+                        onChange={(url) => updateLessonMaterial(row.key, lrow.key, { materialUrl: url })}
+                        onFileNameChange={(fileName) =>
+                          updateLessonMaterial(row.key, lrow.key, { materialFileName: fileName })
+                        }
                         className="mt-1 w-full text-xs text-brand-gray dark:text-white/60"
                       />
                     </div>

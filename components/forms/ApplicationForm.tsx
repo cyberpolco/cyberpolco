@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/toast";
 import SubmitButton from "@/components/ui/SubmitButton";
+import { uploadFileToBlob } from "@/lib/blob-client-upload";
 import TurnstileWidget from "./TurnstileWidget";
 
 export default function ApplicationForm({
@@ -33,7 +34,17 @@ export default function ApplicationForm({
     formData.set("jobTitle", jobTitle);
     formData.set("turnstileToken", turnstileToken);
 
+    const cv = formData.get("cv");
+    formData.delete("cv");
+
     try {
+      if (!(cv instanceof File) || cv.size === 0) {
+        throw new Error(locale === "fr" ? "Un CV est requis." : "A CV file is required.");
+      }
+      const { url, fileName } = await uploadFileToBlob("cv", cv);
+      formData.set("cvUrl", url);
+      formData.set("cvFileName", fileName);
+
       const res = await fetch("/api/apply", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");

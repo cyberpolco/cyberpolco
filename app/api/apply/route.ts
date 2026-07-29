@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { applicationSchema, ALLOWED_CV_TYPES, MAX_CV_SIZE_BYTES } from "@/lib/validation/schemas";
+import { applicationSchema } from "@/lib/validation/schemas";
 import { addApplication } from "@/lib/db/applications";
-import { storeCvFile } from "@/lib/db/file-storage";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+
+// The CV is uploaded straight from the browser to Blob storage (see
+// lib/blob-client-upload.ts) before this route ever sees the request, so
+// here we only need to check the resulting URL actually points at our own
+// Blob store under the expected prefix, not at something an attacker typed in.
+function isValidCvUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.endsWith(".public.blob.vercel-storage.com") && parsed.pathname.startsWith("/cvs/");
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
@@ -36,21 +48,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "CAPTCHA verification failed. Please try again." }, { status: 400 });
   }
 
-  const cv = formData.get("cv");
-  if (!(cv instanceof File) || cv.size === 0) {
+  const url = String(formData.get("cvUrl") || "");
+  const fileName = String(formData.get("cvFileName") || "");
+  if (!url || !fileName || !isValidCvUrl(url)) {
     return NextResponse.json({ error: "A CV file is required." }, { status: 400 });
   }
-  if (!ALLOWED_CV_TYPES.includes(cv.type)) {
-    return NextResponse.json(
-      { error: "CV must be a PDF or DOCX file." },
-      { status: 400 }
-    );
-  }
-  if (cv.size > MAX_CV_SIZE_BYTES) {
-    return NextResponse.json({ error: "CV must be under 5MB." }, { status: 400 });
-  }
-
-  const { url, fileName } = await storeCvFile(cv);
 
   const { jobSlug, jobTitle, name, email, phone, message } = parsed.data;
 

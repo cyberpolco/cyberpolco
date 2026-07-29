@@ -1,41 +1,52 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { upsertAchievementAction } from "@/lib/actions/achievements";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
+import BlobFileField from "@/app/admin/_components/BlobFileField";
 import type { Achievement } from "@/lib/db/achievements";
 
 function PhotoField({
   name,
   label,
-  currentUrl,
+  value,
+  onChange,
 }: {
   name: string;
   label: string;
-  currentUrl?: string | null;
+  value: string;
+  onChange: (url: string) => void;
 }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">{label}</label>
-      {currentUrl && (
+      {value && (
         <div className="relative mb-3 h-20 w-20 overflow-hidden rounded-xl border border-black/5 dark:border-white/10">
-          <Image src={currentUrl} alt="" fill sizes="80px" className="object-cover" />
+          <Image src={value} alt="" fill sizes="80px" className="object-cover" />
         </div>
       )}
-      <input
-        type="file"
+      <BlobFileField
+        kind="achievement-photo"
         name={name}
         accept="image/jpeg,image/png,image/webp"
+        value={value}
+        onChange={onChange}
         className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 text-sm dark:bg-white/5 dark:text-white"
       />
       <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
-        {currentUrl ? "Leave blank to keep the current photo." : "Optional."}
+        {value ? "Leave blank to keep the current photo." : "Optional."}
       </p>
     </div>
   );
 }
 
 export default function AchievementForm({ achievement }: { achievement?: Achievement }) {
+  const [image1, setImage1] = useState(achievement?.image1 || "");
+  const [image2, setImage2] = useState(achievement?.image2 || "");
+
   return (
-    <form action={upsertAchievementAction} encType="multipart/form-data" className="space-y-8">
+    <form action={upsertAchievementAction} className="space-y-8">
       <input type="hidden" name="id" value={achievement?.id || ""} />
 
       <div>
@@ -52,8 +63,8 @@ export default function AchievementForm({ achievement }: { achievement?: Achieve
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <PhotoField name="image1" label="Photo 1" currentUrl={achievement?.image1} />
-        <PhotoField name="image2" label="Photo 2" currentUrl={achievement?.image2} />
+        <PhotoField name="image1" label="Photo 1" value={image1} onChange={setImage1} />
+        <PhotoField name="image2" label="Photo 2" value={image2} onChange={setImage2} />
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
