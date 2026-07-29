@@ -135,11 +135,6 @@ export async function updateAboutContentAction(formData: FormData) {
     },
   });
 
-  await saveContentBlock("about.sector", {
-    fr: { body: field(formData, "sector_body_fr") },
-    en: { body: field(formData, "sector_body_en") },
-  });
-
   revalidatePath("/[locale]/about", "page");
   revalidatePath("/admin/cms/pages/about");
 }

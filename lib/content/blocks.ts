@@ -13,7 +13,6 @@ type TitleOnly = { title: string };
 type FinalCta = { title: string; body: string; button: string };
 type Story = { p1: string; p2: string; p3: string; quote: string };
 type Leadership = { name: string; roleTitle: string; body: string };
-type BodyOnly = { body: string };
 type SubtitleOnly = { subtitle: string };
 type TaglineOnly = { tagline: string };
 
@@ -140,15 +139,6 @@ export const blockDefaults = {
       body: "Léon Atunakou co-founded Cyber PolCo during his final year of university, while completing a computer science degree specialized in cybersecurity, with the goal of returning to his country to take part in the digital revolution currently underway in Congo. His academic background and hands-on experience — including an internship at United Africa Group — give him the skills needed to lead Cyber PolCo's technological vision and strategy.",
     },
   } satisfies Localized<Leadership>,
-
-  "about.sector": {
-    fr: {
-      body: "En RD Congo, le marché de la cybersécurité est encore naissant et peu structuré, avec une concentration des services dans la capitale. Cyber PolCo se positionne comme une réponse innovante à ce vide — à Mbujimayi, aucune entreprise n'est encore dédiée exclusivement à ce domaine, ce qui ouvre la voie à une implantation stratégique et pionnière.",
-    },
-    en: {
-      body: "In the DRC, the cybersecurity market is still nascent and loosely structured, with services concentrated in the capital. Cyber PolCo positions itself as an innovative response to this gap — in Mbujimayi, no company is yet exclusively dedicated to this field, opening the way for a strategic, pioneering presence.",
-    },
-  } satisfies Localized<BodyOnly>,
 
   "careers.intro": {
     fr: {

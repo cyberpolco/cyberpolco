@@ -12,10 +12,9 @@ export default async function AboutPage({
   setRequestLocale(locale);
   const t = await getTranslations("about");
 
-  const [story, leadership, sector, teamMembers] = await Promise.all([
+  const [story, leadership, teamMembers] = await Promise.all([
     getBlock("about.story", locale),
     getBlock("about.leadership", locale),
-    getBlock("about.sector", locale),
     getTeamMembers(),
   ]);
 
@@ -85,11 +84,6 @@ export default async function AboutPage({
             );
           })}
         </div>
-      </div>
-
-      <div className="mt-10">
-        <h2 className="text-2xl font-semibold text-brand-dark">{t("sectorTitle")}</h2>
-        <p className="mt-3 text-brand-gray">{sector.body}</p>
       </div>
     </div>
   );

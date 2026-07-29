@@ -8,10 +8,9 @@ import BackLink from "@/app/admin/_components/BackLink";
 export default async function AboutContentPage() {
   await requireRole(["super_admin", "content_editor"]);
 
-  const [story, leadership, sector] = await Promise.all([
+  const [story, leadership] = await Promise.all([
     getBlockBoth("about.story"),
     getBlockBoth("about.leadership"),
-    getBlockBoth("about.sector"),
   ]);
 
   return (
@@ -19,7 +18,7 @@ export default async function AboutContentPage() {
       <BackLink href="/admin/cms/pages" label="Back to Pages" />
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">About page content</h1>
-      <p className="mt-1 text-brand-gray dark:text-white/60">Edit the company story, leadership bio, and sector overview.</p>
+      <p className="mt-1 text-brand-gray dark:text-white/60">Edit the company story and leadership bio.</p>
 
       <form action={updateAboutContentAction} className="mt-8 space-y-6">
         <ContentSection title="Our story">
@@ -55,15 +54,6 @@ export default async function AboutContentPage() {
               defaultValue={leadership.en.roleTitle}
             />
             <TextArea name="leadership_body_en" label="Bio" defaultValue={leadership.en.body} />
-          </LocaleColumn>
-        </ContentSection>
-
-        <ContentSection title="The sector at large">
-          <LocaleColumn label="Français">
-            <TextArea name="sector_body_fr" label="Texte" defaultValue={sector.fr.body} />
-          </LocaleColumn>
-          <LocaleColumn label="English">
-            <TextArea name="sector_body_en" label="Body" defaultValue={sector.en.body} />
           </LocaleColumn>
         </ContentSection>
 
