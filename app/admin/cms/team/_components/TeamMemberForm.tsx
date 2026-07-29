@@ -13,7 +13,7 @@ export default function TeamMemberForm({ member }: { member?: TeamMember }) {
           <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Photo</label>
           <div className="mb-3 flex items-center gap-3">
             <div className="relative h-16 w-16 overflow-hidden rounded-full border border-black/5 dark:border-white/10">
-              <Image src={member?.photo || "/images/logo-mark.png"} alt="" fill sizes="64px" className="object-cover" />
+              <Image src={member?.photo || "/images/logo-mark.png"} alt="" fill sizes="64px" className="object-cover object-top" />
             </div>
           </div>
           <input

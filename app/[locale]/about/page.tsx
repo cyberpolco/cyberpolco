@@ -69,7 +69,7 @@ export default async function AboutPage({
                     alt=""
                     fill
                     sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    className="object-cover"
+                    className="object-cover object-top"
                   />
                 </div>
                 <p className="mt-4 font-semibold text-brand-dark">{m.name}</p>
