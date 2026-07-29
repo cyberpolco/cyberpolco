@@ -285,7 +285,7 @@ export default async function HomePage({
               <Eye size={24} />
             </div>
             <h2 className="relative mt-5 text-3xl font-bold text-brand-dark">{vision.title}</h2>
-            <p className="relative mt-3 text-justify text-base text-brand-gray">{vision.body}</p>
+            <p className="relative mt-3 text-base text-brand-gray">{vision.body}</p>
           </div>
           <div className="relative aspect-square overflow-hidden rounded-2xl border border-black/5">
             <Image
@@ -301,7 +301,7 @@ export default async function HomePage({
               <Target size={24} />
             </div>
             <h2 className="relative mt-5 text-3xl font-bold text-brand-dark">{mission.title}</h2>
-            <p className="relative mt-3 text-justify text-base text-brand-gray">{mission.body}</p>
+            <p className="relative mt-3 text-base text-brand-gray">{mission.body}</p>
           </div>
         </div>
       </section>
