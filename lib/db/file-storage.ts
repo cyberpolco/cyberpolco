@@ -2,6 +2,24 @@ import { promises as fs } from "fs";
 import path from "path";
 
 /**
+ * Returns the configured Blob token, or null to signal the local-disk
+ * fallback. On Vercel (VERCEL is always set there), a missing token throws
+ * instead of silently falling back — that fallback writes to a filesystem
+ * path Vercel doesn't serve, which previously looked like a successful
+ * save that just never showed the uploaded file.
+ */
+function resolveBlobToken(): string | null {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (token) return token;
+  if (process.env.VERCEL) {
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is not configured. Set it in the Vercel dashboard under Project Settings -> Environment Variables."
+    );
+  }
+  return null;
+}
+
+/**
  * Stores an uploaded CV file and returns a URL to reference it later.
  *
  * Uses Vercel Blob when BLOB_READ_WRITE_TOKEN is configured (production).
@@ -12,7 +30,7 @@ import path from "path";
 export async function storeCvFile(file: File): Promise<{ url: string; fileName: string }> {
   const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const blobToken = resolveBlobToken();
   if (blobToken) {
     const { put } = await import("@vercel/blob");
     const blob = await put(`cvs/${safeName}`, file, {
@@ -37,7 +55,7 @@ export async function storeCvFile(file: File): Promise<{ url: string; fileName: 
 export async function storeCertificateFile(file: File): Promise<{ url: string; fileName: string }> {
   const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const blobToken = resolveBlobToken();
   if (blobToken) {
     const { put } = await import("@vercel/blob");
     const blob = await put(`certificates/${safeName}`, file, {
@@ -63,7 +81,7 @@ export async function storeCertificateFile(file: File): Promise<{ url: string; f
 export async function storeLessonMaterialFile(file: File): Promise<{ url: string; fileName: string }> {
   const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const blobToken = resolveBlobToken();
   if (blobToken) {
     const { put } = await import("@vercel/blob");
     const blob = await put(`lesson-materials/${safeName}`, file, {
@@ -88,7 +106,7 @@ export async function storeLessonMaterialFile(file: File): Promise<{ url: string
 export async function storeTeamPhotoFile(file: File): Promise<{ url: string; fileName: string }> {
   const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const blobToken = resolveBlobToken();
   if (blobToken) {
     const { put } = await import("@vercel/blob");
     const blob = await put(`team-photos/${safeName}`, file, {
@@ -113,7 +131,7 @@ export async function storeTeamPhotoFile(file: File): Promise<{ url: string; fil
 export async function storeAchievementImageFile(file: File): Promise<{ url: string; fileName: string }> {
   const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const blobToken = resolveBlobToken();
   if (blobToken) {
     const { put } = await import("@vercel/blob");
     const blob = await put(`achievement-photos/${safeName}`, file, {

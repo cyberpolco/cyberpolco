@@ -21,9 +21,6 @@ export async function upsertTeamMemberAction(formData: FormData) {
   const id = originalId || crypto.randomUUID();
   const redirectTarget = originalId ? `/admin/cms/team/${originalId}/edit` : "/admin/cms/team/new";
 
-  const existing = originalId ? await getTeamMemberById(originalId) : undefined;
-  let photo = existing?.photo ?? null;
-
   const file = formData.get("photo");
   if (file instanceof File && file.size > 0) {
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
@@ -32,9 +29,13 @@ export async function upsertTeamMemberAction(formData: FormData) {
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       redirect(`${redirectTarget}?error=file-size`);
     }
-    const stored = await storeTeamPhotoFile(file);
-    photo = stored.url;
   }
+
+  const [existing, stored] = await Promise.all([
+    originalId ? getTeamMemberById(originalId) : Promise.resolve(undefined),
+    file instanceof File && file.size > 0 ? storeTeamPhotoFile(file) : Promise.resolve(undefined),
+  ]);
+  const photo = stored?.url ?? existing?.photo ?? null;
 
   const displayOrder = originalId
     ? Number(formData.get("displayOrder") || 0)
