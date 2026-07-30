@@ -1,9 +1,16 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
 import { upsertArticleAction } from "@/lib/actions/articles";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
+import BlobFileField from "@/app/admin/_components/BlobFileField";
 import type { Article } from "@/lib/content/articles";
 import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 
 export default function ArticleForm({ article }: { article?: Article }) {
+  const [image, setImage] = useState(article?.image || "");
+
   return (
     <form action={upsertArticleAction} className="space-y-8">
       <input type="hidden" name="originalSlug" value={article?.slug || ""} />
@@ -20,17 +27,22 @@ export default function ArticleForm({ article }: { article?: Article }) {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
-          Thumbnail image path
-        </label>
-        <input
+        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Thumbnail image</label>
+        {image && (
+          <div className="relative mb-3 h-32 w-56 overflow-hidden rounded-xl border border-black/5 dark:border-white/10">
+            <Image src={image} alt="" fill sizes="224px" className="object-cover" />
+          </div>
+        )}
+        <BlobFileField
+          kind="article-thumbnail"
           name="image"
-          defaultValue={article?.image ?? undefined}
-          placeholder="/images/articles/example.jpg"
-          className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
+          accept="image/jpeg,image/png,image/webp"
+          value={image}
+          onChange={setImage}
+          className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 text-sm dark:bg-white/5 dark:text-white"
         />
         <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
-          Path to a file in /public/images/articles — leave blank to use the placeholder.
+          Also used as the link preview image when this article is shared. {image ? "Leave blank to keep the current image." : "Leave blank to use the placeholder."}
         </p>
       </div>
 

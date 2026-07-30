@@ -35,6 +35,12 @@ const UPLOAD_KINDS = {
     maximumSizeInBytes: MAX_IMAGE_SIZE_BYTES,
     allowedRoles: ["super_admin", "content_editor"] as Role[],
   },
+  "article-thumbnail": {
+    prefix: "article-thumbnails/",
+    allowedContentTypes: ALLOWED_IMAGE_TYPES,
+    maximumSizeInBytes: MAX_IMAGE_SIZE_BYTES,
+    allowedRoles: ["super_admin", "content_editor"] as Role[],
+  },
   certificate: {
     prefix: "certificates/",
     allowedContentTypes: ALLOWED_CERTIFICATE_TYPES,

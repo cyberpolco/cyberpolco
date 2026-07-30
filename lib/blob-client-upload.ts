@@ -5,6 +5,7 @@ import { upload } from "@vercel/blob/client";
 export type UploadKind =
   | "team-photo"
   | "achievement-photo"
+  | "article-thumbnail"
   | "certificate"
   | "lesson-material"
   | "cv";
@@ -12,6 +13,7 @@ export type UploadKind =
 const PATH_PREFIXES: Record<UploadKind, string> = {
   "team-photo": "team-photos",
   "achievement-photo": "achievement-photos",
+  "article-thumbnail": "article-thumbnails",
   certificate: "certificates",
   "lesson-material": "lesson-materials",
   cv: "cvs",
