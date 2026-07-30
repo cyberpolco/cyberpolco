@@ -72,4 +72,6 @@ export async function deleteArticleAction(formData: FormData) {
   await deleteArticle(slug);
   revalidatePath("/admin/articles");
   revalidatePath("/[locale]/articles", "page");
+  revalidatePath("/[locale]/articles/[slug]", "page");
+  revalidatePath("/[locale]", "page");
 }
