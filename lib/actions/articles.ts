@@ -61,6 +61,7 @@ export async function upsertArticleAction(formData: FormData) {
   await saveArticle(article);
   revalidatePath("/admin/articles");
   revalidatePath("/[locale]/articles", "page");
+  revalidatePath("/[locale]/articles/[slug]", "page");
   revalidatePath("/[locale]", "page");
   redirect("/admin/articles");
 }
