@@ -13,7 +13,7 @@ export default async function AchievementsPage({
   const items = [...(await getSortedAchievements())].reverse();
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-20 lg:px-8">
+    <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
       <h1 className="text-4xl font-bold text-brand-dark">{t("title")}</h1>
       <p className="mt-3 max-w-2xl text-brand-gray">{t("subtitle")}</p>
 
