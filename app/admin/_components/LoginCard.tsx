@@ -39,7 +39,7 @@ export default function LoginCard({
 
   return (
     <>
-      <p className="mt-1 text-sm text-brand-gray">{content.subtitle}</p>
+      <p className="mt-1 text-center text-sm text-brand-gray">{content.subtitle}</p>
 
       <PortalRoleTabs
         adminLabel={roleLabels[0]}
