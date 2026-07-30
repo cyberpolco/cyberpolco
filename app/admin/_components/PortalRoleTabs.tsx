@@ -22,7 +22,7 @@ export default function PortalRoleTabs({
           key={role}
           type="button"
           onClick={() => onChange(i)}
-          className={`rounded-md px-2 py-1.5 text-xs font-semibold transition-colors ${
+          className={`rounded-md px-2 py-1.5 text-center text-xs font-semibold transition-colors ${
             active === i
               ? "bg-white text-brand-dark shadow-sm"
               : "text-brand-gray hover:text-brand-dark dark:text-white/60 dark:hover:text-white"
