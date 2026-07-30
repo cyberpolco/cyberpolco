@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A CV file is required." }, { status: 400 });
   }
 
-  const { jobSlug, jobTitle, name, email, phone, message } = parsed.data;
+  const { jobSlug, jobTitle, name, email, phone, message, locale } = parsed.data;
 
   const application = await addApplication({
     jobSlug,
@@ -68,17 +68,23 @@ export async function POST(req: NextRequest) {
   });
 
   await sendEmail({
-    to: process.env.ADMIN_EMAIL || "info@cyberpolco.com",
-    subject: `New application: ${jobTitle}`,
-    html: `
-      <h2>New job application</h2>
-      <p><strong>Role:</strong> ${escapeHtml(jobTitle)}</p>
-      <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-      <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-      <p><strong>CV:</strong> ${escapeHtml(fileName)} (${escapeHtml(url)})</p>
-      <p><strong>Message:</strong></p>
-      <p>${escapeHtml(message || "").replace(/\n/g, "<br/>")}</p>
+    to: email,
+    from: "Cyber PolCo <no-reply@cyberpolco.com>",
+    subject:
+      locale === "fr" ? "Votre candidature a bien été reçue" : "Your application has been received",
+    html:
+      locale === "fr"
+        ? `
+      <h2>Merci pour votre candidature, ${escapeHtml(name)}</h2>
+      <p>Nous avons bien reçu votre candidature pour le poste de <strong>${escapeHtml(jobTitle)}</strong>.</p>
+      <p>Notre équipe RH examinera votre dossier et vous recontactera si votre profil correspond.</p>
+      <p>— L'équipe Cyber PolCo</p>
+    `
+        : `
+      <h2>Thank you for applying, ${escapeHtml(name)}</h2>
+      <p>We've received your application for the <strong>${escapeHtml(jobTitle)}</strong> position.</p>
+      <p>Our HR team will review your profile and reach out if it's a match.</p>
+      <p>— The Cyber PolCo team</p>
     `,
   });
 

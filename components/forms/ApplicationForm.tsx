@@ -33,6 +33,7 @@ export default function ApplicationForm({
     formData.set("jobSlug", jobSlug);
     formData.set("jobTitle", jobTitle);
     formData.set("turnstileToken", turnstileToken);
+    formData.set("locale", locale);
 
     const cv = formData.get("cv");
     formData.delete("cv");

@@ -8,11 +8,12 @@ type SendEmailInput = {
   to: string;
   subject: string;
   html: string;
+  from?: string;
 };
 
-export async function sendEmail({ to, subject, html }: SendEmailInput) {
+export async function sendEmail({ to, subject, html, from: fromOverride }: SendEmailInput) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "Cyber PolCo <notifications@cyberpolco.com>";
+  const from = fromOverride || process.env.EMAIL_FROM || "Cyber PolCo <notifications@cyberpolco.com>";
 
   if (!apiKey) {
     console.log("[email:dev-fallback] RESEND_API_KEY not set — logging instead of sending.");

@@ -34,6 +34,7 @@ export const contactSchema = z.object({
   // Honeypot field — must stay empty. Bots that fill every field trip this.
   website: z.string().max(0).optional().default(""),
   turnstileToken: z.string().optional().default(""),
+  locale: z.enum(["fr", "en"]).optional().default("fr"),
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;
@@ -47,6 +48,7 @@ export const applicationSchema = z.object({
   message: z.string().trim().max(5000).optional().default(""),
   website: z.string().max(0).optional().default(""),
   turnstileToken: z.string().optional().default(""),
+  locale: z.enum(["fr", "en"]).optional().default("fr"),
 });
 
 export type ApplicationInput = z.infer<typeof applicationSchema>;

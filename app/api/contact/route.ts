@@ -40,23 +40,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "CAPTCHA verification failed. Please try again." }, { status: 400 });
   }
 
-  const { firstName, lastName, company, position, email, subject, message } = parsed.data;
+  const { firstName, lastName, company, position, email, subject, message, locale } = parsed.data;
   const name = `${firstName} ${lastName}`;
 
   const inquiry = await addInquiry({ name, company, position, email, subject, message });
 
   await sendEmail({
-    to: process.env.ADMIN_EMAIL || "info@cyberpolco.com",
-    subject: `New inquiry: ${subject}`,
-    html: `
-      <h2>New contact form submission</h2>
-      <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-      <p><strong>Company:</strong> ${escapeHtml(company)}</p>
-      <p><strong>Position:</strong> ${escapeHtml(position)}</p>
-      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-      <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
-      <p><strong>Message:</strong></p>
-      <p>${escapeHtml(message).replace(/\n/g, "<br/>")}</p>
+    to: email,
+    from: "Cyber PolCo <no-reply@cyberpolco.com>",
+    subject:
+      locale === "fr" ? "Nous avons bien reçu votre message" : "We've received your message",
+    html:
+      locale === "fr"
+        ? `
+      <h2>Merci de nous avoir contactés, ${escapeHtml(firstName)}</h2>
+      <p>Nous avons bien reçu votre message concernant : <strong>${escapeHtml(subject)}</strong>.</p>
+      <p>Notre équipe vous répondra dans les plus brefs délais.</p>
+      <p>— L'équipe Cyber PolCo</p>
+    `
+        : `
+      <h2>Thank you for contacting us, ${escapeHtml(firstName)}</h2>
+      <p>We've received your message regarding: <strong>${escapeHtml(subject)}</strong>.</p>
+      <p>Our team will get back to you shortly.</p>
+      <p>— The Cyber PolCo team</p>
     `,
   });
 

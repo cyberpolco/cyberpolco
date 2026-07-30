@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { contactSchema, isFreeEmailDomain } from "@/lib/validation/schemas";
 import { useToast } from "@/components/ui/toast";
 import SubmitButton from "@/components/ui/SubmitButton";
@@ -13,6 +13,7 @@ const FIELDS: FieldName[] = ["firstName", "lastName", "company", "position", "em
 
 export default function ContactForm() {
   const t = useTranslations("contact");
+  const locale = useLocale();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -42,7 +43,7 @@ export default function ContactForm() {
     e.preventDefault();
     const form = e.currentTarget;
     const raw = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
-    const data = { ...raw, turnstileToken } as Record<string, string>;
+    const data = { ...raw, turnstileToken, locale } as Record<string, string>;
 
     const parsed = contactSchema.safeParse(data);
     if (!parsed.success) {
