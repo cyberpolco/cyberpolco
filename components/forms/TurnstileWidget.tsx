@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -57,19 +57,25 @@ export default function TurnstileWidget({
   const containerId = `turnstile-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const widgetIdRef = useRef<string | null>(null);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!siteKey) return;
     let cancelled = false;
 
-    loadTurnstileScript().then(() => {
-      if (cancelled || !window.turnstile) return;
-      widgetIdRef.current = window.turnstile.render(`#${containerId}`, {
-        sitekey: siteKey,
-        callback: onVerify,
-        "expired-callback": onExpire,
+    loadTurnstileScript()
+      .then(() => {
+        if (cancelled || !window.turnstile) return;
+        widgetIdRef.current = window.turnstile.render(`#${containerId}`, {
+          sitekey: siteKey,
+          callback: onVerify,
+          "expired-callback": onExpire,
+          "error-callback": () => setFailed(true),
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
       });
-    });
 
     return () => {
       cancelled = true;
@@ -83,6 +89,14 @@ export default function TurnstileWidget({
   }, [siteKey, containerId]);
 
   if (!siteKey) return null;
+
+  if (failed) {
+    return (
+      <p className="text-sm text-brand-red">
+        CAPTCHA failed to load. Please refresh the page and try again.
+      </p>
+    );
+  }
 
   return <div id={containerId} />;
 }

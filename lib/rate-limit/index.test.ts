@@ -49,6 +49,14 @@ describe("checkRateLimit (in-memory fallback)", () => {
 });
 
 describe("getClientIp", () => {
+  it("prefers cf-connecting-ip over x-forwarded-for", () => {
+    const headers = new Headers({
+      "cf-connecting-ip": "1.1.1.1",
+      "x-forwarded-for": "1.2.3.4, 5.6.7.8",
+    });
+    expect(getClientIp(headers)).toBe("1.1.1.1");
+  });
+
   it("prefers the first x-forwarded-for entry", () => {
     const headers = new Headers({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" });
     expect(getClientIp(headers)).toBe("1.2.3.4");
