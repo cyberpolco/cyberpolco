@@ -51,9 +51,13 @@ export default async function AchievementsPage({
                 </div>
 
                 {photos.length > 0 && (
-                  <div className="mt-4 flex gap-3 sm:col-start-4 sm:row-start-1 sm:mt-0 sm:w-56 sm:shrink-0">
+                  <div className="col-span-2 mt-4 flex gap-3 sm:col-span-1 sm:col-start-4 sm:row-start-1 sm:mt-0 sm:w-72 sm:shrink-0">
                     {photos.map((src, i) => (
-                      <AchievementPhoto key={i} src={src} sizes="112px" />
+                      <AchievementPhoto
+                        key={i}
+                        src={src}
+                        sizes="(min-width: 640px) 138px, 45vw"
+                      />
                     ))}
                   </div>
                 )}
