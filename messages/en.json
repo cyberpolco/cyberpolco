@@ -64,7 +64,9 @@
   "achievements": {
     "title": "Achievements",
     "subtitle": "Milestones and recognition from our work across Central and Southern Africa.",
-    "empty": "No achievements yet — check back soon."
+    "empty": "No achievements yet — check back soon.",
+    "viewPhoto": "View larger photo",
+    "closePhoto": "Close photo"
   },
   "articles": {
     "title": "Articles",

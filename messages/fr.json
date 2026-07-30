@@ -64,7 +64,9 @@
   "achievements": {
     "title": "Réalisations",
     "subtitle": "Nos étapes clés et reconnaissances à travers l'Afrique centrale et australe.",
-    "empty": "Aucune réalisation pour le moment — revenez bientôt."
+    "empty": "Aucune réalisation pour le moment — revenez bientôt.",
+    "viewPhoto": "Agrandir la photo",
+    "closePhoto": "Fermer la photo"
   },
   "articles": {
     "title": "Articles",

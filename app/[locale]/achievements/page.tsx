@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import Image from "next/image";
 import { getSortedAchievements } from "@/lib/db/achievements";
+import AchievementPhoto from "./_components/AchievementPhoto";
 
 export default async function AchievementsPage({
   params,
@@ -10,10 +10,10 @@ export default async function AchievementsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("achievements");
-  const items = await getSortedAchievements();
+  const items = [...(await getSortedAchievements())].reverse();
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-20 lg:px-8">
+    <div className="mx-auto max-w-5xl px-5 py-20 lg:px-8">
       <h1 className="text-4xl font-bold text-brand-dark">{t("title")}</h1>
       <p className="mt-3 max-w-2xl text-brand-gray">{t("subtitle")}</p>
 
@@ -47,18 +47,13 @@ export default async function AchievementsPage({
                 </div>
 
                 <div className="text-brand-gray">
-                  <p className="text-base leading-relaxed">{localized.description}</p>
+                  <p className="text-base leading-relaxed text-justify">{localized.description}</p>
                 </div>
 
                 {photos.length > 0 && (
-                  <div className="mt-4 flex gap-3 sm:col-start-4 sm:row-start-1 sm:mt-0 sm:w-40 sm:shrink-0">
+                  <div className="mt-4 flex gap-3 sm:col-start-4 sm:row-start-1 sm:mt-0 sm:w-56 sm:shrink-0">
                     {photos.map((src, i) => (
-                      <div
-                        key={i}
-                        className="relative aspect-square w-full overflow-hidden rounded-2xl border border-black/5"
-                      >
-                        <Image src={src} alt="" fill sizes="160px" className="object-cover" />
-                      </div>
+                      <AchievementPhoto key={i} src={src} sizes="112px" />
                     ))}
                   </div>
                 )}
