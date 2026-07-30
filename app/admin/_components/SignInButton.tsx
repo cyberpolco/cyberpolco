@@ -2,10 +2,16 @@
 
 import SubmitButton from "./SubmitButton";
 
-export default function SignInButton() {
+export default function SignInButton({
+  label = "Sign in",
+  pendingLabel = "Signing in...",
+}: {
+  label?: string;
+  pendingLabel?: string;
+}) {
   return (
-    <SubmitButton pendingLabel="Signing in..." className="w-full">
-      Sign in
+    <SubmitButton pendingLabel={pendingLabel} className="w-full">
+      {label}
     </SubmitButton>
   );
 }

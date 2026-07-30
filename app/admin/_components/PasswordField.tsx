@@ -9,12 +9,16 @@ export default function PasswordField({
   autoComplete,
   required = true,
   hint,
+  showLabel = "Show password",
+  hideLabel = "Hide password",
 }: {
   name?: string;
   label?: string;
   autoComplete?: string;
   required?: boolean;
   hint?: string;
+  showLabel?: string;
+  hideLabel?: string;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -32,7 +36,7 @@ export default function PasswordField({
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? hideLabel : showLabel}
           className="absolute inset-y-0 right-0 flex items-center px-3 text-brand-gray dark:text-white/60 hover:text-brand-dark dark:text-white"
         >
           {visible ? <EyeOff size={18} /> : <Eye size={18} />}

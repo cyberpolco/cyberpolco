@@ -110,5 +110,36 @@
   },
   "legal": {
     "lastUpdated": "Last updated"
+  },
+  "admin": {
+    "login": {
+      "home": "Home",
+      "title": "Cyber PolCo Portal",
+      "roleAdmin": "Admin",
+      "roleClient": "Client",
+      "roleStudent": "Student",
+      "email": "Email",
+      "password": "Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "signIn": "Sign in",
+      "signingIn": "Signing in...",
+      "errorConfig": "Server isn't configured yet. Set ADMIN_SESSION_SECRET (see README.md).",
+      "errorRateLimit": "Too many login attempts. Please wait a few minutes and try again.",
+      "roles": {
+        "admin": {
+          "subtitle": "Sign in to manage the site.",
+          "errorInvalid": "Incorrect email or password. Please contact your admin or Lam."
+        },
+        "client": {
+          "subtitle": "Sign in to access your Starlink account.",
+          "errorInvalid": "Incorrect email or password. Please contact your account manager for help."
+        },
+        "student": {
+          "subtitle": "Sign in to access your Academy courses.",
+          "errorInvalid": "Incorrect email or password. Please contact your instructor for help."
+        }
+      }
+    }
   }
 }

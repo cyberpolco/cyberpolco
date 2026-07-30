@@ -110,5 +110,36 @@
   },
   "legal": {
     "lastUpdated": "Dernière mise à jour"
+  },
+  "admin": {
+    "login": {
+      "home": "Accueil",
+      "title": "Portail Cyber PolCo",
+      "roleAdmin": "Admin",
+      "roleClient": "Client",
+      "roleStudent": "Étudiant",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "signIn": "Se connecter",
+      "signingIn": "Connexion en cours...",
+      "errorConfig": "Le serveur n'est pas encore configuré. Définissez ADMIN_SESSION_SECRET (voir README.md).",
+      "errorRateLimit": "Trop de tentatives de connexion. Merci de patienter quelques minutes avant de réessayer.",
+      "roles": {
+        "admin": {
+          "subtitle": "Connectez-vous pour gérer le site.",
+          "errorInvalid": "E-mail ou mot de passe incorrect. Merci de contacter votre admin ou Lam."
+        },
+        "client": {
+          "subtitle": "Connectez-vous pour accéder à votre compte Starlink.",
+          "errorInvalid": "E-mail ou mot de passe incorrect. Merci de contacter votre gestionnaire de compte."
+        },
+        "student": {
+          "subtitle": "Connectez-vous pour accéder à vos cours de l'Académie.",
+          "errorInvalid": "E-mail ou mot de passe incorrect. Merci de contacter votre formateur."
+        }
+      }
+    }
   }
 }

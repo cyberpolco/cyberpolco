@@ -8,15 +8,21 @@ import { ensureBootstrapSuperAdmin } from "@/lib/auth/bootstrap";
 import { touchLastLogin } from "@/lib/db/users";
 import { createSessionToken, ADMIN_COOKIE_NAME, ADMIN_SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
-import PasswordField from "@/app/admin/_components/PasswordField";
-import SignInButton from "@/app/admin/_components/SignInButton";
-import ErrorToast from "@/app/admin/_components/ErrorToast";
+import { routing, type Locale } from "@/i18n/routing";
+import enMessages from "@/messages/en.json";
+import frMessages from "@/messages/fr.json";
+import LoginCard from "@/app/admin/_components/LoginCard";
 
-const LOGIN_ERROR_MESSAGES: Record<string, string> = {
-  invalid: "Incorrect email or password. Please contact your admin or Lam.",
-  config: "Server isn't configured yet. Set ADMIN_SESSION_SECRET (see README.md).",
-  "rate-limit": "Too many login attempts. Please wait a few minutes and try again.",
+const LOGIN_MESSAGES: Record<Locale, (typeof enMessages)["admin"]["login"]> = {
+  en: enMessages.admin.login,
+  fr: frMessages.admin.login,
 };
+
+async function getLoginLocale(): Promise<Locale> {
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("NEXT_LOCALE")?.value;
+  return routing.locales.includes(localeCookie as Locale) ? (localeCookie as Locale) : routing.defaultLocale;
+}
 
 async function login(formData: FormData) {
   "use server";
@@ -84,6 +90,12 @@ export default async function AdminLoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+  const locale = await getLoginLocale();
+  const t = LOGIN_MESSAGES[locale];
+  const errorMessages = {
+    config: t.errorConfig,
+    "rate-limit": t.errorRateLimit,
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-brand-dark px-5">
@@ -122,7 +134,7 @@ export default async function AdminLoginPage({
         className="fixed left-5 top-5 z-10 inline-flex items-center gap-1.5 text-sm font-semibold text-white/70 transition-colors hover:text-white"
       >
         <ArrowLeft size={16} />
-        Home
+        {t.home}
       </Link>
 
       <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/10 bg-white p-8 shadow-xl">
@@ -134,41 +146,22 @@ export default async function AdminLoginPage({
             height={64}
             className="mb-3 object-contain"
           />
-          <h1 className="font-display text-xl font-bold text-brand-dark">Cyber PolCo Admin</h1>
-          <p className="mt-1 text-sm text-brand-gray">Sign in to manage the site.</p>
+          <h1 className="font-display text-xl font-bold text-brand-dark">{t.title}</h1>
         </div>
 
-        <form action={login} className="mt-6 space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-brand-dark">Email</label>
-            <input
-              type="email"
-              name="email"
-              required
-              className="w-full rounded-lg border border-black/10 px-4 py-2.5 outline-none focus:border-brand-blue"
-            />
-          </div>
-          <PasswordField />
-
-          {error === "invalid" && (
-            <p className="text-sm text-brand-red">
-              Incorrect email or password. Please contact your admin or Lam.
-            </p>
-          )}
-          {error === "config" && (
-            <p className="text-sm text-brand-red">
-              Server isn&apos;t configured yet. Set ADMIN_SESSION_SECRET (see README.md).
-            </p>
-          )}
-          {error === "rate-limit" && (
-            <p className="text-sm text-brand-red">
-              Too many login attempts. Please wait a few minutes and try again.
-            </p>
-          )}
-          <ErrorToast message={error ? LOGIN_ERROR_MESSAGES[error] : undefined} />
-
-          <SignInButton />
-        </form>
+        <LoginCard
+          loginAction={login}
+          error={error}
+          errorMessages={errorMessages}
+          roleLabels={[t.roleAdmin, t.roleClient, t.roleStudent]}
+          roleContent={[t.roles.admin, t.roles.client, t.roles.student]}
+          email={t.email}
+          password={t.password}
+          showPassword={t.showPassword}
+          hidePassword={t.hidePassword}
+          signIn={t.signIn}
+          signingIn={t.signingIn}
+        />
       </div>
     </div>
   );
