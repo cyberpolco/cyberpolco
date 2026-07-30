@@ -54,7 +54,7 @@ export default async function ServiceDetail({
             : "Let's talk about what you need."}
         </p>
         <Link
-          href="/contact"
+          href={{ pathname: "/contact", query: { subject: content.name } }}
           className="mt-4 inline-block rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
         >
           {locale === "fr" ? "Contactez notre équipe" : "Contact our team"}

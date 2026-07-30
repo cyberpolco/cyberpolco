@@ -11,7 +11,7 @@ type FieldName = "firstName" | "lastName" | "company" | "position" | "email" | "
 
 const FIELDS: FieldName[] = ["firstName", "lastName", "company", "position", "email", "subject", "message"];
 
-export default function ContactForm() {
+export default function ContactForm({ initialSubject }: { initialSubject?: string }) {
   const t = useTranslations("contact");
   const locale = useLocale();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -176,6 +176,7 @@ export default function ContactForm() {
           id="contact-subject"
           name="subject"
           required
+          defaultValue={initialSubject}
           onChange={() => clearError("subject")}
           className={inputClass("subject")}
         />

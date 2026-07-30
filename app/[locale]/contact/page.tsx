@@ -7,10 +7,13 @@ import { getBlock } from "@/lib/content/blocks";
 
 export default async function ContactPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: "fr" | "en" }>;
+  searchParams: Promise<{ subject?: string }>;
 }) {
   const { locale } = await params;
+  const { subject } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("contact");
   const { socialLinks, offices } = await getSettings();
@@ -25,7 +28,7 @@ export default async function ContactPage({
 
       <div className="mt-12 grid gap-10 lg:grid-cols-3">
         <div className="lg:col-span-2 rounded-2xl border border-black/5 p-7">
-          <ContactForm />
+          <ContactForm initialSubject={subject} />
         </div>
 
         <div className="space-y-8">
