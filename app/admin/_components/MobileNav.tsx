@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import AdminNavLink from "./AdminNavLink";
 import LogoutButton from "./LogoutButton";
+import { logoutAction } from "@/lib/actions/auth";
 
 type NavItem = { href: string; label: string; icon: React.ReactNode };
 
@@ -66,7 +67,7 @@ export default function MobileNav({
               ))}
             </nav>
             <ThemeToggle initialTheme={isDark ? "dark" : "light"} />
-            <form action="/api/admin/logout" method="POST">
+            <form action={logoutAction}>
               <LogoutButton />
             </form>
           </div>

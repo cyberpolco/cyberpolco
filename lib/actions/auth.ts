@@ -57,3 +57,9 @@ export async function changePasswordAction(formData: FormData) {
 
   redirect("/admin/dashboard");
 }
+
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  cookieStore.delete(ADMIN_COOKIE_NAME);
+  redirect("/admin/login");
+}

@@ -12,6 +12,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
+import { logoutAction } from "@/lib/actions/auth";
 import type { Role } from "@/lib/auth/roles";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById } from "@/lib/db/academy";
@@ -134,7 +135,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     })}
                   </nav>
                   <ThemeToggle initialTheme={isDark ? "dark" : "light"} />
-                  <form action="/api/admin/logout" method="POST">
+                  <form action={logoutAction}>
                     <LogoutButton />
                   </form>
                 </aside>
