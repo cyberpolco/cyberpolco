@@ -31,15 +31,16 @@ export type Application = {
 
 // Forward-only pipeline: each stage may only advance one step to the next
 // stage, or move to "rejected" from anywhere (a candidate can be passed on
-// at any point, not just after an offer). "hired" and "rejected" are
-// terminal — no further moves out of either.
+// at any point, not just after an offer). "hired" is terminal. "rejected"
+// has exactly one way out — back to "new", for reconsidering a candidate
+// from scratch — otherwise it's terminal too.
 const ALLOWED_NEXT_STAGES: Record<Stage, Stage[]> = {
   new: ["reviewing", "rejected"],
   reviewing: ["interview", "rejected"],
   interview: ["offer", "rejected"],
   offer: ["hired", "rejected"],
   hired: [],
-  rejected: [],
+  rejected: ["new"],
 };
 
 export function isValidStageTransition(from: Stage, to: Stage): boolean {

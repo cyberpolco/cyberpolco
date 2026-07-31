@@ -29,10 +29,17 @@ describe("isValidStageTransition", () => {
     }
   });
 
-  it("treats hired and rejected as terminal — no moves out of either", () => {
+  it("treats hired as fully terminal — no moves out of it at all", () => {
     const allStages: Stage[] = ["new", "reviewing", "interview", "offer", "hired", "rejected"];
     for (const target of allStages) {
       expect(isValidStageTransition("hired", target)).toBe(false);
+    }
+  });
+
+  it("allows rejected to go back to new, but nowhere else", () => {
+    expect(isValidStageTransition("rejected", "new")).toBe(true);
+    const otherStages: Stage[] = ["reviewing", "interview", "offer", "hired", "rejected"];
+    for (const target of otherStages) {
       expect(isValidStageTransition("rejected", target)).toBe(false);
     }
   });
