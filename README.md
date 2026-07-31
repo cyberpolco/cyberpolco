@@ -30,11 +30,14 @@ production (Settings → Environment Variables).
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD_HASH` | Yes (first run only) | Bootstraps the first Super Admin account in the `users` table the first time anyone logs in. After that, these vars are inert — manage all admin accounts from `/admin/users`. Generate the hash with `node -e "console.log(require('bcryptjs').hashSync('YOUR_PASSWORD', 10))"` |
 | `RESEND_API_KEY` | No | Enables real email delivery for contact/application notifications. Without it, emails are logged to the server console instead — the site still works end-to-end. |
 | `EMAIL_FROM` | No | From-address for outgoing email (defaults to a placeholder) |
-| `BLOB_READ_WRITE_TOKEN` | No | Enables Vercel Blob for CV storage. Without it, uploaded CVs are written to `data/uploads/` locally (does **not** persist in production — see below). |
+| `BLOB_READ_WRITE_TOKEN` | Yes | Vercel Blob store for CV uploads. Career applications fail without it — there's no local-disk fallback. |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | No | Enables Cloudflare Turnstile CAPTCHA. The widget is omitted from the form until these are set. |
 
-The site is fully functional with **zero** optional variables set — it just
-runs in "local/demo" mode for email and file storage.
+The site runs with the optional variables unset — it just runs in
+"local/demo" mode for email (logged to the console instead of sent) and
+skips CAPTCHA. `BLOB_READ_WRITE_TOKEN` is the one exception: it's required
+for career applications to work at all, since CV uploads have no
+local-disk fallback.
 
 ## What's real vs. what's a documented stand-in
 
@@ -53,8 +56,10 @@ code comments at the point of use:
 
 Persistence is real: `lib/db/*.ts` (articles, jobs, inquiries, applications,
 settings) uses Neon Postgres via Drizzle ORM — see "Database" below. CV
-uploads use Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, falling back to
-local disk (`data/uploads/`) for zero-setup local dev only.
+uploads always go through Vercel Blob (`lib/blob-client-upload.ts`,
+`app/api/blob-upload/route.ts`) — there's no local-disk fallback, so
+`BLOB_READ_WRITE_TOKEN` must be set for career applications to work,
+including in local dev.
 
 Everything else in the spec (security headers, CSP, rate limiting, Zod
 validation, file-type/size checks on CV uploads, FR/EN routing, the Africa
