@@ -4,7 +4,7 @@ import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { requireRole } from "@/lib/auth/rbac";
 
 export default async function InquiriesPage() {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "hr_recruiter"]);
 
   const inquiries = await getInquiries();
 

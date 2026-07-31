@@ -104,7 +104,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", {
-    enum: ["super_admin", "content_editor", "hr_recruiter", "viewer"],
+    enum: ["super_admin", "content_editor", "hr_recruiter", "technician", "teacher", "viewer"],
   }).notNull(),
   mustChangePassword: boolean("must_change_password").notNull().default(true),
   createdAt: text("created_at").notNull(),
@@ -179,6 +179,10 @@ export const starlinkClients = pgTable("starlink_clients", {
   phone: text("phone").notNull(),
   sites: jsonb("sites").$type<StarlinkSite[]>().notNull(),
   createdAt: text("created_at").notNull(),
+  // Nullable: existing rows predate this column. A null createdBy is treated
+  // as "not owned by the editing technician," same as any other author
+  // mismatch — see lib/auth/approval.ts.
+  createdBy: text("created_by"),
 });
 
 type AcademyLesson = {
@@ -198,6 +202,8 @@ export const academyCourses = pgTable("academy_courses", {
   en: jsonb("en").$type<LocalizedCourseText>().notNull(),
   modules: jsonb("modules").$type<AcademyModule[]>().notNull(),
   createdAt: text("created_at").notNull(),
+  // Nullable — see starlinkClients.createdBy above; same reasoning.
+  createdBy: text("created_by"),
 });
 
 export const academyEnrollments = pgTable("academy_enrollments", {
@@ -211,4 +217,29 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   certificateIssued: boolean("certificate_issued").notNull().default(false),
   certificateFileUrl: text("certificate_file_url"),
   createdAt: text("created_at").notNull(),
+  // Nullable — see starlinkClients.createdBy above; same reasoning.
+  createdBy: text("created_by"),
+});
+
+// A create/edit by "technician"/"teacher" to a record they didn't create
+// waits here for a super_admin to approve or reject — see lib/auth/approval.ts
+// for the rule and lib/actions/pending-changes.ts for the review actions.
+export const pendingChanges = pgTable("pending_changes", {
+  id: text("id").primaryKey(),
+  targetTable: text("target_table", {
+    enum: ["starlink_client", "academy_course", "academy_enrollment"],
+  }).notNull(),
+  targetId: text("target_id").notNull(),
+  // The full proposed record, same shape the upsert action already builds —
+  // applying an approval is a straight upsert of this blob, no field-level
+  // diff/patch system needed.
+  proposedData: jsonb("proposed_data").notNull(),
+  proposedBy: text("proposed_by").notNull(),
+  proposedAt: text("proposed_at").notNull(),
+  status: text("status", { enum: ["pending", "approved", "rejected"] })
+    .notNull()
+    .default("pending"),
+  reviewedBy: text("reviewed_by"),
+  reviewedAt: text("reviewed_at"),
+  reviewNote: text("review_note"),
 });

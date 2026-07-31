@@ -5,7 +5,7 @@ import { markInquiryRead } from "@/lib/db/inquiries";
 import { requireRole } from "@/lib/auth/rbac";
 
 export async function toggleInquiryReadAction(formData: FormData) {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "hr_recruiter"]);
 
   const id = String(formData.get("id") || "");
   const nextState = String(formData.get("nextState") || "true") === "true";

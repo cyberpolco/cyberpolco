@@ -3,7 +3,7 @@ import StarlinkClientForm from "@/app/admin/starlink/_components/StarlinkClientF
 import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function NewStarlinkClientPage() {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "technician"]);
 
   return (
     <div>

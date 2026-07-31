@@ -9,7 +9,7 @@ export default async function EditCoursePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "teacher"]);
 
   const { id } = await params;
   const course = await getAcademyCourseById(id);

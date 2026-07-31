@@ -11,7 +11,7 @@ export default async function EditStarlinkClientPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["super_admin"]);
+  const session = await requireRole(["super_admin", "technician"]);
 
   const { id } = await params;
   const client = await getStarlinkClientById(id);
@@ -26,7 +26,10 @@ export default async function EditStarlinkClientPage({
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Edit client</h1>
 
-      {hasLinkedAccount && (
+      {/* Password reset stays super_admin-only, so the button that triggers
+          it (which calls a super_admin-only endpoint) shouldn't appear for
+          a role that would just get a 403. */}
+      {hasLinkedAccount && session.role === "super_admin" && (
         <div className="mt-6">
           <ResetLinkedPasswordButton linkedId={client.id} />
         </div>

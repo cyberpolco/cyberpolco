@@ -4,7 +4,7 @@ import EnrollmentForm from "@/app/admin/academy/students/_components/EnrollmentF
 import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function NewEnrollmentPage() {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "teacher"]);
 
   const courses = await getAcademyCourses();
 

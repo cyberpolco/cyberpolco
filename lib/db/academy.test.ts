@@ -8,6 +8,7 @@ function makeCourse(lessonsPerModule: number[], overrides: Partial<AcademyCourse
     fr: { title: "Cours", description: "" },
     en: { title: "Course", description: "" },
     createdAt: "2026-01-01T00:00:00.000Z",
+    createdBy: null,
     ...overrides,
     modules: lessonsPerModule.map((count, mIndex) => ({
       id: `module-${mIndex}`,
@@ -38,6 +39,7 @@ function makeEnrollment(
     certificateIssued: false,
     certificateFileUrl: null,
     createdAt: "2026-01-01T00:00:00.000Z",
+    createdBy: null,
     ...overrides,
   };
 }

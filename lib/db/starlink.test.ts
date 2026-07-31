@@ -26,6 +26,7 @@ function makeClient(sites: StarlinkSite[], overrides: Partial<StarlinkClient> = 
     phone: "+264 81 000 0000",
     sites,
     createdAt: "2026-01-01T00:00:00.000Z",
+    createdBy: null,
     ...overrides,
   };
 }

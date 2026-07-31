@@ -1,20 +1,39 @@
 import Link from "next/link";
 import { Plus, BadgeCheck } from "lucide-react";
 import { getAcademyEnrollments, getAcademyCourses, progressPercent } from "@/lib/db/academy";
+import { getPendingChanges } from "@/lib/db/pending-changes";
 import { deleteEnrollmentAction } from "@/lib/actions/academy";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 
-export default async function AcademyStudentsPage() {
-  await requireRole(["super_admin"]);
+export default async function AcademyStudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
+  const session = await requireRole(["super_admin", "teacher"]);
+  const { pending } = await searchParams;
 
-  const [enrollments, courses] = await Promise.all([getAcademyEnrollments(), getAcademyCourses()]);
+  const [enrollments, courses, pendingChanges] = await Promise.all([
+    getAcademyEnrollments(),
+    getAcademyCourses(),
+    getPendingChanges("pending"),
+  ]);
   const courseById = new Map(courses.map((c) => [c.id, c]));
+  const pendingTargetIds = new Set(
+    pendingChanges.filter((c) => c.targetTable === "academy_enrollment").map((c) => c.targetId)
+  );
 
   return (
     <div>
       <BackLink href="/admin/academy" label="Back to Academy" />
+
+      {pending === "1" && (
+        <div className="mt-4 rounded-xl bg-brand-blue/10 p-4 text-sm text-brand-dark dark:text-white">
+          Your changes have been submitted for super_admin approval.
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Students</h1>
@@ -44,7 +63,14 @@ export default async function AcademyStudentsPage() {
               const course = courseById.get(e.courseId);
               return (
                 <tr key={e.id} className="border-t border-black/5 dark:border-white/10">
-                  <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{e.studentId}</td>
+                  <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
+                    {e.studentId}
+                    {pendingTargetIds.has(e.id) && (
+                      <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
+                        Pending review
+                      </span>
+                    )}
+                  </td>
                   <td className="px-5 py-3 text-brand-gray dark:text-white/60">{e.studentName}</td>
                   <td className="px-5 py-3 text-brand-gray dark:text-white/60">{course?.en.title ?? "—"}</td>
                   <td className="px-5 py-3 text-brand-gray dark:text-white/60">{progressPercent(e, course)}%</td>
@@ -56,12 +82,14 @@ export default async function AcademyStudentsPage() {
                       <Link href={`/admin/academy/students/${e.id}`} className="text-brand-blue">
                         View
                       </Link>
-                      <DeleteButton
-                        action={deleteEnrollmentAction}
-                        id={e.id}
-                        confirmTitle="Remove this enrollment?"
-                        confirmBody={`${e.studentName}'s enrollment will be permanently removed.`}
-                      />
+                      {session.role === "super_admin" && (
+                        <DeleteButton
+                          action={deleteEnrollmentAction}
+                          id={e.id}
+                          confirmTitle="Remove this enrollment?"
+                          confirmBody={`${e.studentName}'s enrollment will be permanently removed.`}
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>

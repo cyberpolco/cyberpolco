@@ -4,8 +4,11 @@ import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/rbac";
+import { needsApproval } from "@/lib/auth/approval";
+import { addPendingChange } from "@/lib/db/pending-changes";
 import {
   saveAcademyCourse,
+  getAcademyCourseById,
   deleteAcademyCourse,
   saveAcademyEnrollment,
   deleteAcademyEnrollment,
@@ -59,13 +62,16 @@ function parseModules(formData: FormData): Module[] {
 }
 
 export async function upsertAcademyCourseAction(formData: FormData) {
-  await requireRole(["super_admin"]);
+  const session = await requireRole(["super_admin", "teacher"]);
 
   const existingId = field(formData, "id");
   const existingSlug = field(formData, "existingSlug");
   const titleFr = field(formData, "title_fr");
   const titleEn = field(formData, "title_en");
   const slug = existingSlug || slugify(titleEn || titleFr);
+  // Source createdAt/createdBy from the DB record, not the submitted form —
+  // see the identical comment in lib/actions/starlink.ts.
+  const existing = existingId ? await getAcademyCourseById(existingId) : undefined;
 
   const course: AcademyCourse = {
     id: existingId || crypto.randomUUID(),
@@ -73,8 +79,22 @@ export async function upsertAcademyCourseAction(formData: FormData) {
     fr: { title: titleFr, description: field(formData, "description_fr") },
     en: { title: titleEn, description: field(formData, "description_en") },
     modules: parseModules(formData),
-    createdAt: existingId ? field(formData, "createdAt") : new Date().toISOString(),
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    createdBy: existing ? existing.createdBy : session.userId,
   };
+
+  if (
+    existing &&
+    needsApproval({ existingRecord: existing, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "academy_course",
+      targetId: existing.id,
+      proposedData: course,
+      proposedBy: session.userId,
+    });
+    redirect("/admin/academy/courses?pending=1");
+  }
 
   await saveAcademyCourse(course);
   revalidatePath("/admin/academy/courses");
@@ -90,7 +110,7 @@ export async function deleteAcademyCourseAction(formData: FormData) {
 }
 
 export async function createEnrollmentAction(formData: FormData) {
-  await requireRole(["super_admin"]);
+  const session = await requireRole(["super_admin", "teacher"]);
 
   const enrollment: AcademyEnrollment = {
     id: crypto.randomUUID(),
@@ -103,6 +123,7 @@ export async function createEnrollmentAction(formData: FormData) {
     certificateIssued: false,
     certificateFileUrl: null,
     createdAt: new Date().toISOString(),
+    createdBy: session.userId,
   };
 
   await saveAcademyEnrollment(enrollment);
@@ -119,7 +140,7 @@ export async function deleteEnrollmentAction(formData: FormData) {
 }
 
 export async function updateEnrollmentProgressAction(formData: FormData) {
-  await requireRole(["super_admin"]);
+  const session = await requireRole(["super_admin", "teacher"]);
 
   const id = field(formData, "id");
   const enrollment = await getAcademyEnrollmentById(id);
@@ -131,12 +152,26 @@ export async function updateEnrollmentProgressAction(formData: FormData) {
 
   const certificateFileUrl = field(formData, "certificateFileUrl") || enrollment.certificateFileUrl;
 
-  await saveAcademyEnrollment({
+  const updated: AcademyEnrollment = {
     ...enrollment,
     completedLessonIds,
     certificateIssued,
     certificateFileUrl,
-  });
+  };
+
+  if (
+    needsApproval({ existingRecord: enrollment, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "academy_enrollment",
+      targetId: enrollment.id,
+      proposedData: updated,
+      proposedBy: session.userId,
+    });
+    redirect(`/admin/academy/students/${id}?pending=1`);
+  }
+
+  await saveAcademyEnrollment(updated);
 
   revalidatePath(`/admin/academy/students/${id}`);
   revalidatePath("/admin/academy/students");

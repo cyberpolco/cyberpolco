@@ -4,8 +4,11 @@ import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/rbac";
+import { needsApproval } from "@/lib/auth/approval";
+import { addPendingChange } from "@/lib/db/pending-changes";
 import {
   saveStarlinkClient,
+  getStarlinkClientById,
   deleteStarlinkClient,
   getNextClientId,
   type StarlinkClient,
@@ -40,10 +43,14 @@ function parseSites(formData: FormData): StarlinkSite[] {
 }
 
 export async function upsertStarlinkClientAction(formData: FormData) {
-  await requireRole(["super_admin"]);
+  const session = await requireRole(["super_admin", "technician"]);
 
   const existingId = field(formData, "id");
   const existingClientId = field(formData, "clientId");
+  // Source createdAt/createdBy from the DB record itself, never from the
+  // submitted form — needsApproval's decision depends on the authoritative
+  // createdBy, which a client-submitted hidden field could otherwise spoof.
+  const existing = existingId ? await getStarlinkClientById(existingId) : undefined;
 
   const client: StarlinkClient = {
     id: existingId || crypto.randomUUID(),
@@ -52,8 +59,22 @@ export async function upsertStarlinkClientAction(formData: FormData) {
     email: field(formData, "email"),
     phone: field(formData, "phone"),
     sites: parseSites(formData),
-    createdAt: existingId ? field(formData, "createdAt") : new Date().toISOString(),
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    createdBy: existing ? existing.createdBy : session.userId,
   };
+
+  if (
+    existing &&
+    needsApproval({ existingRecord: existing, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "starlink_client",
+      targetId: existing.id,
+      proposedData: client,
+      proposedBy: session.userId,
+    });
+    redirect("/admin/starlink?pending=1");
+  }
 
   await saveStarlinkClient(client);
   revalidatePath("/admin/starlink");

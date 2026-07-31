@@ -11,7 +11,7 @@ export default async function StudentDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["super_admin"]);
+  const session = await requireRole(["super_admin", "teacher"]);
 
   const { id } = await params;
   const enrollment = await getAcademyEnrollmentById(id);
@@ -33,7 +33,9 @@ export default async function StudentDetailPage({
         {enrollment.studentId} · {course?.en.title ?? "Unknown course"}
       </p>
 
-      {hasLinkedAccount && (
+      {/* Password reset stays super_admin-only — see the identical comment
+          in app/admin/starlink/[id]/edit/page.tsx. */}
+      {hasLinkedAccount && session.role === "super_admin" && (
         <div className="mt-6">
           <ResetLinkedPasswordButton linkedId={enrollment.id} />
         </div>

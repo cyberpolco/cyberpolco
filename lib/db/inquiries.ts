@@ -37,3 +37,11 @@ export async function addInquiry(
 export async function markInquiryRead(id: string, read: boolean): Promise<void> {
   await db.update(inquiriesTable).set({ read }).where(eq(inquiriesTable.id, id));
 }
+
+export async function getUnreadInquiriesCount(): Promise<number> {
+  const rows = await db
+    .select({ id: inquiriesTable.id })
+    .from(inquiriesTable)
+    .where(eq(inquiriesTable.read, false));
+  return rows.length;
+}

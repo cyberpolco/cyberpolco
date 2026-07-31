@@ -19,6 +19,7 @@ export type AcademyCourse = {
   en: LocalizedCourseText;
   modules: Module[];
   createdAt: string;
+  createdBy: string | null;
 };
 
 export type AcademyEnrollment = {
@@ -32,6 +33,7 @@ export type AcademyEnrollment = {
   certificateIssued: boolean;
   certificateFileUrl: string | null;
   createdAt: string;
+  createdBy: string | null;
 };
 
 export async function getAcademyCourses(): Promise<AcademyCourse[]> {

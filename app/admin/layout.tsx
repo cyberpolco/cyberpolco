@@ -10,12 +10,14 @@ import {
   Users,
   SatelliteDish,
   GraduationCap,
+  ClipboardCheck,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
 import type { Role } from "@/lib/auth/roles";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById } from "@/lib/db/academy";
+import { getUnreadInquiriesCount } from "@/lib/db/inquiries";
 import ThemeToggle from "@/app/admin/_components/ThemeToggle";
 import MobileNav from "@/app/admin/_components/MobileNav";
 import AdminNavLink from "@/app/admin/_components/AdminNavLink";
@@ -42,7 +44,7 @@ const navItems: { href: string; label: string; icon: typeof LayoutDashboard; rol
   { href: "/admin/articles", label: "Articles", icon: Newspaper, roles: ["super_admin", "content_editor"] },
   { href: "/admin/cms", label: "CMS", icon: FileStack, roles: ["super_admin", "content_editor"] },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase, roles: ["super_admin", "hr_recruiter"] },
-  { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, roles: ["super_admin"] },
+  { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, roles: ["super_admin", "hr_recruiter"] },
   {
     href: "/admin/applications",
     label: "Applications",
@@ -54,12 +56,18 @@ const navItems: { href: string; label: string; icon: typeof LayoutDashboard; rol
     href: "/admin/starlink",
     label: "Starlink Management",
     icon: SatelliteDish,
-    roles: ["super_admin"],
+    roles: ["super_admin", "technician"],
   },
   {
     href: "/admin/academy",
     label: "Cyber PolCo Academy",
     icon: GraduationCap,
+    roles: ["super_admin", "teacher"],
+  },
+  {
+    href: "/admin/pending-changes",
+    label: "Pending changes",
+    icon: ClipboardCheck,
     roles: ["super_admin"],
   },
 ];
@@ -68,6 +76,8 @@ const ROLE_BADGES: Record<Exclude<Role, "viewer">, string> = {
   super_admin: "Admin",
   hr_recruiter: "HR",
   content_editor: "Publisher",
+  technician: "Technician",
+  teacher: "Teacher",
 };
 
 async function getRoleBadge(
@@ -95,6 +105,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     : [];
   const roleBadge = await getRoleBadge(session);
 
+  // Only queried for roles that can see Inquiries at all, to avoid an
+  // unnecessary DB round-trip for everyone else.
+  const canSeeInquiries = session?.role === "super_admin" || session?.role === "hr_recruiter";
+  const unreadInquiriesCount = canSeeInquiries ? await getUnreadInquiriesCount() : 0;
+  const navItemsWithBadges = visibleNavItems.map((item) => ({
+    ...item,
+    badge: item.href === "/admin/inquiries" && unreadInquiriesCount > 0 ? unreadInquiriesCount : undefined,
+  }));
+
   const cookieStore = await cookies();
   const isDark = cookieStore.get(THEME_COOKIE_NAME)?.value === "dark";
 
@@ -107,10 +126,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <AdminProgressBar />
               <div className="flex min-h-screen flex-col md:flex-row">
                 <MobileNav
-                  navItems={visibleNavItems.map((item) => ({
+                  navItems={navItemsWithBadges.map((item) => ({
                     href: item.href,
                     label: item.label,
                     icon: <item.icon size={18} />,
+                    badge: item.badge,
                   }))}
                   roleBadge={roleBadge}
                   isDark={isDark}
@@ -120,7 +140,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     Cyber PolCo <span className="text-brand-red">{roleBadge}</span>
                   </div>
                   <nav className="flex-1 space-y-1">
-                    {visibleNavItems.map((item) => {
+                    {navItemsWithBadges.map((item) => {
                       const Icon = item.icon;
                       return (
                         <AdminNavLink
@@ -130,6 +150,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                         >
                           <Icon size={18} />
                           {item.label}
+                          {item.badge !== undefined && (
+                            <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-red px-1.5 text-xs font-semibold text-white">
+                              {item.badge}
+                            </span>
+                          )}
                         </AdminNavLink>
                       );
                     })}

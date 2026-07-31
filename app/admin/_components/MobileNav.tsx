@@ -7,7 +7,7 @@ import AdminNavLink from "./AdminNavLink";
 import LogoutButton from "./LogoutButton";
 import { logoutAction } from "@/lib/actions/auth";
 
-type NavItem = { href: string; label: string; icon: React.ReactNode };
+type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number };
 
 export default function MobileNav({
   navItems,
@@ -63,6 +63,11 @@ export default function MobileNav({
                 >
                   {item.icon}
                   {item.label}
+                  {item.badge !== undefined && (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-red px-1.5 text-xs font-semibold text-white">
+                      {item.badge}
+                    </span>
+                  )}
                 </AdminNavLink>
               ))}
             </nav>

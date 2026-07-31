@@ -18,7 +18,7 @@ const sections = [
 ];
 
 export default async function AcademyHubPage() {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "teacher"]);
 
   return (
     <div>

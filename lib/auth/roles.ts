@@ -1,11 +1,26 @@
-export type Role = "super_admin" | "content_editor" | "hr_recruiter" | "viewer";
+export type Role =
+  | "super_admin"
+  | "content_editor"
+  | "hr_recruiter"
+  | "technician"
+  | "teacher"
+  | "viewer";
 
-export const ROLES: Role[] = ["super_admin", "content_editor", "hr_recruiter", "viewer"];
+export const ROLES: Role[] = [
+  "super_admin",
+  "content_editor",
+  "hr_recruiter",
+  "technician",
+  "teacher",
+  "viewer",
+];
 
 export const ROLE_LABELS: Record<Role, string> = {
   super_admin: "Super Admin",
   content_editor: "Content Editor",
   hr_recruiter: "HR / Recruiter",
+  technician: "Technician",
+  teacher: "Teacher",
   viewer: "Viewer",
 };
 
@@ -21,10 +36,14 @@ const ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/cms", roles: ["super_admin", "content_editor"] },
   { prefix: "/admin/jobs", roles: ["super_admin", "hr_recruiter"] },
   { prefix: "/admin/applications", roles: ["super_admin", "hr_recruiter"] },
-  { prefix: "/admin/inquiries", roles: ["super_admin"] },
+  { prefix: "/admin/inquiries", roles: ["super_admin", "hr_recruiter"] },
   { prefix: "/admin/users", roles: ["super_admin"] },
-  { prefix: "/admin/starlink", roles: ["super_admin"] },
-  { prefix: "/admin/academy", roles: ["super_admin"] },
+  // Technician/teacher can create and edit here, but not delete or approve —
+  // that finer-grained distinction is enforced in the Server Actions
+  // themselves (lib/actions/starlink.ts, lib/actions/academy.ts), not here.
+  { prefix: "/admin/starlink", roles: ["super_admin", "technician"] },
+  { prefix: "/admin/academy", roles: ["super_admin", "teacher"] },
+  { prefix: "/admin/pending-changes", roles: ["super_admin"] },
 ];
 
 /**

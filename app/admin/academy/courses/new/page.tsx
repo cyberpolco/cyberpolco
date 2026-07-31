@@ -3,7 +3,7 @@ import CourseForm from "@/app/admin/academy/_components/CourseForm";
 import BackLink from "@/app/admin/_components/BackLink";
 
 export default async function NewCoursePage() {
-  await requireRole(["super_admin"]);
+  await requireRole(["super_admin", "teacher"]);
 
   return (
     <div>

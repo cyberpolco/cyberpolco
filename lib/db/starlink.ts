@@ -34,6 +34,7 @@ export type StarlinkClient = {
   phone: string;
   sites: StarlinkSite[];
   createdAt: string;
+  createdBy: string | null;
 };
 
 export async function getStarlinkClients(): Promise<StarlinkClient[]> {

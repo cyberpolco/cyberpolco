@@ -24,9 +24,26 @@ describe("isRouteAllowed", () => {
   });
 
   it("restricts sensitive routes to super_admin only", () => {
-    for (const pathname of ["/admin/inquiries", "/admin/users", "/admin/starlink", "/admin/academy"]) {
+    for (const pathname of ["/admin/users", "/admin/pending-changes"]) {
       expect(rolesAllowedFor(pathname)).toEqual(["super_admin"]);
     }
+  });
+
+  it("restricts inquiries to super_admin and hr_recruiter", () => {
+    expect(rolesAllowedFor("/admin/inquiries")).toEqual(["super_admin", "hr_recruiter"]);
+  });
+
+  it("restricts Starlink Management to super_admin and technician", () => {
+    expect(rolesAllowedFor("/admin/starlink")).toEqual(["super_admin", "technician"]);
+  });
+
+  it("restricts Academy to super_admin and teacher", () => {
+    expect(rolesAllowedFor("/admin/academy")).toEqual(["super_admin", "teacher"]);
+  });
+
+  it("does not let technician into Academy or teacher into Starlink", () => {
+    expect(isRouteAllowed("/admin/academy", "technician")).toBe(false);
+    expect(isRouteAllowed("/admin/starlink", "teacher")).toBe(false);
   });
 
   it("matches nested sub-paths under an allowed prefix", () => {

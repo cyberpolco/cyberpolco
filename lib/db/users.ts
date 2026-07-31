@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { users as usersTable } from "./schema";
+import { ROLES, ROLE_LABELS, type Role } from "@/lib/auth/roles";
 
-export type Role = "super_admin" | "content_editor" | "hr_recruiter" | "viewer";
+export type { Role };
 export type ViewerType = "starlink_client" | "academy_student";
 
 export type User = {
@@ -80,4 +81,21 @@ export async function touchLastLogin(id: string): Promise<void> {
     .update(usersTable)
     .set({ lastLoginAt: new Date().toISOString() })
     .where(eq(usersTable.id, id));
+}
+
+export type UsersStats = {
+  byRole: { label: string; value: number }[];
+};
+
+export function computeUsersStats(users: User[]): UsersStats {
+  return {
+    byRole: ROLES.map((role) => ({
+      label: ROLE_LABELS[role],
+      value: users.filter((u) => u.role === role).length,
+    })),
+  };
+}
+
+export async function getUsersStats(): Promise<UsersStats> {
+  return computeUsersStats(await getUsers());
 }
