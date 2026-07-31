@@ -1,9 +1,28 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { MapPin, Briefcase } from "lucide-react";
 import { getJobBySlug } from "@/lib/db/jobs";
+import { localeAlternates } from "@/lib/seo";
 import ApplicationForm from "@/components/forms/ApplicationForm";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en"; slug: string }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const job = await getJobBySlug(slug);
+  if (!job || job.status !== "open") return {};
+
+  const content = job[locale];
+  return {
+    title: content.title,
+    description: `${content.location} · ${content.type}`,
+    alternates: localeAlternates(`careers/${slug}`),
+  };
+}
 
 export default async function CareerDetailPage({
   params,

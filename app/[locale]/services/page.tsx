@@ -1,9 +1,25 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight } from "lucide-react";
 import { getServices } from "@/lib/db/services";
 import { SERVICE_ICONS } from "@/lib/content/service-icons";
 import { getBlock } from "@/lib/content/blocks";
+import { localeAlternates } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en" }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "services" });
+  return {
+    title: t("title"),
+    description: t("subtitle"),
+    alternates: localeAlternates("services"),
+  };
+}
 
 export default async function ServicesPage({
   params,

@@ -1,6 +1,22 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSortedAchievements } from "@/lib/db/achievements";
+import { localeAlternates } from "@/lib/seo";
 import AchievementPhoto from "./_components/AchievementPhoto";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en" }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "achievements" });
+  return {
+    title: t("title"),
+    description: t("subtitle"),
+    alternates: localeAlternates("achievements"),
+  };
+}
 
 export default async function AchievementsPage({
   params,

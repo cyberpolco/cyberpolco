@@ -63,6 +63,7 @@ export async function upsertArticleAction(formData: FormData) {
   revalidatePath("/[locale]/articles", "page");
   revalidatePath("/[locale]/articles/[slug]", "page");
   revalidatePath("/[locale]", "page");
+  revalidatePath("/sitemap.xml");
   redirect("/admin/articles");
 }
 
@@ -75,4 +76,5 @@ export async function deleteArticleAction(formData: FormData) {
   revalidatePath("/[locale]/articles", "page");
   revalidatePath("/[locale]/articles/[slug]", "page");
   revalidatePath("/[locale]", "page");
+  revalidatePath("/sitemap.xml");
 }

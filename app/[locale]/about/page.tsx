@@ -1,7 +1,26 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { getBlock } from "@/lib/content/blocks";
 import { getTeamMembers } from "@/lib/db/team";
+import { localeAlternates } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en" }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "about" });
+  return {
+    title: t("title"),
+    description:
+      locale === "fr"
+        ? "Découvrez l'équipe et l'histoire de Cyber PolCo, votre partenaire en cybersécurité."
+        : "Meet the team and story behind Cyber PolCo, your cybersecurity partner.",
+    alternates: localeAlternates("about"),
+  };
+}
 
 export default async function AboutPage({
   params,

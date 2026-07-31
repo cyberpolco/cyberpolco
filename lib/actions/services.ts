@@ -71,6 +71,7 @@ export async function upsertServiceAction(formData: FormData) {
   // "layout" since services also appear in the footer (shared across every
   // page) and on the homepage, not just the /services pages.
   revalidatePath("/[locale]", "layout");
+  revalidatePath("/sitemap.xml");
   redirect("/admin/cms/services");
 }
 
@@ -82,4 +83,5 @@ export async function deleteServiceAction(formData: FormData) {
   revalidatePath("/admin/cms/services");
   revalidatePath("/[locale]/services", "page");
   revalidatePath("/[locale]", "layout");
+  revalidatePath("/sitemap.xml");
 }

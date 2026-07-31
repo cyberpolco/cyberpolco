@@ -52,6 +52,7 @@ export async function upsertJobAction(formData: FormData) {
   await saveJob(job);
   revalidatePath("/admin/jobs");
   revalidatePath("/[locale]/careers", "page");
+  revalidatePath("/sitemap.xml");
   redirect("/admin/jobs");
 }
 
@@ -62,4 +63,5 @@ export async function deleteJobAction(formData: FormData) {
   await deleteJob(id);
   revalidatePath("/admin/jobs");
   revalidatePath("/[locale]/careers", "page");
+  revalidatePath("/sitemap.xml");
 }

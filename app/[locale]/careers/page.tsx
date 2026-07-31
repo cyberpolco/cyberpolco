@@ -1,8 +1,24 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Briefcase, MapPin } from "lucide-react";
 import { getOpenJobs } from "@/lib/db/jobs";
 import { getBlock } from "@/lib/content/blocks";
+import { localeAlternates } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en" }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "careers" });
+  return {
+    title: t("title"),
+    description: t("subtitle"),
+    alternates: localeAlternates("careers"),
+  };
+}
 
 export default async function CareersPage({
   params,

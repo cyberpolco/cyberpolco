@@ -1,9 +1,28 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Mail, Phone, MapPin } from "lucide-react";
 import ContactForm from "@/components/forms/ContactForm";
 import { contactEmails } from "@/lib/content/company";
 import { getSettings } from "@/lib/db/settings";
 import { getBlock } from "@/lib/content/blocks";
+import { localeAlternates } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: "fr" | "en" }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "contact" });
+  return {
+    title: t("title"),
+    description:
+      locale === "fr"
+        ? "Contactez l'équipe Cyber PolCo pour discuter de vos besoins en cybersécurité."
+        : "Get in touch with the Cyber PolCo team to discuss your cybersecurity needs.",
+    alternates: localeAlternates("contact"),
+  };
+}
 
 export default async function ContactPage({
   params,
