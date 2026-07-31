@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import PasswordField from "@/app/admin/_components/PasswordField";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import ViewerLinkFields from "@/app/admin/users/_components/ViewerLinkFields";
@@ -25,6 +28,7 @@ export default function UserForm({
   academyEnrollments: AcademyEnrollment[];
 }) {
   const action = user ? updateUserAction : createUserAction;
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <form action={action} className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
@@ -33,6 +37,7 @@ export default function UserForm({
       <div>
         <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Email</label>
         <input
+          ref={emailInputRef}
           type="email"
           name="email"
           defaultValue={user?.email}
@@ -47,6 +52,9 @@ export default function UserForm({
         defaultLinkedId={user?.linkedId}
         starlinkClients={starlinkClients}
         academyEnrollments={academyEnrollments}
+        onLinkedEmailChange={(email) => {
+          if (emailInputRef.current) emailInputRef.current.value = email;
+        }}
       />
 
       <PasswordField
