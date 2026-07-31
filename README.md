@@ -32,12 +32,33 @@ production (Settings → Environment Variables).
 | `EMAIL_FROM` | No | From-address for outgoing email (defaults to a placeholder) |
 | `BLOB_READ_WRITE_TOKEN` | Yes | Vercel Blob store for CV uploads. Career applications fail without it — there's no local-disk fallback. |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | No | Enables Cloudflare Turnstile CAPTCHA. The widget is omitted from the form until these are set. |
+| `CRON_SECRET` | Yes (in production) | Authorizes Vercel Cron's daily request to the Starlink subscription-reminder job (see below) — without it, that route always returns 401 and no reminders go out. |
 
 The site runs with the optional variables unset — it just runs in
 "local/demo" mode for email (logged to the console instead of sent) and
 skips CAPTCHA. `BLOB_READ_WRITE_TOKEN` is the one exception: it's required
 for career applications to work at all, since CV uploads have no
 local-disk fallback.
+
+## Starlink subscription reminders (cron)
+
+`vercel.json` registers a daily cron job (`0 8 * * *`, i.e. 8am UTC) that
+hits `/api/cron/starlink-subscription-reminders`. For every Starlink site
+with a `subscriptionStartDate` set, it checks whether that site's monthly
+(30-day) subscription renews in exactly 7 days — cycling automatically every
+30 days, no per-cycle state needed — and if so, emails the client (via
+Resend, from `no-reply@cyberpolco.com`) a bilingual reminder with the site
+name, expiry date, and contact info to renew.
+
+The route has no logged-in admin session to check (Vercel's scheduler calls
+it directly), so it's authorized by comparing the request's `Authorization`
+header against `CRON_SECRET` instead. Locally, or to trigger it manually,
+call it with `curl -H "Authorization: Bearer $CRON_SECRET" https://.../api/cron/starlink-subscription-reminders`.
+
+There's no "already sent today" tracking — if the scheduled run were ever
+triggered twice in a day, a client could get a duplicate email that day.
+Accepted trade-off for simplicity; add a `lastReminderSentAt` field per site
+if this needs to be airtight later.
 
 ## What's real vs. what's a documented stand-in
 

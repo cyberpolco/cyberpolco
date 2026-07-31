@@ -110,3 +110,18 @@ export function computeStarlinkStats(clients: StarlinkClient[]): StarlinkStats {
 export async function getStarlinkStats(): Promise<StarlinkStats> {
   return computeStarlinkStats(await getStarlinkClients());
 }
+
+/**
+ * Days remaining until the next 30-day renewal boundary of a monthly
+ * subscription, cycling indefinitely from subscriptionStartDate (day 1..30
+ * of each cycle maps to 30..1 days remaining, then wraps). Returns null if
+ * the subscription hasn't started yet. `now` is a parameter, not read
+ * internally, so this stays a pure, deterministically testable function —
+ * same pattern as lib/utils/monthly-trend.ts.
+ */
+export function daysUntilNextRenewal(subscriptionStartDate: string, now: Date): number | null {
+  const start = new Date(subscriptionStartDate);
+  const daysSinceStart = Math.floor((now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+  if (daysSinceStart < 0) return null;
+  return 30 - (daysSinceStart % 30);
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeStarlinkStats, type StarlinkClient, type StarlinkSite } from "./starlink";
+import { computeStarlinkStats, daysUntilNextRenewal, type StarlinkClient, type StarlinkSite } from "./starlink";
 
 function makeSite(overrides: Partial<StarlinkSite> = {}): StarlinkSite {
   return {
@@ -106,5 +106,30 @@ describe("computeStarlinkStats", () => {
       { label: "Roam", value: 0 },
       { label: "250GB", value: 1 },
     ]);
+  });
+});
+
+describe("daysUntilNextRenewal", () => {
+  const start = "2026-01-01T12:00:00.000Z";
+  const dayOffset = (days: number) => new Date(Date.parse(start) + days * 24 * 60 * 60 * 1000);
+
+  it("returns 30 on the start date itself", () => {
+    expect(daysUntilNextRenewal(start, dayOffset(0))).toBe(30);
+  });
+
+  it("hits exactly 7 at day 23 of the first cycle", () => {
+    expect(daysUntilNextRenewal(start, dayOffset(23))).toBe(7);
+  });
+
+  it("resets to 30 at the start of the next cycle (day 30)", () => {
+    expect(daysUntilNextRenewal(start, dayOffset(30))).toBe(30);
+  });
+
+  it("hits exactly 7 again at day 23 of the second cycle (day 53)", () => {
+    expect(daysUntilNextRenewal(start, dayOffset(53))).toBe(7);
+  });
+
+  it("returns null before the subscription has started", () => {
+    expect(daysUntilNextRenewal(start, dayOffset(-1))).toBeNull();
   });
 });
