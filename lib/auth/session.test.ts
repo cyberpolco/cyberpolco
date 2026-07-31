@@ -71,4 +71,13 @@ describe("session tokens", () => {
 
     expect(verifySessionToken(`${expiredBody}.${signature}`).valid).toBe(false);
   });
+
+  it("throws a clear error when ADMIN_SESSION_SECRET is unset", () => {
+    const original = process.env.ADMIN_SESSION_SECRET;
+    delete process.env.ADMIN_SESSION_SECRET;
+
+    expect(() => createSessionToken(basePayload)).toThrow(/ADMIN_SESSION_SECRET/);
+
+    process.env.ADMIN_SESSION_SECRET = original;
+  });
 });
