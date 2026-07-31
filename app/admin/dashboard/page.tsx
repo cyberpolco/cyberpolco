@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Newspaper, Briefcase, Inbox, FileText, Eye, Share2, GraduationCap, Users, Award, SatelliteDish } from "lucide-react";
+import { Newspaper, Briefcase, FileText, Eye, GraduationCap, Users, Award, SatelliteDish } from "lucide-react";
 import { getArticles, getTopArticlesByViews, getTopArticlesByShares } from "@/lib/db/articles";
-import { getJobs, getJobsStats } from "@/lib/db/jobs";
-import { getInquiries, getInquiriesStats } from "@/lib/db/inquiries";
+import { getJobs } from "@/lib/db/jobs";
+import { getInquiriesStats } from "@/lib/db/inquiries";
 import { getApplications, getApplicationsStats } from "@/lib/db/applications";
 import { getStarlinkClientById, getStarlinkStats } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById, getAcademyCourseById, getAcademyStats } from "@/lib/db/academy";
@@ -14,7 +14,6 @@ import StarlinkViewerDashboard from "./_components/StarlinkViewerDashboard";
 import AcademyViewerDashboard from "./_components/AcademyViewerDashboard";
 import Meter from "./_components/Meter";
 import PaymentStatusTiles from "./_components/PaymentStatusTiles";
-import DonutChart from "./_components/DonutChart";
 import TrendChart from "./_components/TrendChart";
 
 const ORDINAL_RAMP = [
@@ -25,7 +24,6 @@ const ORDINAL_RAMP = [
   "var(--chart-ordinal-5)",
   "var(--chart-ordinal-6)",
 ];
-const TWO_TONE = ["#626fda", "#e3484f"];
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -42,19 +40,16 @@ export default async function DashboardPage() {
     return <AcademyViewerDashboard enrollment={enrollment} course={course} />;
   }
 
-  const [articles, jobs, inquiries, applications, topByViews, topByShares] = await Promise.all([
+  const [articles, jobs, applications, topByViews, topByShares] = await Promise.all([
     getArticles(),
     getJobs(),
-    getInquiries(),
     getApplications(),
     getTopArticlesByViews(5),
     getTopArticlesByShares(5),
   ]);
 
-  const unreadInquiries = inquiries.filter((i) => !i.read).length;
   const openJobs = jobs.filter((j) => j.status === "open").length;
   const totalViews = articles.reduce((sum, a) => sum + (a.viewCount ?? 0), 0);
-  const totalShares = articles.reduce((sum, a) => sum + (a.shareCount ?? 0), 0);
 
   const allCards = [
     {
@@ -72,13 +67,6 @@ export default async function DashboardPage() {
       roles: ["super_admin", "hr_recruiter"] as Role[],
     },
     {
-      label: "Unread inquiries",
-      value: unreadInquiries,
-      icon: Inbox,
-      href: "/admin/inquiries",
-      roles: ["super_admin", "hr_recruiter"] as Role[],
-    },
-    {
       label: "Applications received",
       value: applications.length,
       icon: FileText,
@@ -92,25 +80,18 @@ export default async function DashboardPage() {
       href: "/admin/articles",
       roles: ["super_admin", "content_editor", "hr_recruiter"] as Role[],
     },
-    {
-      label: "Total article shares",
-      value: totalShares,
-      icon: Share2,
-      href: "/admin/articles",
-      roles: ["super_admin", "content_editor", "hr_recruiter"] as Role[],
-    },
   ];
 
   const cards = allCards.filter((card) => card.roles.includes(role));
 
-  // Hiring-adjacent stats (applications pipeline, jobs, inquiries) are
+  // Hiring-adjacent stats (applications pipeline, inquiries trend) are
   // visible to whoever can already see those sections elsewhere in the
   // admin panel — same super_admin/hr_recruiter split as the KPI cards and
   // route gating (lib/auth/roles.ts).
   const canSeeHiringStats = role === "super_admin" || role === "hr_recruiter";
-  const [applicationsStats, jobsStats, inquiriesStats] = canSeeHiringStats
-    ? await Promise.all([getApplicationsStats(), getJobsStats(), getInquiriesStats()])
-    : [undefined, undefined, undefined];
+  const [applicationsStats, inquiriesStats] = canSeeHiringStats
+    ? await Promise.all([getApplicationsStats(), getInquiriesStats()])
+    : [undefined, undefined];
 
   const usersStats = role === "super_admin" ? await getUsersStats() : undefined;
 
@@ -175,15 +156,6 @@ export default async function DashboardPage() {
             colors={ORDINAL_RAMP}
             items={applicationsStats.byStage}
           />
-        </div>
-      )}
-
-      {(jobsStats || inquiriesStats) && (
-        <div className="mt-8 grid gap-5 lg:grid-cols-2">
-          {jobsStats && <DonutChart title="Jobs by status" data={jobsStats.byStatus} colors={TWO_TONE} />}
-          {inquiriesStats && (
-            <DonutChart title="Inquiries: read vs unread" data={inquiriesStats.readBreakdown} colors={TWO_TONE} />
-          )}
         </div>
       )}
 
