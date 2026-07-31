@@ -8,22 +8,57 @@ import BlobFileField from "@/app/admin/_components/BlobFileField";
 import type { Article } from "@/lib/content/articles";
 import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 
+function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 export default function ArticleForm({ article }: { article?: Article }) {
   const [image, setImage] = useState(article?.image || "");
+  const [slug, setSlug] = useState(article?.slug || "");
+  // Existing articles keep their slug fixed to the title unless the admin
+  // deliberately edits it — auto-regenerating it from title changes would
+  // silently change a published article's URL. New articles start
+  // unmodified, so the slug tracks the English title until the admin types
+  // into the slug field directly.
+  const [slugTouched, setSlugTouched] = useState(Boolean(article?.slug));
 
   return (
     <form action={upsertArticleAction} className="space-y-8">
       <input type="hidden" name="originalSlug" value={article?.slug || ""} />
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Publish date</label>
-        <input
-          type="date"
-          name="date"
-          defaultValue={article?.date}
-          required
-          className="rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Publish date</label>
+          <input
+            type="date"
+            name="date"
+            defaultValue={article?.date}
+            required
+            className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Slug</label>
+          <input
+            name="slug"
+            value={slug}
+            onChange={(e) => {
+              setSlugTouched(true);
+              setSlug(slugify(e.target.value));
+            }}
+            required
+            className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
+          />
+          <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
+            Auto-filled from the English title — edit to override. Used in the article&apos;s URL.
+          </p>
+        </div>
       </div>
 
       <div>
@@ -91,6 +126,9 @@ export default function ArticleForm({ article }: { article?: Article }) {
             <input
               name="title_en"
               defaultValue={article?.en.title}
+              onChange={(e) => {
+                if (!slugTouched) setSlug(slugify(e.target.value));
+              }}
               required
               className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             />

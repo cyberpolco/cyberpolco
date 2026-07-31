@@ -25,10 +25,14 @@ export async function upsertArticleAction(formData: FormData) {
   await requireRole(["super_admin", "content_editor"]);
 
   const originalSlug = String(formData.get("originalSlug") || "");
+  const submittedSlug = String(formData.get("slug") || "").trim();
   const title_fr = String(formData.get("title_fr") || "");
   const title_en = String(formData.get("title_en") || "");
 
-  const slug = originalSlug || slugify(title_en || title_fr);
+  // The slug field is user-editable now (see ArticleForm.tsx), so it's the
+  // primary source; falling back to a title-derived slug only covers the
+  // defensive case of it somehow arriving blank.
+  const slug = slugify(submittedSlug) || slugify(title_en || title_fr);
 
   const image = String(formData.get("image") || "").trim();
 
@@ -59,6 +63,13 @@ export async function upsertArticleAction(formData: FormData) {
   };
 
   await saveArticle(article);
+  // Articles are keyed by slug (onConflictDoUpdate targets it), so editing
+  // the slug on an existing article inserts a new row rather than renaming
+  // the old one in place — without this, the old slug's row would be left
+  // behind as an orphan.
+  if (originalSlug && originalSlug !== slug) {
+    await deleteArticle(originalSlug);
+  }
   revalidatePath("/admin/articles");
   revalidatePath("/[locale]/articles", "page");
   revalidatePath("/[locale]/articles/[slug]", "page");
