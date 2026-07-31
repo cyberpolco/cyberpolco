@@ -56,16 +56,22 @@ export async function POST(req: NextRequest) {
 
   const { jobSlug, jobTitle, name, email, phone, message, locale } = parsed.data;
 
-  const application = await addApplication({
-    jobSlug,
-    jobTitle,
-    name,
-    email,
-    phone,
-    message: message || "",
-    cvFileName: fileName,
-    cvUrl: url,
-  });
+  let application;
+  try {
+    application = await addApplication({
+      jobSlug,
+      jobTitle,
+      name,
+      email,
+      phone,
+      message: message || "",
+      cvFileName: fileName,
+      cvUrl: url,
+    });
+  } catch (err) {
+    console.error("Failed to save job application:", err);
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+  }
 
   try {
     await sendEmail({

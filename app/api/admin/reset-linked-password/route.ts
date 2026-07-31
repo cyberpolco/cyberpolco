@@ -23,15 +23,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing linkedId" }, { status: 400 });
   }
 
-  const users = await getUsers();
-  const user = users.find((u) => u.linkedId === linkedId);
-  if (!user) {
-    return NextResponse.json({ error: "No account is linked to this record." }, { status: 404 });
+  try {
+    const users = await getUsers();
+    const user = users.find((u) => u.linkedId === linkedId);
+    if (!user) {
+      return NextResponse.json({ error: "No account is linked to this record." }, { status: 404 });
+    }
+
+    const password = crypto.randomBytes(9).toString("base64url");
+    const passwordHash = await bcrypt.hash(password, 10);
+    await saveUser({ ...user, passwordHash, mustChangePassword: true });
+
+    return NextResponse.json({ password });
+  } catch (err) {
+    console.error("Failed to reset linked password:", err);
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
-
-  const password = crypto.randomBytes(9).toString("base64url");
-  const passwordHash = await bcrypt.hash(password, 10);
-  await saveUser({ ...user, passwordHash, mustChangePassword: true });
-
-  return NextResponse.json({ password });
 }

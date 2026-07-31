@@ -43,7 +43,13 @@ export async function POST(req: NextRequest) {
   const { firstName, lastName, company, position, email, subject, message, locale } = parsed.data;
   const name = `${firstName} ${lastName}`;
 
-  const inquiry = await addInquiry({ name, company, position, email, subject, message });
+  let inquiry;
+  try {
+    inquiry = await addInquiry({ name, company, position, email, subject, message });
+  } catch (err) {
+    console.error("Failed to save contact inquiry:", err);
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+  }
 
   try {
     await sendEmail({
