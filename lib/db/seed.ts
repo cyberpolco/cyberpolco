@@ -14,6 +14,14 @@ import { blockDefaults } from "@/lib/content/blocks";
 import { services as seedServices } from "@/lib/content/services";
 
 async function seed() {
+  // Guards against inserting placeholder "TBD" content into the live site —
+  // the realistic accident is running this locally right after
+  // `vercel env pull --environment=production`, which sets VERCEL_ENV.
+  if (process.env.VERCEL_ENV === "production") {
+    console.error("Refusing to run db:seed against production (VERCEL_ENV=production).");
+    process.exit(1);
+  }
+
   await db.insert(articlesTable).values(seedArticles).onConflictDoNothing();
   await db
     .insert(settingsTable)
