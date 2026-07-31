@@ -51,8 +51,11 @@ export default function LoginCard({
 
       <form action={loginAction} className="mt-6 space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-dark">{email}</label>
+          <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-brand-dark">
+            {email}
+          </label>
           <input
+            id="login-email"
             type="email"
             name="email"
             required

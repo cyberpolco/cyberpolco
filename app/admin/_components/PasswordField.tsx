@@ -22,11 +22,16 @@ export default function PasswordField({
 }) {
   const [visible, setVisible] = useState(false);
 
+  const id = `password-field-${name}`;
+
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">{label}</label>
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
+        {label}
+      </label>
       <div className="relative">
         <input
+          id={id}
           type={visible ? "text" : "password"}
           name={name}
           required={required}
