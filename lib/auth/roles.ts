@@ -21,7 +21,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   hr_recruiter: "HR / Recruiter",
   technician: "Technician",
   teacher: "Teacher",
-  viewer: "Viewer",
+  viewer: "Student/Client",
 };
 
 const ALL_ROLES: Role[] = ROLES;

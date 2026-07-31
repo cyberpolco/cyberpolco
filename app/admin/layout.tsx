@@ -88,13 +88,13 @@ async function getRoleBadge(
 
   if (session.viewerType === "starlink_client" && session.linkedId) {
     const client = await getStarlinkClientById(session.linkedId);
-    return client?.clientId ?? "Viewer";
+    return client?.clientId ?? "Client";
   }
   if (session.viewerType === "academy_student" && session.linkedId) {
     const enrollment = await getAcademyEnrollmentById(session.linkedId);
     return enrollment?.studentId ?? "Student";
   }
-  return "Viewer";
+  return "Student/Client";
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
