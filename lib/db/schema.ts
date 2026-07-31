@@ -161,14 +161,18 @@ export const achievements = pgTable("achievements", {
 type StarlinkSite = {
   id: string;
   siteName: string;
-  subscriptionType: "residential" | "business" | "roam" | "maritime";
+  subscriptionType: "residential" | "business" | "roam" | "250gb";
   dishType: "enterprise" | "standard" | "mini";
   installationStatus: "pending" | "scheduled" | "in_progress" | "completed";
   kitOrderRef: string;
+  kitEmail: string;
+  kitAcquisitionType: "acquired" | "leased";
   deliveryDate: string | null;
   deploymentStatus: "not_deployed" | "deployed" | "active" | "suspended";
   wifiPassword: string;
+  accountPassword: string;
   paymentStatus: "paid" | "pending" | "overdue";
+  subscriptionStartDate: string | null;
 };
 
 export const starlinkClients = pgTable("starlink_clients", {

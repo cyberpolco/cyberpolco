@@ -8,11 +8,15 @@ function makeSite(overrides: Partial<StarlinkSite> = {}): StarlinkSite {
     subscriptionType: "business",
     dishType: "standard",
     installationStatus: "pending",
-    kitOrderRef: "KIT-0001",
+    kitOrderRef: "KIT404628363H4F",
+    kitEmail: "kit@example.com",
+    kitAcquisitionType: "acquired",
     deliveryDate: null,
     deploymentStatus: "not_deployed",
     wifiPassword: "hunter2",
+    accountPassword: "hunter3",
     paymentStatus: "pending",
+    subscriptionStartDate: null,
     ...overrides,
   };
 }
@@ -83,7 +87,7 @@ describe("computeStarlinkStats", () => {
   it("breaks down deployment status and subscription type", () => {
     const clients = [
       makeClient([
-        makeSite({ id: "s1", deploymentStatus: "active", subscriptionType: "maritime" }),
+        makeSite({ id: "s1", deploymentStatus: "active", subscriptionType: "250gb" }),
         makeSite({ id: "s2", deploymentStatus: "suspended", subscriptionType: "residential" }),
       ]),
     ];
@@ -100,7 +104,7 @@ describe("computeStarlinkStats", () => {
       { label: "Residential", value: 1 },
       { label: "Business", value: 0 },
       { label: "Roam", value: 0 },
-      { label: "Maritime", value: 1 },
+      { label: "250GB", value: 1 },
     ]);
   });
 });

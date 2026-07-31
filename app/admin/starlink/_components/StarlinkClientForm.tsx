@@ -11,6 +11,8 @@ import {
   INSTALLATION_STATUS_OPTIONS,
   DEPLOYMENT_STATUS_OPTIONS,
   PAYMENT_STATUS_OPTIONS,
+  KIT_ACQUISITION_TYPE_OPTIONS,
+  KIT_NUMBER_PATTERN,
 } from "@/lib/content/starlink-options";
 import type { StarlinkClient, StarlinkSite } from "@/lib/db/starlink";
 
@@ -101,10 +103,30 @@ export default function StarlinkClientForm({ client }: { client?: StarlinkClient
                   name={`site_${i}_siteName`}
                   defaultValue={row.site?.siteName}
                 />
+                <div>
+                  <Field
+                    label="KIT Number"
+                    name={`site_${i}_kitOrderRef`}
+                    defaultValue={row.site?.kitOrderRef}
+                    pattern={KIT_NUMBER_PATTERN.source}
+                    title="Format: KIT followed by 9 digits and 3 letters/digits, e.g. KIT404628363H4F"
+                  />
+                  <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
+                    Format: KIT404628363H4F (KIT + 9 digits + 3 letters/digits)
+                  </p>
+                </div>
                 <Field
-                  label="Kit order ref"
-                  name={`site_${i}_kitOrderRef`}
-                  defaultValue={row.site?.kitOrderRef}
+                  label="Kit's Email"
+                  name={`site_${i}_kitEmail`}
+                  type="email"
+                  required={false}
+                  defaultValue={row.site?.kitEmail}
+                />
+                <Select
+                  label="Kit acquisition"
+                  name={`site_${i}_kitAcquisitionType`}
+                  defaultValue={row.site?.kitAcquisitionType}
+                  options={KIT_ACQUISITION_TYPE_OPTIONS}
                 />
                 <Select
                   label="Subscription type"
@@ -147,10 +169,29 @@ export default function StarlinkClientForm({ client }: { client?: StarlinkClient
                     className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
                   />
                 </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
+                    Subscription start date
+                  </label>
+                  <input
+                    type="date"
+                    name={`site_${i}_subscriptionStartDate`}
+                    defaultValue={row.site?.subscriptionStartDate ?? ""}
+                    className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
+                  />
+                  <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
+                    Monthly subscription — renews every 30 days from this date.
+                  </p>
+                </div>
                 <RevealField
                   label="WiFi password"
                   name={`site_${i}_wifiPassword`}
                   defaultValue={row.site?.wifiPassword}
+                />
+                <RevealField
+                  label="Account password"
+                  name={`site_${i}_accountPassword`}
+                  defaultValue={row.site?.accountPassword}
                 />
               </div>
             </div>
@@ -174,18 +215,29 @@ function Field({
   label,
   name,
   defaultValue,
+  type = "text",
+  required = true,
+  pattern,
+  title,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
+  type?: string;
+  required?: boolean;
+  pattern?: string;
+  title?: string;
 }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">{label}</label>
       <input
+        type={type}
         name={name}
         defaultValue={defaultValue}
-        required
+        required={required}
+        pattern={pattern}
+        title={title}
         className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
       />
     </div>

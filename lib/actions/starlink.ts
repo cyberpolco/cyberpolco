@@ -14,6 +14,7 @@ import {
   type StarlinkClient,
   type StarlinkSite,
 } from "@/lib/db/starlink";
+import { isValidKitNumber } from "@/lib/content/starlink-options";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -25,17 +26,28 @@ function parseSites(formData: FormData): StarlinkSite[] {
 
   for (let i = 0; i < siteCount; i++) {
     const id = field(formData, `site_${i}_id`) || crypto.randomUUID();
+    const kitOrderRef = field(formData, `site_${i}_kitOrderRef`);
+    if (!isValidKitNumber(kitOrderRef)) {
+      throw new Error(
+        `Invalid KIT Number "${kitOrderRef}" — expected format KIT404628363H4F (KIT + 9 digits + 3 letters/digits).`
+      );
+    }
+
     sites.push({
       id,
       siteName: field(formData, `site_${i}_siteName`),
       subscriptionType: field(formData, `site_${i}_subscriptionType`) as StarlinkSite["subscriptionType"],
       dishType: field(formData, `site_${i}_dishType`) as StarlinkSite["dishType"],
       installationStatus: field(formData, `site_${i}_installationStatus`) as StarlinkSite["installationStatus"],
-      kitOrderRef: field(formData, `site_${i}_kitOrderRef`),
+      kitOrderRef,
+      kitEmail: field(formData, `site_${i}_kitEmail`),
+      kitAcquisitionType: field(formData, `site_${i}_kitAcquisitionType`) as StarlinkSite["kitAcquisitionType"],
       deliveryDate: field(formData, `site_${i}_deliveryDate`) || null,
       deploymentStatus: field(formData, `site_${i}_deploymentStatus`) as StarlinkSite["deploymentStatus"],
       wifiPassword: field(formData, `site_${i}_wifiPassword`),
+      accountPassword: field(formData, `site_${i}_accountPassword`),
       paymentStatus: field(formData, `site_${i}_paymentStatus`) as StarlinkSite["paymentStatus"],
+      subscriptionStartDate: field(formData, `site_${i}_subscriptionStartDate`) || null,
     });
   }
 

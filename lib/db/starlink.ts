@@ -11,7 +11,8 @@ export type DishType = "enterprise" | "standard" | "mini";
 export type InstallationStatus = "pending" | "scheduled" | "in_progress" | "completed";
 export type DeploymentStatus = "not_deployed" | "deployed" | "active" | "suspended";
 export type PaymentStatus = "paid" | "pending" | "overdue";
-export type SubscriptionType = "residential" | "business" | "roam" | "maritime";
+export type SubscriptionType = "residential" | "business" | "roam" | "250gb";
+export type KitAcquisitionType = "acquired" | "leased";
 
 export type StarlinkSite = {
   id: string;
@@ -20,10 +21,17 @@ export type StarlinkSite = {
   dishType: DishType;
   installationStatus: InstallationStatus;
   kitOrderRef: string;
+  kitEmail: string;
+  kitAcquisitionType: KitAcquisitionType;
   deliveryDate: string | null;
   deploymentStatus: DeploymentStatus;
   wifiPassword: string;
+  accountPassword: string;
   paymentStatus: PaymentStatus;
+  // Monthly subscription: expiry = subscriptionStartDate + 30 days. Feeds a
+  // planned future reminder (email via Resend + SMS to the client's phone,
+  // 7 days before expiry) — not built yet, this field is the prerequisite.
+  subscriptionStartDate: string | null;
 };
 
 export type StarlinkClient = {
