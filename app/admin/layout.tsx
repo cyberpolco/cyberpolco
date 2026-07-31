@@ -44,7 +44,12 @@ const navItems: { href: string; label: string; icon: typeof LayoutDashboard; rol
   { href: "/admin/articles", label: "Articles", icon: Newspaper, roles: ["super_admin", "content_editor"] },
   { href: "/admin/cms", label: "CMS", icon: FileStack, roles: ["super_admin", "content_editor"] },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase, roles: ["super_admin", "hr_recruiter"] },
-  { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, roles: ["super_admin", "hr_recruiter"] },
+  {
+    href: "/admin/inquiries",
+    label: "Inquiries",
+    icon: Inbox,
+    roles: ["super_admin", "hr_recruiter", "technician"],
+  },
   {
     href: "/admin/applications",
     label: "Applications",
@@ -107,7 +112,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Only queried for roles that can see Inquiries at all, to avoid an
   // unnecessary DB round-trip for everyone else.
-  const canSeeInquiries = session?.role === "super_admin" || session?.role === "hr_recruiter";
+  const canSeeInquiries =
+    session?.role === "super_admin" || session?.role === "hr_recruiter" || session?.role === "technician";
   const unreadInquiriesCount = canSeeInquiries ? await getUnreadInquiriesCount() : 0;
   const navItemsWithBadges = visibleNavItems.map((item) => ({
     ...item,

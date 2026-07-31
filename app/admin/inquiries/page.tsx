@@ -1,10 +1,11 @@
 import { getInquiries } from "@/lib/db/inquiries";
-import { toggleInquiryReadAction } from "@/lib/actions/inquiries";
+import { toggleInquiryReadAction, deleteInquiryAction } from "@/lib/actions/inquiries";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 import { requireRole } from "@/lib/auth/rbac";
 
 export default async function InquiriesPage() {
-  await requireRole(["super_admin", "hr_recruiter"]);
+  const session = await requireRole(["super_admin", "hr_recruiter", "technician"]);
 
   const inquiries = await getInquiries();
 
@@ -29,13 +30,23 @@ export default async function InquiriesPage() {
                 <p className="text-sm text-brand-gray dark:text-white/60">{inq.email}</p>
                 <p className="mt-2 text-sm font-medium text-brand-dark dark:text-white">{inq.subject}</p>
               </div>
-              <form action={toggleInquiryReadAction}>
-                <input type="hidden" name="id" value={inq.id} />
-                <input type="hidden" name="nextState" value={(!inq.read).toString()} />
-                <SubmitButton variant="compact" pendingLabel="Updating...">
-                  {inq.read ? "Mark unread" : "Mark read"}
-                </SubmitButton>
-              </form>
+              <div className="flex items-center gap-3">
+                <form action={toggleInquiryReadAction}>
+                  <input type="hidden" name="id" value={inq.id} />
+                  <input type="hidden" name="nextState" value={(!inq.read).toString()} />
+                  <SubmitButton variant="compact" pendingLabel="Updating...">
+                    {inq.read ? "Mark unread" : "Mark read"}
+                  </SubmitButton>
+                </form>
+                {session.role === "super_admin" && (
+                  <DeleteButton
+                    action={deleteInquiryAction}
+                    id={inq.id}
+                    confirmTitle="Delete this inquiry?"
+                    confirmBody={`The message from "${inq.name}" will be permanently removed.`}
+                  />
+                )}
+              </div>
             </div>
             <p className="mt-3 whitespace-pre-line text-sm text-brand-gray dark:text-white/60">{inq.message}</p>
             <p className="mt-3 text-xs text-brand-gray/70 dark:text-white/50">

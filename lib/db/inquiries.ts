@@ -39,6 +39,10 @@ export async function markInquiryRead(id: string, read: boolean): Promise<void> 
   await db.update(inquiriesTable).set({ read }).where(eq(inquiriesTable.id, id));
 }
 
+export async function deleteInquiry(id: string): Promise<void> {
+  await db.delete(inquiriesTable).where(eq(inquiriesTable.id, id));
+}
+
 export async function getUnreadInquiriesCount(): Promise<number> {
   const rows = await db
     .select({ id: inquiriesTable.id })
