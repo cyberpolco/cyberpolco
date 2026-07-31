@@ -28,3 +28,20 @@ export type Application = {
   stage: Stage;
   notes: string | null;
 };
+
+// Forward-only pipeline: each stage may only advance one step to the next
+// stage, or move to "rejected" from anywhere (a candidate can be passed on
+// at any point, not just after an offer). "hired" and "rejected" are
+// terminal — no further moves out of either.
+const ALLOWED_NEXT_STAGES: Record<Stage, Stage[]> = {
+  new: ["reviewing", "rejected"],
+  reviewing: ["interview", "rejected"],
+  interview: ["offer", "rejected"],
+  offer: ["hired", "rejected"],
+  hired: [],
+  rejected: [],
+};
+
+export function isValidStageTransition(from: Stage, to: Stage): boolean {
+  return ALLOWED_NEXT_STAGES[from].includes(to);
+}
