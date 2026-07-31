@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import GooeyInput from "@/components/ui/GooeyInput";
 
 export type LinkedRecordOption = {
@@ -30,6 +30,18 @@ export default function LinkedRecordSearch({
   const [selectedId, setSelectedId] = useState(defaultValue ?? "");
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showResults) return;
+    function handlePointerDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [showResults]);
 
   const selected = items.find((i) => i.id === selectedId);
   const q = query.trim().toLowerCase();
@@ -45,7 +57,7 @@ export default function LinkedRecordSearch({
   }
 
   return (
-    <div className="relative" onBlurCapture={() => setTimeout(() => setShowResults(false), 150)}>
+    <div ref={containerRef} className="relative">
       <input type="text" name={name} value={selectedId} required={required} readOnly className="sr-only" />
 
       <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 dark:border-white/15 px-4 py-2 dark:bg-white/5">

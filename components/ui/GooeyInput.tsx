@@ -64,7 +64,11 @@ export default function GooeyInput({
 
   return (
     <div
-      className={cx("relative inline-block h-10 select-none", className, classNames.root)}
+      className={cx(
+        "relative inline-block h-10 select-none transition-[width] duration-300 ease-out",
+        className,
+        classNames.root
+      )}
       style={{ width: open ? expandedWidth : collapsedWidth }}
     >
       <svg className="absolute h-0 w-0 overflow-hidden" aria-hidden="true">
