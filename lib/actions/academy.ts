@@ -13,6 +13,7 @@ import {
   saveAcademyEnrollment,
   deleteAcademyEnrollment,
   getAcademyEnrollmentById,
+  getEnrollmentByStudentId,
   getNextStudentId,
   type AcademyCourse,
   type AcademyEnrollment,
@@ -112,12 +113,32 @@ export async function deleteAcademyCourseAction(formData: FormData) {
 export async function createEnrollmentAction(formData: FormData) {
   const session = await requireRole(["super_admin", "teacher"]);
 
+  // "Existing student" mode reuses an already-registered student's identity
+  // (id/name/email/phone) so the same person can be enrolled in more than one
+  // course without minting a second Student ID. That identity is looked up
+  // from the DB, not trusted from the form, same reasoning as
+  // createdAt/createdBy above.
+  const existingStudentId = field(formData, "existingStudentId");
+  let identity: Pick<AcademyEnrollment, "studentId" | "studentName" | "email" | "phone">;
+
+  if (existingStudentId) {
+    const existing = await getEnrollmentByStudentId(existingStudentId);
+    if (!existing) throw new Error(`Unknown Student ID "${existingStudentId}".`);
+    identity = existing;
+  } else {
+    const firstName = field(formData, "firstName");
+    const lastName = field(formData, "lastName");
+    identity = {
+      studentId: await getNextStudentId(firstName, lastName),
+      studentName: `${firstName} ${lastName}`.trim(),
+      email: field(formData, "email"),
+      phone: field(formData, "phone"),
+    };
+  }
+
   const enrollment: AcademyEnrollment = {
     id: crypto.randomUUID(),
-    studentId: await getNextStudentId(),
-    studentName: field(formData, "studentName"),
-    email: field(formData, "email"),
-    phone: field(formData, "phone"),
+    ...identity,
     courseId: field(formData, "courseId"),
     completedLessonIds: [],
     certificateIssued: false,

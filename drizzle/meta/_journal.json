@@ -71,6 +71,13 @@
       "when": 1785503506190,
       "tag": "0009_wide_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785541714482,
+      "tag": "0010_warm_silverclaw",
+      "breakpoints": true
     }
   ]
 }

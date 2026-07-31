@@ -165,6 +165,9 @@ type StarlinkSite = {
   dishType: "enterprise" | "standard" | "mini";
   installationStatus: "pending" | "scheduled" | "in_progress" | "completed";
   kitOrderRef: string;
+  // Per-kit company identifier (STKYYNNNNTDDSS) — see KIT_CLIENT_ID_PATTERN.
+  // Nullable: rows saved before this field existed won't have one.
+  kitClientId: string | null;
   kitEmail: string;
   kitAcquisitionType: "acquired" | "leased";
   deliveryDate: string | null;
@@ -212,7 +215,9 @@ export const academyCourses = pgTable("academy_courses", {
 
 export const academyEnrollments = pgTable("academy_enrollments", {
   id: text("id").primaryKey(),
-  studentId: text("student_id").notNull().unique(),
+  // Not unique: a student enrolled in multiple courses has one row per
+  // course, all sharing the same studentId — see getNextStudentId.
+  studentId: text("student_id").notNull(),
   studentName: text("student_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull(),

@@ -1,4 +1,4 @@
-import { getAcademyCourses } from "@/lib/db/academy";
+import { getAcademyCourses, getDistinctStudents } from "@/lib/db/academy";
 import { requireRole } from "@/lib/auth/rbac";
 import EnrollmentForm from "@/app/admin/academy/students/_components/EnrollmentForm";
 import BackLink from "@/app/admin/_components/BackLink";
@@ -6,7 +6,7 @@ import BackLink from "@/app/admin/_components/BackLink";
 export default async function NewEnrollmentPage() {
   await requireRole(["super_admin", "teacher"]);
 
-  const courses = await getAcademyCourses();
+  const [courses, existingStudents] = await Promise.all([getAcademyCourses(), getDistinctStudents()]);
 
   return (
     <div>
@@ -19,7 +19,7 @@ export default async function NewEnrollmentPage() {
         </p>
       ) : (
         <div className="mt-6 max-w-lg">
-          <EnrollmentForm courses={courses} />
+          <EnrollmentForm courses={courses} existingStudents={existingStudents} />
         </div>
       )}
     </div>

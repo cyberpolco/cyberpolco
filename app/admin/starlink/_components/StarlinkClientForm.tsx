@@ -85,8 +85,20 @@ export default function StarlinkClientForm({ client }: { client?: StarlinkClient
           {rows.map((row, i) => (
             <div key={row.key} className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-5">
               <input type="hidden" name={`site_${i}_id`} value={row.site?.id ?? ""} />
+              <input type="hidden" name={`site_${i}_kitClientId`} value={row.site?.kitClientId ?? ""} />
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-brand-dark dark:text-white">Site {i + 1}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-brand-dark dark:text-white">Site {i + 1}</p>
+                  {row.site?.kitClientId ? (
+                    <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 font-mono text-xs font-semibold text-brand-blue">
+                      {row.site.kitClientId}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-black/5 dark:bg-white/10 px-2 py-0.5 text-xs text-brand-gray dark:text-white/60">
+                      Client ID assigned on save
+                    </span>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => removeSite(row.key)}

@@ -5,7 +5,7 @@ import { ROLES, ROLE_LABELS, type Role } from "@/lib/auth/roles";
 import type { ViewerType } from "@/lib/db/users";
 import type { StarlinkClient } from "@/lib/db/starlink";
 import type { AcademyEnrollment } from "@/lib/db/academy";
-import LinkedRecordSearch from "./LinkedRecordSearch";
+import LinkedRecordSearch from "@/app/admin/_components/LinkedRecordSearch";
 
 export default function ViewerLinkFields({
   defaultRole,

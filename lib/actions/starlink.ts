@@ -11,6 +11,7 @@ import {
   getStarlinkClientById,
   deleteStarlinkClient,
   getNextClientId,
+  getNextKitClientIds,
   type StarlinkClient,
   type StarlinkSite,
 } from "@/lib/db/starlink";
@@ -20,9 +21,10 @@ function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
 }
 
-function parseSites(formData: FormData): StarlinkSite[] {
+async function parseSites(formData: FormData): Promise<StarlinkSite[]> {
   const siteCount = Number(formData.get("siteCount") || 0);
-  const sites: StarlinkSite[] = [];
+  type Draft = Omit<StarlinkSite, "kitClientId"> & { kitClientId: string | null };
+  const drafts: Draft[] = [];
 
   for (let i = 0; i < siteCount; i++) {
     const id = field(formData, `site_${i}_id`) || crypto.randomUUID();
@@ -33,13 +35,14 @@ function parseSites(formData: FormData): StarlinkSite[] {
       );
     }
 
-    sites.push({
+    drafts.push({
       id,
       siteName: field(formData, `site_${i}_siteName`),
       subscriptionType: field(formData, `site_${i}_subscriptionType`) as StarlinkSite["subscriptionType"],
       dishType: field(formData, `site_${i}_dishType`) as StarlinkSite["dishType"],
       installationStatus: field(formData, `site_${i}_installationStatus`) as StarlinkSite["installationStatus"],
       kitOrderRef,
+      kitClientId: field(formData, `site_${i}_kitClientId`) || null,
       kitEmail: field(formData, `site_${i}_kitEmail`),
       kitAcquisitionType: field(formData, `site_${i}_kitAcquisitionType`) as StarlinkSite["kitAcquisitionType"],
       deliveryDate: field(formData, `site_${i}_deliveryDate`) || null,
@@ -51,7 +54,16 @@ function parseSites(formData: FormData): StarlinkSite[] {
     });
   }
 
-  return sites;
+  const needsId = drafts.filter((d) => !d.kitClientId);
+  const newIds = await getNextKitClientIds(
+    needsId.map((d) => ({
+      dishType: d.dishType,
+      subscriptionType: d.subscriptionType,
+      deliveryDate: d.deliveryDate,
+    }))
+  );
+  let cursor = 0;
+  return drafts.map((d) => (d.kitClientId ? d : { ...d, kitClientId: newIds[cursor++] }));
 }
 
 export async function upsertStarlinkClientAction(formData: FormData) {
@@ -70,7 +82,7 @@ export async function upsertStarlinkClientAction(formData: FormData) {
     name: field(formData, "name"),
     email: field(formData, "email"),
     phone: field(formData, "phone"),
-    sites: parseSites(formData),
+    sites: await parseSites(formData),
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     createdBy: existing ? existing.createdBy : session.userId,
   };

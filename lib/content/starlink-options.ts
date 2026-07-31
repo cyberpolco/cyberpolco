@@ -46,6 +46,28 @@ export function isValidKitNumber(value: string): boolean {
   return KIT_NUMBER_PATTERN.test(value);
 }
 
+// Per-kit company identifier: STK + YY (year) + NNNN (yearly global sequence)
+// + T (dish type letter) + DD (delivery day) + SS (subscription code).
+// e.g. STK260154E18RE. See docs/starlink-kit-client-id-spec for the full spec.
+export const KIT_CLIENT_ID_PATTERN = /^STK\d{2}\d{4}[SME]\d{2}(RE|BU|RO|GB)$/;
+
+export function isValidKitClientId(value: string): boolean {
+  return KIT_CLIENT_ID_PATTERN.test(value);
+}
+
+export const DISH_TYPE_CODE: Record<(typeof DISH_TYPE_OPTIONS)[number]["value"], string> = {
+  standard: "S",
+  mini: "M",
+  enterprise: "E",
+};
+
+export const SUBSCRIPTION_TYPE_CODE: Record<(typeof SUBSCRIPTION_TYPE_OPTIONS)[number]["value"], string> = {
+  residential: "RE",
+  business: "BU",
+  roam: "RO",
+  "250gb": "GB",
+};
+
 export const STARLINK_OPTION_LABELS = {
   subscriptionType: Object.fromEntries(SUBSCRIPTION_TYPE_OPTIONS.map((o) => [o.value, o.label])),
   dishType: Object.fromEntries(DISH_TYPE_OPTIONS.map((o) => [o.value, o.label])),

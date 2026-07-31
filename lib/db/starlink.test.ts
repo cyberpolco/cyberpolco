@@ -9,6 +9,7 @@ function makeSite(overrides: Partial<StarlinkSite> = {}): StarlinkSite {
     dishType: "standard",
     installationStatus: "pending",
     kitOrderRef: "KIT404628363H4F",
+    kitClientId: "STK260001S18RE",
     kitEmail: "kit@example.com",
     kitAcquisitionType: "acquired",
     deliveryDate: null,

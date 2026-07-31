@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText, UploadCloud } from "lucide-react";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BlobFileField from "@/app/admin/_components/BlobFileField";
 import { updateEnrollmentProgressAction } from "@/lib/actions/academy";
@@ -90,8 +90,9 @@ export default function StudentProgressForm({
           </a>
         )}
 
-        <div className="mt-3">
-          <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
+        <div className="mt-4 rounded-xl border border-brand-blue/30 dark:border-brand-blue/40 bg-brand-blue/5 dark:bg-brand-blue/10 p-4">
+          <label className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-blue">
+            <UploadCloud size={16} />
             Upload certificate (PDF)
           </label>
           <BlobFileField
@@ -100,7 +101,7 @@ export default function StudentProgressForm({
             accept="application/pdf"
             value={certUrl}
             onChange={setCertUrl}
-            className="w-full text-sm"
+            className="mt-2 w-full text-sm"
           />
         </div>
       </div>

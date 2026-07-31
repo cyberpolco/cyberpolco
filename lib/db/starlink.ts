@@ -5,6 +5,9 @@ import {
   INSTALLATION_STATUS_OPTIONS,
   DEPLOYMENT_STATUS_OPTIONS,
   SUBSCRIPTION_TYPE_OPTIONS,
+  DISH_TYPE_CODE,
+  SUBSCRIPTION_TYPE_CODE,
+  KIT_CLIENT_ID_PATTERN,
 } from "@/lib/content/starlink-options";
 
 export type DishType = "enterprise" | "standard" | "mini";
@@ -21,6 +24,7 @@ export type StarlinkSite = {
   dishType: DishType;
   installationStatus: InstallationStatus;
   kitOrderRef: string;
+  kitClientId: string | null;
   kitEmail: string;
   kitAcquisitionType: KitAcquisitionType;
   deliveryDate: string | null;
@@ -68,6 +72,48 @@ export async function deleteStarlinkClient(id: string): Promise<void> {
 export async function getNextClientId(): Promise<string> {
   const rows = await db.select({ id: starlinkClientsTable.id }).from(starlinkClientsTable);
   return `STK-${String(rows.length + 1).padStart(4, "0")}`;
+}
+
+export type KitClientIdRequest = {
+  dishType: DishType;
+  subscriptionType: SubscriptionType;
+  deliveryDate: string | null;
+};
+
+/**
+ * Assigns STKYYNNNNTDDSS ids to a batch of new kits in one shot, so multiple
+ * sites added in the same form submission each get a distinct, correctly
+ * incrementing sequence number instead of racing to read the same "current
+ * max" from the DB. YY/NNNN track the kit's registration year (now); DD comes
+ * from the kit's own delivery date (falling back to today if not yet set).
+ */
+export async function getNextKitClientIds(requests: KitClientIdRequest[]): Promise<string[]> {
+  if (requests.length === 0) return [];
+
+  const now = new Date();
+  const clients = await getStarlinkClients();
+  const maxByYear = new Map<string, number>();
+
+  for (const client of clients) {
+    for (const site of client.sites) {
+      const id = site.kitClientId;
+      if (!id || !KIT_CLIENT_ID_PATTERN.test(id)) continue;
+      const yy = id.slice(3, 5);
+      const seq = Number(id.slice(5, 9));
+      maxByYear.set(yy, Math.max(maxByYear.get(yy) ?? 0, seq));
+    }
+  }
+
+  return requests.map(({ dishType, subscriptionType, deliveryDate }) => {
+    const delivery = deliveryDate ? new Date(deliveryDate) : now;
+    const yy = String(now.getFullYear() % 100).padStart(2, "0");
+    const dd = String(delivery.getDate()).padStart(2, "0");
+
+    const next = (maxByYear.get(yy) ?? 0) + 1;
+    maxByYear.set(yy, next);
+
+    return `STK${yy}${String(next).padStart(4, "0")}${DISH_TYPE_CODE[dishType]}${dd}${SUBSCRIPTION_TYPE_CODE[subscriptionType]}`;
+  });
 }
 
 export type StarlinkStats = {

@@ -73,6 +73,31 @@ export async function getAcademyEnrollmentById(id: string): Promise<AcademyEnrol
   return row;
 }
 
+export async function getEnrollmentByStudentId(studentId: string): Promise<AcademyEnrollment | undefined> {
+  const [row] = await db
+    .select()
+    .from(academyEnrollmentsTable)
+    .where(eq(academyEnrollmentsTable.studentId, studentId));
+  return row;
+}
+
+/** One row per distinct student (deduped from possibly-many course rows), for the "existing student" picker. */
+export async function getDistinctStudents(): Promise<
+  Pick<AcademyEnrollment, "studentId" | "studentName" | "email" | "phone">[]
+> {
+  const enrollments = await getAcademyEnrollments();
+  const seen = new Map<string, AcademyEnrollment>();
+  for (const e of enrollments) {
+    if (!seen.has(e.studentId)) seen.set(e.studentId, e);
+  }
+  return Array.from(seen.values()).map(({ studentId, studentName, email, phone }) => ({
+    studentId,
+    studentName,
+    email,
+    phone,
+  }));
+}
+
 export async function saveAcademyEnrollment(enrollment: AcademyEnrollment): Promise<void> {
   await db
     .insert(academyEnrollmentsTable)
@@ -84,9 +109,31 @@ export async function deleteAcademyEnrollment(id: string): Promise<void> {
   await db.delete(academyEnrollmentsTable).where(eq(academyEnrollmentsTable.id, id));
 }
 
-export async function getNextStudentId(): Promise<string> {
-  const rows = await db.select({ id: academyEnrollmentsTable.id }).from(academyEnrollmentsTable);
-  return `ACD-${String(rows.length + 1).padStart(4, "0")}`;
+/**
+ * CPCYYFDDLNNN — YY/DD are the registration year/day (today), F/L are the
+ * first letters of the student's first/last name, and NNN is the next
+ * available multiple of 7 among existing students sharing that exact
+ * YY+F+DD+L combination (see docs/student-id-spec).
+ */
+export async function getNextStudentId(firstName: string, lastName: string): Promise<string> {
+  const now = new Date();
+  const yy = String(now.getFullYear() % 100).padStart(2, "0");
+  const f = firstName.trim().charAt(0).toUpperCase();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const l = lastName.trim().charAt(0).toUpperCase();
+  const prefix = `CPC${yy}${f}${dd}${l}`;
+
+  const rows = await db.select({ studentId: academyEnrollmentsTable.studentId }).from(academyEnrollmentsTable);
+  let max = 0;
+  for (const { studentId } of rows) {
+    if (!studentId.startsWith(prefix)) continue;
+    const seq = Number(studentId.slice(prefix.length));
+    if (!Number.isNaN(seq) && seq > max) max = seq;
+  }
+
+  const next = max + 7;
+  if (next > 994) throw new Error(`No Student ID sequence left for ${prefix} today — all 142 slots are used.`);
+  return `${prefix}${String(next).padStart(3, "0")}`;
 }
 
 export function totalLessons(course: AcademyCourse | undefined): number {
