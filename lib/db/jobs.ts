@@ -32,3 +32,20 @@ export async function saveJob(job: Job): Promise<void> {
 export async function deleteJob(id: string): Promise<void> {
   await db.delete(jobsTable).where(eq(jobsTable.id, id));
 }
+
+export type JobsStats = {
+  byStatus: { label: string; value: number }[];
+};
+
+export function computeJobsStats(jobs: Job[]): JobsStats {
+  return {
+    byStatus: [
+      { label: "Open", value: jobs.filter((j) => j.status === "open").length },
+      { label: "Closed", value: jobs.filter((j) => j.status === "closed").length },
+    ],
+  };
+}
+
+export async function getJobsStats(): Promise<JobsStats> {
+  return computeJobsStats(await getJobs());
+}

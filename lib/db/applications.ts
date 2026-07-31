@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { applications as applicationsTable } from "./schema";
 import { STAGES, type Stage, type Application } from "@/lib/types/applications";
+import { monthlyTrend } from "@/lib/utils/monthly-trend";
 
 export { STAGES, type Stage, type Application };
 
@@ -45,4 +46,23 @@ export async function updateApplicationNotes(id: string, notes: string): Promise
     .where(eq(applicationsTable.id, id))
     .returning();
   return record;
+}
+
+export type ApplicationsStats = {
+  byStage: { label: string; value: number }[];
+  perMonth: { label: string; value: number }[];
+};
+
+export function computeApplicationsStats(applications: Application[]): ApplicationsStats {
+  return {
+    byStage: STAGES.map((s) => ({
+      label: s.label,
+      value: applications.filter((a) => a.stage === s.value).length,
+    })),
+    perMonth: monthlyTrend(applications),
+  };
+}
+
+export async function getApplicationsStats(): Promise<ApplicationsStats> {
+  return computeApplicationsStats(await getApplications());
 }

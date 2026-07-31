@@ -49,6 +49,21 @@
   --color-status-warning: #fab219;
   --color-status-critical: #d03b3b;
 
+  /*
+   * Applications-pipeline ordinal ramp (dashboard) — one hue (brand-blue),
+   * monotone OKLCH lightness, light→dark following stage order. Validated
+   * with the dataviz skill's validate_palette.js --ordinal (all checks
+   * pass: monotone L, adjacent ΔL >= 0.06, light-end contrast >= 2:1,
+   * single hue). Not reused for anything else — an ordinal ramp is a
+   * different color job from the categorical brand hues above.
+   */
+  --chart-ordinal-1: #9aadff;
+  --chart-ordinal-2: #8293ff;
+  --chart-ordinal-3: #6c7ae6;
+  --chart-ordinal-4: #5661cb;
+  --chart-ordinal-5: #4249b0;
+  --chart-ordinal-6: #2f3096;
+
   --background: #ffffff;
   --foreground: #0f1220;
 }
@@ -58,6 +73,16 @@
      than the reference dark surface, so the light-mode critical red
      drops below 3:1 contrast; this step is validated against #2f3555. */
   --color-status-critical: #e66767;
+
+  /* Separately validated against this app's dark surface (#2f3555, lighter
+     than a typical dark surface) — same hue/chroma as the light-mode ramp
+     above, all steps re-lightened to clear the 2:1 floor against it. */
+  --chart-ordinal-1: #bfd4ff;
+  --chart-ordinal-2: #a8bcff;
+  --chart-ordinal-3: #92a4ff;
+  --chart-ordinal-4: #7c8cfa;
+  --chart-ordinal-5: #6775e0;
+  --chart-ordinal-6: #535ec7;
 }
 
 @theme inline {

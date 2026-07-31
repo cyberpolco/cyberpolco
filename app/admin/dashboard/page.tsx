@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Newspaper, Briefcase, Inbox, FileText, Eye, Share2, GraduationCap, Users, Award, SatelliteDish } from "lucide-react";
 import { getArticles, getTopArticlesByViews, getTopArticlesByShares } from "@/lib/db/articles";
-import { getJobs } from "@/lib/db/jobs";
-import { getInquiries } from "@/lib/db/inquiries";
-import { getApplications } from "@/lib/db/applications";
+import { getJobs, getJobsStats } from "@/lib/db/jobs";
+import { getInquiries, getInquiriesStats } from "@/lib/db/inquiries";
+import { getApplications, getApplicationsStats } from "@/lib/db/applications";
 import { getStarlinkClientById, getStarlinkStats } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById, getAcademyCourseById, getAcademyStats } from "@/lib/db/academy";
+import { getUsersStats } from "@/lib/db/users";
 import { getSession } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/auth/roles";
 import RankedBarList from "./_components/RankedBarList";
@@ -13,6 +14,18 @@ import StarlinkViewerDashboard from "./_components/StarlinkViewerDashboard";
 import AcademyViewerDashboard from "./_components/AcademyViewerDashboard";
 import Meter from "./_components/Meter";
 import PaymentStatusTiles from "./_components/PaymentStatusTiles";
+import DonutChart from "./_components/DonutChart";
+import TrendChart from "./_components/TrendChart";
+
+const ORDINAL_RAMP = [
+  "var(--chart-ordinal-1)",
+  "var(--chart-ordinal-2)",
+  "var(--chart-ordinal-3)",
+  "var(--chart-ordinal-4)",
+  "var(--chart-ordinal-5)",
+  "var(--chart-ordinal-6)",
+];
+const TWO_TONE = ["#626fda", "#e3484f"];
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -63,7 +76,7 @@ export default async function DashboardPage() {
       value: unreadInquiries,
       icon: Inbox,
       href: "/admin/inquiries",
-      roles: ["super_admin"] as Role[],
+      roles: ["super_admin", "hr_recruiter"] as Role[],
     },
     {
       label: "Applications received",
@@ -90,8 +103,23 @@ export default async function DashboardPage() {
 
   const cards = allCards.filter((card) => card.roles.includes(role));
 
-  const [academyStats, starlinkStats] =
-    role === "super_admin" ? await Promise.all([getAcademyStats(), getStarlinkStats()]) : [undefined, undefined];
+  // Hiring-adjacent stats (applications pipeline, jobs, inquiries) are
+  // visible to whoever can already see those sections elsewhere in the
+  // admin panel — same super_admin/hr_recruiter split as the KPI cards and
+  // route gating (lib/auth/roles.ts).
+  const canSeeHiringStats = role === "super_admin" || role === "hr_recruiter";
+  const [applicationsStats, jobsStats, inquiriesStats] = canSeeHiringStats
+    ? await Promise.all([getApplicationsStats(), getJobsStats(), getInquiriesStats()])
+    : [undefined, undefined, undefined];
+
+  const usersStats = role === "super_admin" ? await getUsersStats() : undefined;
+
+  // Academy/Starlink sections are visible to super_admin plus the role that
+  // manages that specific section (teacher/technician) — not to each other.
+  const academyStats =
+    role === "super_admin" || role === "teacher" ? await getAcademyStats() : undefined;
+  const starlinkStats =
+    role === "super_admin" || role === "technician" ? await getStarlinkStats() : undefined;
 
   return (
     <div>
@@ -116,9 +144,15 @@ export default async function DashboardPage() {
           })}
         </div>
       ) : (
-        <div className="mt-8 rounded-2xl border border-dashed border-black/15 dark:border-white/15 p-6 text-sm text-brand-gray dark:text-white/60">
-          Nothing to show for your role yet.
-        </div>
+        // Technician/teacher have no KPI cards of their own (their stats
+        // render in the Starlink/Academy sections below), so only show this
+        // empty-state when there's truly nothing else on the page for them.
+        !academyStats &&
+        !starlinkStats && (
+          <div className="mt-8 rounded-2xl border border-dashed border-black/15 dark:border-white/15 p-6 text-sm text-brand-gray dark:text-white/60">
+            Nothing to show for your role yet.
+          </div>
+        )
       )}
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
@@ -133,6 +167,38 @@ export default async function DashboardPage() {
           items={topByShares.map((a) => ({ label: a.en.title, value: a.shareCount ?? 0 }))}
         />
       </div>
+
+      {applicationsStats && (
+        <div className="mt-8">
+          <RankedBarList
+            title="Applications pipeline"
+            colors={ORDINAL_RAMP}
+            items={applicationsStats.byStage}
+          />
+        </div>
+      )}
+
+      {(jobsStats || inquiriesStats) && (
+        <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          {jobsStats && <DonutChart title="Jobs by status" data={jobsStats.byStatus} colors={TWO_TONE} />}
+          {inquiriesStats && (
+            <DonutChart title="Inquiries: read vs unread" data={inquiriesStats.readBreakdown} colors={TWO_TONE} />
+          )}
+        </div>
+      )}
+
+      {usersStats && (
+        <div className="mt-8">
+          <RankedBarList title="Users by role" colorClassName="bg-brand-blue" items={usersStats.byRole} />
+        </div>
+      )}
+
+      {(applicationsStats || inquiriesStats) && (
+        <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          {applicationsStats && <TrendChart title="Applications per month" data={applicationsStats.perMonth} />}
+          {inquiriesStats && <TrendChart title="Inquiries per month" data={inquiriesStats.perMonth} />}
+        </div>
+      )}
 
       {academyStats && (
         <div className="mt-10">

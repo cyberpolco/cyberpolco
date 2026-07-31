@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { inquiries as inquiriesTable } from "./schema";
+import { monthlyTrend } from "@/lib/utils/monthly-trend";
 
 export type Inquiry = {
   id: string;
@@ -44,4 +45,23 @@ export async function getUnreadInquiriesCount(): Promise<number> {
     .from(inquiriesTable)
     .where(eq(inquiriesTable.read, false));
   return rows.length;
+}
+
+export type InquiriesStats = {
+  readBreakdown: { label: string; value: number }[];
+  perMonth: { label: string; value: number }[];
+};
+
+export function computeInquiriesStats(inquiries: Inquiry[]): InquiriesStats {
+  return {
+    readBreakdown: [
+      { label: "Read", value: inquiries.filter((i) => i.read).length },
+      { label: "Unread", value: inquiries.filter((i) => !i.read).length },
+    ],
+    perMonth: monthlyTrend(inquiries),
+  };
+}
+
+export async function getInquiriesStats(): Promise<InquiriesStats> {
+  return computeInquiriesStats(await getInquiries());
 }
