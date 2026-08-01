@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { getArticleBySlug } from "@/lib/db/articles";
+import { isArticlePublished } from "@/lib/articles/visibility";
 
 export default async function Image({
   params,
@@ -8,7 +9,7 @@ export default async function Image({
 }) {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
-  const imagePath = article?.image || "/images/placeholder-article.png";
+  const imagePath = article && isArticlePublished(article.date) ? article.image || "/images/placeholder-article.png" : "/images/placeholder-article.png";
 
   const h = await headers();
   const host = h.get("host") || "cyberpolco.com";

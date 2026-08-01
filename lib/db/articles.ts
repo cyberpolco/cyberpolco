@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "./client";
 import { articles as articlesTable } from "./schema";
+import { isArticlePublished } from "@/lib/articles/visibility";
 import type { Article } from "@/lib/content/articles";
 
 export type { Article };
@@ -9,9 +10,12 @@ export async function getArticles(): Promise<Article[]> {
   return db.select().from(articlesTable);
 }
 
+// Guest-facing only — excludes articles whose Publish date hasn't arrived
+// yet. Admin pages use getArticles() directly so scheduled articles stay
+// visible/editable there.
 export async function getPublishedArticles(): Promise<Article[]> {
   const items = await getArticles();
-  return [...items].sort((a, b) => (a.date < b.date ? 1 : -1));
+  return items.filter((a) => isArticlePublished(a.date)).sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 export async function getLatestArticles(count: number): Promise<Article[]> {

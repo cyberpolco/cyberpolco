@@ -3,6 +3,7 @@ import { Plus, Pencil } from "lucide-react";
 import { getArticles } from "@/lib/db/articles";
 import { deleteArticleAction } from "@/lib/actions/articles";
 import { requireRole } from "@/lib/auth/rbac";
+import { isArticlePublished } from "@/lib/articles/visibility";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 
 export default async function AdminArticlesPage() {
@@ -37,7 +38,14 @@ export default async function AdminArticlesPage() {
           <tbody>
             {sorted.map((a) => (
               <tr key={a.slug} className="border-t border-black/5 dark:border-white/10">
-                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{a.en.title}</td>
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
+                  {a.en.title}
+                  {!isArticlePublished(a.date) && (
+                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
+                      Scheduled
+                    </span>
+                  )}
+                </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{a.date}</td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{a.slug}</td>
                 <td className="px-5 py-3">

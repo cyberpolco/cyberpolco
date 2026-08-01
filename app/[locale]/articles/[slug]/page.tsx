@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { articles as seedArticles } from "@/lib/content/articles";
 import { getArticleBySlug } from "@/lib/db/articles";
+import { isArticlePublished } from "@/lib/articles/visibility";
 import ShareButton from "@/components/articles/ShareButton";
 import ArticleViewTracker from "@/components/articles/ArticleViewTracker";
 
@@ -19,7 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const article = await getArticleBySlug(slug);
-  if (!article) return {};
+  if (!article || !isArticlePublished(article.date)) return {};
 
   const content = article[locale];
 
@@ -52,7 +53,7 @@ export default async function ArticleDetailPage({
   const t = await getTranslations("articles");
 
   const article = await getArticleBySlug(slug);
-  if (!article) notFound();
+  if (!article || !isArticlePublished(article.date)) notFound();
   const content = article[locale];
 
   return (
