@@ -5,12 +5,13 @@ import Link from "next/link";
 import { Pencil, Search } from "lucide-react";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 import { deleteStarlinkClientAction } from "@/lib/actions/starlink";
-import { isValidKitClientId } from "@/lib/content/starlink-options";
+import { isValidClientId, isValidKitClientId } from "@/lib/content/starlink-options";
 import type { StarlinkClient } from "@/lib/db/starlink";
 
-// Length of a fully-formed STKYYNNNNTDDSS id — used to decide when a partial
-// search query has "enough" characters to judge as invalid rather than just
-// incomplete.
+// Exact lengths of a fully-formed id in each format (STK-0001 / STK260154E18RE)
+// — used to decide when a query has "enough" characters at a checkpoint to
+// judge it invalid, rather than mid-way through typing the other format.
+const CLIENT_ID_LENGTH = 8;
 const KIT_CLIENT_ID_LENGTH = 14;
 
 export default function StarlinkClientsTable({
@@ -25,9 +26,14 @@ export default function StarlinkClientsTable({
   const [query, setQuery] = useState("");
 
   const q = query.trim().toUpperCase();
-  const matchesSite = (c: StarlinkClient) => c.sites.some((s) => s.kitClientId?.toUpperCase().includes(q));
-  const filtered = q ? clients.filter(matchesSite) : clients;
-  const showFormatHint = q.length >= KIT_CLIENT_ID_LENGTH && !isValidKitClientId(q);
+  const matches = (c: StarlinkClient) =>
+    c.clientId.toUpperCase().includes(q) || c.sites.some((s) => s.kitClientId?.toUpperCase().includes(q));
+  const filtered = q ? clients.filter(matches) : clients;
+
+  const isValid = isValidClientId(q) || isValidKitClientId(q);
+  const looksComplete =
+    q.length === CLIENT_ID_LENGTH || q.length === KIT_CLIENT_ID_LENGTH || q.length > KIT_CLIENT_ID_LENGTH;
+  const showFormatHint = looksComplete && !isValid;
 
   return (
     <div>
@@ -37,12 +43,15 @@ export default function StarlinkClientsTable({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by site Client ID..."
+          placeholder="Search by Client ID or Site ID..."
           className="w-full rounded-full border border-black/10 dark:border-white/15 py-2 pl-9 pr-4 text-sm dark:bg-white/5 dark:text-white"
         />
       </div>
       {showFormatHint && (
-        <p className="mt-1 text-xs text-brand-red">Doesn&apos;t match the Client ID format: STKYYNNNNTDDSS (e.g. STK260154E18RE)</p>
+        <p className="mt-1 text-xs text-brand-red">
+          Doesn&apos;t match either format — Client ID: STK-NNNN (e.g. STK-0001) or Site ID: STKYYNNNNTDDSS (e.g.
+          STK260154E18RE)
+        </p>
       )}
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
@@ -53,7 +62,7 @@ export default function StarlinkClientsTable({
                 <th className="px-5 py-3">Name</th>
                 <th className="px-5 py-3">Client ID</th>
                 <th className="px-5 py-3">Sites</th>
-                <th className="px-5 py-3">Site Client IDs</th>
+                <th className="px-5 py-3">Site IDs</th>
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -93,7 +102,7 @@ export default function StarlinkClientsTable({
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
-                    {clients.length === 0 ? "No Starlink clients yet." : "No sites match that Client ID."}
+                    {clients.length === 0 ? "No Starlink clients yet." : "No clients or sites match that ID."}
                   </td>
                 </tr>
               )}

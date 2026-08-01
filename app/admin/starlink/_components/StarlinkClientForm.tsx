@@ -95,7 +95,7 @@ export default function StarlinkClientForm({ client }: { client?: StarlinkClient
                     </span>
                   ) : (
                     <span className="rounded-full bg-black/5 dark:bg-white/10 px-2 py-0.5 text-xs text-brand-gray dark:text-white/60">
-                      Client ID assigned on save
+                      Site ID assigned on save
                     </span>
                   )}
                 </div>

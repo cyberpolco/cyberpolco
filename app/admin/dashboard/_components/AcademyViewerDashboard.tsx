@@ -1,5 +1,6 @@
 import { CircleCheckBig, Circle, FileDown } from "lucide-react";
-import { progressPercent, type AcademyCourse, type AcademyEnrollment } from "@/lib/db/academy";
+import { progressPercent } from "@/lib/academy/progress";
+import type { AcademyCourse, AcademyEnrollment } from "@/lib/db/academy";
 
 export default function AcademyViewerDashboard({
   enrollment,

@@ -9,7 +9,7 @@ export default async function EditCoursePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["super_admin", "teacher"]);
+  const session = await requireRole(["super_admin", "teacher"]);
 
   const { id } = await params;
   const course = await getAcademyCourseById(id);
@@ -21,7 +21,7 @@ export default async function EditCoursePage({
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Edit course</h1>
       <div className="mt-6">
-        <CourseForm course={course} />
+        <CourseForm course={course} isSuperAdmin={session.role === "super_admin"} />
       </div>
     </div>
   );

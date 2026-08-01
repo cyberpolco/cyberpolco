@@ -59,7 +59,7 @@ export default function MobileNav({
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-gray hover:bg-brand-blue/10 hover:text-brand-blue dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-gray hover:bg-brand-blue/10 hover:text-brand-blue aria-[current=page]:bg-brand-blue/10 aria-[current=page]:font-semibold aria-[current=page]:text-brand-blue dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:aria-[current=page]:bg-white/10 dark:aria-[current=page]:text-white"
                 >
                   {item.icon}
                   {item.label}

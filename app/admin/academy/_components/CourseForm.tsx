@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Plus, Trash2, FileText } from "lucide-react";
+import { Plus, Trash2, FileText, UploadCloud } from "lucide-react";
 import { upsertAcademyCourseAction } from "@/lib/actions/academy";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BlobFileField from "@/app/admin/_components/BlobFileField";
+import { COURSE_ID_PREFIX_PATTERN } from "@/lib/content/academy-options";
 import type { AcademyCourse, Lesson, Module } from "@/lib/db/academy";
 
 type LessonRow = {
@@ -15,7 +16,14 @@ type LessonRow = {
 };
 type ModuleRow = { key: string; module?: Module; lessonRows: LessonRow[] };
 
-export default function CourseForm({ course }: { course?: AcademyCourse }) {
+export default function CourseForm({
+  course,
+  isSuperAdmin,
+}: {
+  course?: AcademyCourse;
+  isSuperAdmin: boolean;
+}) {
+  const creationYY = String(new Date().getFullYear() % 100).padStart(2, "0");
   const moduleCounter = useRef(0);
   const lessonCounter = useRef(0);
 
@@ -91,6 +99,38 @@ export default function CourseForm({ course }: { course?: AcademyCourse }) {
       {course && <input type="hidden" name="existingSlug" value={course.slug} />}
       {course && <input type="hidden" name="createdAt" value={course.createdAt} />}
       <input type="hidden" name="moduleCount" value={modules.length} />
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Course ID</label>
+        {course?.courseId ? (
+          <span className="inline-block rounded-full bg-brand-blue/10 px-3 py-1 font-mono text-sm font-semibold text-brand-blue">
+            {course.courseId}
+          </span>
+        ) : isSuperAdmin ? (
+          <>
+            <div className="flex items-center gap-2">
+              <input
+                name="courseIdPrefix"
+                maxLength={4}
+                required
+                pattern={COURSE_ID_PREFIX_PATTERN.source}
+                title="4 uppercase letters, e.g. CYBR"
+                placeholder="CYBR"
+                onInput={(e) => {
+                  e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                }}
+                className="w-32 rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 uppercase dark:bg-white/5 dark:text-white"
+              />
+              <span className="text-sm text-brand-gray dark:text-white/60">+ {creationYY} (added automatically)</span>
+            </div>
+            <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
+              4 letters — the creation year is appended automatically and can&apos;t be changed later.
+            </p>
+          </>
+        ) : (
+          <p className="text-sm text-brand-gray dark:text-white/60">Not yet assigned — a super admin needs to set it.</p>
+        )}
+      </div>
 
       <div className="grid gap-8 md:grid-cols-2">
         <fieldset className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 p-5">
@@ -213,7 +253,7 @@ export default function CourseForm({ course }: { course?: AcademyCourse }) {
                       rows={2}
                       className="mt-2 w-full rounded-lg border border-black/10 dark:border-white/15 px-3 py-2 text-sm dark:bg-white/5 dark:text-white"
                     />
-                    <div className="mt-2">
+                    <div className="mt-2 rounded-lg border border-brand-blue/30 dark:border-brand-blue/40 bg-brand-blue/5 dark:bg-brand-blue/10 p-2.5">
                       {lrow.materialFileName && (
                         <a
                           href={lrow.materialUrl || undefined}
@@ -224,7 +264,8 @@ export default function CourseForm({ course }: { course?: AcademyCourse }) {
                           <FileText size={12} /> Current: {lrow.materialFileName}
                         </a>
                       )}
-                      <label className="block text-xs font-medium text-brand-gray dark:text-white/60">
+                      <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand-blue">
+                        <UploadCloud size={14} />
                         Upload material (PDF or PowerPoint)
                       </label>
                       <BlobFileField

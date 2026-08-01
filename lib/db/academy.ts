@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { academyCourses as academyCoursesTable, academyEnrollments as academyEnrollmentsTable } from "./schema";
+import { progressPercent } from "@/lib/academy/progress";
 
 export type Lesson = {
   id: string;
@@ -14,6 +15,7 @@ export type LocalizedCourseText = { title: string; description: string };
 
 export type AcademyCourse = {
   id: string;
+  courseId: string | null;
   slug: string;
   fr: LocalizedCourseText;
   en: LocalizedCourseText;
@@ -134,20 +136,6 @@ export async function getNextStudentId(firstName: string, lastName: string): Pro
   const next = max + 7;
   if (next > 994) throw new Error(`No Student ID sequence left for ${prefix} today — all 142 slots are used.`);
   return `${prefix}${String(next).padStart(3, "0")}`;
-}
-
-export function totalLessons(course: AcademyCourse | undefined): number {
-  if (!course) return 0;
-  return course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
-}
-
-export function progressPercent(
-  enrollment: AcademyEnrollment,
-  course: AcademyCourse | undefined
-): number {
-  const total = totalLessons(course);
-  if (total === 0) return 0;
-  return Math.round((enrollment.completedLessonIds.length / total) * 100);
 }
 
 export type AcademyStats = {

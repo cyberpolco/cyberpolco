@@ -45,6 +45,7 @@ export default async function AcademyCoursesPage({
         <table className="w-full text-left text-sm">
           <thead className="bg-brand-dark-2/5 dark:bg-white/5 text-xs uppercase tracking-wide text-brand-gray dark:text-white/60">
             <tr>
+              <th className="px-5 py-3">Course ID</th>
               <th className="px-5 py-3">Title (EN)</th>
               <th className="px-5 py-3">Slug</th>
               <th className="px-5 py-3">Modules</th>
@@ -55,6 +56,7 @@ export default async function AcademyCoursesPage({
           <tbody>
             {courses.map((c) => (
               <tr key={c.id} className="border-t border-black/5 dark:border-white/10">
+                <td className="px-5 py-3 font-mono text-brand-gray dark:text-white/60">{c.courseId ?? "—"}</td>
                 <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
                   {c.en.title}
                   {pendingTargetIds.has(c.id) && (
@@ -87,7 +89,7 @@ export default async function AcademyCoursesPage({
             ))}
             {courses.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
+                <td colSpan={6} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                   No courses yet.
                 </td>
               </tr>

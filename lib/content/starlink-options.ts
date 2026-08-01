@@ -46,13 +46,22 @@ export function isValidKitNumber(value: string): boolean {
   return KIT_NUMBER_PATTERN.test(value);
 }
 
-// Per-kit company identifier: STK + YY (year) + NNNN (yearly global sequence)
+// Per-site (kit) identifier: STK + YY (year) + NNNN (yearly global sequence)
 // + T (dish type letter) + DD (delivery day) + SS (subscription code).
 // e.g. STK260154E18RE. See docs/starlink-kit-client-id-spec for the full spec.
+// One client can own many sites, so a client can have many of these.
 export const KIT_CLIENT_ID_PATTERN = /^STK\d{2}\d{4}[SME]\d{2}(RE|BU|RO|GB)$/;
 
 export function isValidKitClientId(value: string): boolean {
   return KIT_CLIENT_ID_PATTERN.test(value);
+}
+
+// Per-client identifier: STK-NNNN (see getNextClientId). Distinct from the
+// per-site Client ID above — this one identifies the client account itself.
+export const CLIENT_ID_PATTERN = /^STK-\d{4}$/;
+
+export function isValidClientId(value: string): boolean {
+  return CLIENT_ID_PATTERN.test(value);
 }
 
 export const DISH_TYPE_CODE: Record<(typeof DISH_TYPE_OPTIONS)[number]["value"], string> = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isValidStudentId } from "./academy-options";
+import { isValidCourseId, isValidCourseIdPrefix, isValidStudentId } from "./academy-options";
 
 describe("isValidStudentId", () => {
   it("accepts the documented format: CPC + YY + F + DD + L + NNN", () => {
@@ -30,5 +30,34 @@ describe("isValidStudentId", () => {
 
   it("rejects an empty string", () => {
     expect(isValidStudentId("")).toBe(false);
+  });
+});
+
+describe("isValidCourseIdPrefix", () => {
+  it("accepts exactly 4 uppercase letters", () => {
+    expect(isValidCourseIdPrefix("CYBR")).toBe(true);
+  });
+
+  it("rejects digits, lowercase, or the wrong length", () => {
+    expect(isValidCourseIdPrefix("CYB1")).toBe(false);
+    expect(isValidCourseIdPrefix("cybr")).toBe(false);
+    expect(isValidCourseIdPrefix("CYBER")).toBe(false);
+    expect(isValidCourseIdPrefix("CYB")).toBe(false);
+  });
+});
+
+describe("isValidCourseId", () => {
+  it("accepts the documented format: 4 letters + 2-digit year", () => {
+    expect(isValidCourseId("CYBR26")).toBe(true);
+  });
+
+  it("rejects a missing or malformed year suffix", () => {
+    expect(isValidCourseId("CYBR")).toBe(false);
+    expect(isValidCourseId("CYBR6")).toBe(false);
+    expect(isValidCourseId("CYBR260")).toBe(false);
+  });
+
+  it("rejects an empty string", () => {
+    expect(isValidCourseId("")).toBe(false);
   });
 });

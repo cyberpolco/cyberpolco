@@ -20,6 +20,7 @@ import {
   type Module,
   type Lesson,
 } from "@/lib/db/academy";
+import { isValidCourseIdPrefix } from "@/lib/content/academy-options";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -74,8 +75,24 @@ export async function upsertAcademyCourseAction(formData: FormData) {
   // see the identical comment in lib/actions/starlink.ts.
   const existing = existingId ? await getAcademyCourseById(existingId) : undefined;
 
+  // The Course ID (4-letter prefix + creation year) is assigned once and
+  // never regenerated. Only a super_admin may set the prefix — a teacher
+  // submitting one is ignored, not just hidden in the UI.
+  let courseId = existing?.courseId ?? null;
+  if (!courseId && session.role === "super_admin") {
+    const prefix = field(formData, "courseIdPrefix").toUpperCase();
+    if (prefix) {
+      if (!isValidCourseIdPrefix(prefix)) {
+        throw new Error(`Invalid Course ID "${prefix}" — expected exactly 4 letters.`);
+      }
+      const yy = String(new Date().getFullYear() % 100).padStart(2, "0");
+      courseId = `${prefix}${yy}`;
+    }
+  }
+
   const course: AcademyCourse = {
     id: existingId || crypto.randomUUID(),
+    courseId,
     slug,
     fr: { title: titleFr, description: field(formData, "description_fr") },
     en: { title: titleEn, description: field(formData, "description_en") },

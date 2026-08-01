@@ -6,7 +6,8 @@ import { Search, BadgeCheck } from "lucide-react";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 import { deleteEnrollmentAction } from "@/lib/actions/academy";
 import { isValidStudentId } from "@/lib/content/academy-options";
-import { progressPercent, type AcademyCourse, type AcademyEnrollment } from "@/lib/db/academy";
+import { progressPercent } from "@/lib/academy/progress";
+import type { AcademyCourse, AcademyEnrollment } from "@/lib/db/academy";
 
 // Length of a fully-formed CPCYYFDDLNNN id — used to decide when a partial
 // search query has "enough" characters to judge as invalid rather than just

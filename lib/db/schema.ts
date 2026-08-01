@@ -204,6 +204,10 @@ type LocalizedCourseText = { title: string; description: string };
 
 export const academyCourses = pgTable("academy_courses", {
   id: text("id").primaryKey(),
+  // 4 super_admin-chosen letters + 2-digit creation year (e.g. CYBR26).
+  // Nullable: rows saved before this field existed won't have one, and
+  // Postgres unique constraints allow multiple NULLs.
+  courseId: text("course_id").unique(),
   slug: text("slug").notNull().unique(),
   fr: jsonb("fr").$type<LocalizedCourseText>().notNull(),
   en: jsonb("en").$type<LocalizedCourseText>().notNull(),

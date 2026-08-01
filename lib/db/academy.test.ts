@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { computeAcademyStats, progressPercent, totalLessons, type AcademyCourse, type AcademyEnrollment } from "./academy";
+import { computeAcademyStats, type AcademyCourse, type AcademyEnrollment } from "./academy";
 
 function makeCourse(lessonsPerModule: number[], overrides: Partial<AcademyCourse> = {}): AcademyCourse {
   return {
     id: "course-1",
+    courseId: null,
     slug: "course-1",
     fr: { title: "Cours", description: "" },
     en: { title: "Course", description: "" },
@@ -43,44 +44,6 @@ function makeEnrollment(
     ...overrides,
   };
 }
-
-describe("totalLessons", () => {
-  it("sums lessons across all modules", () => {
-    expect(totalLessons(makeCourse([2, 3, 1]))).toBe(6);
-  });
-
-  it("returns 0 for an undefined course", () => {
-    expect(totalLessons(undefined)).toBe(0);
-  });
-
-  it("returns 0 for a course with no modules", () => {
-    expect(totalLessons(makeCourse([]))).toBe(0);
-  });
-});
-
-describe("progressPercent", () => {
-  it("computes the rounded percentage of completed lessons", () => {
-    const course = makeCourse([2, 2]); // 4 lessons total: m0-l0, m0-l1, m1-l0, m1-l1
-    const enrollment = makeEnrollment(["m0-l0"]);
-    expect(progressPercent(enrollment, course)).toBe(25);
-  });
-
-  it("returns 100 when every lesson is completed", () => {
-    const course = makeCourse([2]);
-    const enrollment = makeEnrollment(["m0-l0", "m0-l1"]);
-    expect(progressPercent(enrollment, course)).toBe(100);
-  });
-
-  it("returns 0 when the course has no lessons (avoids divide-by-zero)", () => {
-    const course = makeCourse([]);
-    const enrollment = makeEnrollment([]);
-    expect(progressPercent(enrollment, course)).toBe(0);
-  });
-
-  it("returns 0 when the course is undefined", () => {
-    expect(progressPercent(makeEnrollment([]), undefined)).toBe(0);
-  });
-});
 
 describe("computeAcademyStats", () => {
   it("returns all-zero stats with no courses or enrollments", () => {

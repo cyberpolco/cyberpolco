@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getAcademyEnrollmentById, getAcademyCourseById, progressPercent } from "@/lib/db/academy";
+import { getAcademyEnrollmentById, getAcademyCourseById } from "@/lib/db/academy";
+import { progressPercent } from "@/lib/academy/progress";
 import { getUsers } from "@/lib/db/users";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";

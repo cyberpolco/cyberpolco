@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLinkStatus } from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId } from "react";
 import { useNavProgress } from "./NavProgressContext";
 
@@ -29,8 +30,11 @@ export default function AdminNavLink({
   onClick?: () => void;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isActive = pathname === href || pathname.startsWith(`${href}/`);
+
   return (
-    <Link href={href} className={className} onClick={onClick}>
+    <Link href={href} aria-current={isActive ? "page" : undefined} className={className} onClick={onClick}>
       {children}
       <StatusReporter />
     </Link>
