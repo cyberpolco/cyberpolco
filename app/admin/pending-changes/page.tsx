@@ -70,7 +70,7 @@ export default async function PendingChangesPage() {
 
             <div className="mt-4 space-y-2 text-sm">
               {diff.changedFlat.map(({ key, before, after }) => (
-                <p key={key}>
+                <p key={key} className="rounded-lg bg-status-warning/20 px-2 py-1">
                   <span className="font-medium text-brand-dark dark:text-white">{key}:</span>{" "}
                   <span className="text-brand-gray dark:text-white/60 line-through">{String(before ?? "—")}</span>{" "}
                   → <span className="text-brand-dark dark:text-white">{String(after ?? "—")}</span>
