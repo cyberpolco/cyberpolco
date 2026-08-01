@@ -111,6 +111,9 @@ export const users = pgTable("users", {
   role: text("role", {
     enum: ["super_admin", "content_editor", "hr_recruiter", "technician", "teacher", "viewer"],
   }).notNull(),
+  // Nullable: optional, and existing accounts predate this column. Shown in
+  // the admin header (in place of the generic role label) once set.
+  name: text("name"),
   mustChangePassword: boolean("must_change_password").notNull().default(true),
   createdAt: text("created_at").notNull(),
   createdBy: text("created_by"),

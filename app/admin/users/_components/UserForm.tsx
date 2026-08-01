@@ -35,6 +35,17 @@ export default function UserForm({
       {user && <input type="hidden" name="id" value={user.id} />}
 
       <div>
+        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Full name</label>
+        <input
+          type="text"
+          name="name"
+          defaultValue={user?.name ?? ""}
+          placeholder="Optional — shown in the admin header once set"
+          className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 outline-none focus:border-brand-blue dark:bg-white/5 dark:text-white"
+        />
+      </div>
+
+      <div>
         <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Email</label>
         <input
           ref={emailInputRef}

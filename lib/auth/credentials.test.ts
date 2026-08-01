@@ -17,6 +17,7 @@ const adminUser = {
   email: "admin@example.com",
   passwordHash,
   role: "super_admin" as const,
+  name: null,
   mustChangePassword: false,
   createdAt: "2026-01-01T00:00:00.000Z",
   createdBy: null,

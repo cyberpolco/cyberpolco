@@ -26,6 +26,7 @@ import { getStarlinkClientById, getStarlinkClients, countOpenHelpRequests } from
 import { getAcademyEnrollmentById } from "@/lib/db/academy";
 import { getUnreadInquiriesCount } from "@/lib/db/inquiries";
 import { getPendingChanges } from "@/lib/db/pending-changes";
+import { getUserById } from "@/lib/db/users";
 import ThemeToggle from "@/app/admin/_components/ThemeToggle";
 import MobileNav from "@/app/admin/_components/MobileNav";
 import AdminNavLink from "@/app/admin/_components/AdminNavLink";
@@ -56,7 +57,7 @@ const navItems: {
     href: "/admin/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["super_admin", "content_editor", "hr_recruiter", "viewer"],
+    roles: ["super_admin", "content_editor", "hr_recruiter", "technician", "viewer"],
   },
   { href: "/admin/articles", label: "Articles", icon: Newspaper, roles: ["super_admin", "content_editor"] },
   { href: "/admin/cms", label: "CMS", icon: FileStack, roles: ["super_admin", "content_editor"] },
@@ -154,7 +155,11 @@ async function getRoleBadge(
   session: Awaited<ReturnType<typeof getSession>>
 ): Promise<string> {
   if (!session) return "Admin";
-  if (session.role !== "viewer") return ROLE_BADGES[session.role];
+
+  if (session.role !== "viewer") {
+    const user = await getUserById(session.userId);
+    return user?.name || ROLE_BADGES[session.role];
+  }
 
   if (session.viewerType === "starlink_client" && session.linkedId) {
     const client = await getStarlinkClientById(session.linkedId);

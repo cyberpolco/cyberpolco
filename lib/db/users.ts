@@ -11,6 +11,7 @@ export type User = {
   email: string;
   passwordHash: string;
   role: Role;
+  name: string | null;
   mustChangePassword: boolean;
   createdAt: string;
   createdBy: string | null;

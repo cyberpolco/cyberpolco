@@ -24,6 +24,7 @@ export async function ensureBootstrapSuperAdmin(): Promise<void> {
       email,
       passwordHash,
       role: "super_admin",
+      name: null,
       mustChangePassword: false,
       createdAt: new Date().toISOString(),
       createdBy: null,
