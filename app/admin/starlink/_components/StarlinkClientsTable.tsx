@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, Search } from "lucide-react";
+import { Pencil, Search, AlertTriangle, X } from "lucide-react";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
-import { deleteStarlinkClientAction } from "@/lib/actions/starlink";
+import { deleteStarlinkClientAction, resolveTechnicianHelpAction } from "@/lib/actions/starlink";
 import { isValidClientId, isValidKitClientId } from "@/lib/content/starlink-options";
 import type { StarlinkClient } from "@/lib/db/starlink";
 
@@ -75,6 +75,29 @@ export default function StarlinkClientsTable({
                       <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
                         Pending review
                       </span>
+                    )}
+                    {c.helpRequestedAt && (
+                      <div className="ml-2 inline-flex items-center gap-1 rounded-full bg-status-critical/15 pl-2 pr-1 py-0.5 align-middle">
+                        <span
+                          title="Urgent help needed by the customer"
+                          aria-label="Urgent help needed by the customer"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-status-critical"
+                        >
+                          <AlertTriangle size={12} />
+                          Help requested
+                        </span>
+                        <form action={resolveTechnicianHelpAction}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <button
+                            type="submit"
+                            title="Mark resolved"
+                            aria-label="Mark resolved"
+                            className="text-status-critical hover:text-brand-red"
+                          >
+                            <X size={12} />
+                          </button>
+                        </form>
+                      </div>
                     )}
                   </td>
                   <td className="px-5 py-3 text-brand-gray dark:text-white/60">{c.clientId}</td>

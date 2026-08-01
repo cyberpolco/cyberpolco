@@ -15,6 +15,8 @@ import {
   TrendingUp,
   UserCircle,
   History,
+  Gauge,
+  LifeBuoy,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
@@ -77,6 +79,27 @@ const navItems: {
     label: "Starlink Management",
     icon: SatelliteDish,
     roles: ["super_admin", "technician"],
+  },
+  {
+    href: "/admin/starlink/my-info",
+    label: "My Info",
+    icon: UserCircle,
+    roles: ["viewer"],
+    viewerTypes: ["starlink_client"],
+  },
+  {
+    href: "/admin/starlink/speed-test",
+    label: "Speed Test",
+    icon: Gauge,
+    roles: ["viewer"],
+    viewerTypes: ["starlink_client"],
+  },
+  {
+    href: "/admin/starlink/get-help",
+    label: "Get Help",
+    icon: LifeBuoy,
+    roles: ["viewer"],
+    viewerTypes: ["starlink_client"],
   },
   {
     href: "/admin/academy",

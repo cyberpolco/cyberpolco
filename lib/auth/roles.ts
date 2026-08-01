@@ -43,7 +43,11 @@ const ROUTE_RULES: RouteRule[] = [
   // Technician/teacher can create and edit here, but not delete or approve —
   // that finer-grained distinction is enforced in the Server Actions
   // themselves (lib/actions/starlink.ts, lib/actions/academy.ts), not here.
-  { prefix: "/admin/starlink", roles: ["super_admin", "technician"] },
+  // "viewer" here is for the starlink_client self-service portal
+  // (my-info/speed-test/get-help) — those pages check session.viewerType
+  // themselves; the technician/admin management pages under this prefix
+  // still gate to super_admin/technician individually, unaffected.
+  { prefix: "/admin/starlink", roles: ["super_admin", "technician", "viewer"] },
   // "viewer" here is for the academy_student self-service portal
   // (my-courses/progress/profile) — those pages check session.viewerType
   // themselves; the teacher/admin pages under this prefix still gate to

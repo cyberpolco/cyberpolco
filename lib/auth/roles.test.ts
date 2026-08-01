@@ -33,8 +33,8 @@ describe("isRouteAllowed", () => {
     expect(rolesAllowedFor("/admin/inquiries")).toEqual(["super_admin", "hr_recruiter", "technician"]);
   });
 
-  it("restricts Starlink Management to super_admin and technician", () => {
-    expect(rolesAllowedFor("/admin/starlink")).toEqual(["super_admin", "technician"]);
+  it("restricts Starlink Management to super_admin, technician, and viewer (starlink_client self-service)", () => {
+    expect(rolesAllowedFor("/admin/starlink")).toEqual(["super_admin", "technician", "viewer"]);
   });
 
   it("restricts Academy to super_admin, teacher, and viewer (academy_student self-service)", () => {

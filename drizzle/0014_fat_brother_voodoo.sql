@@ -1,0 +1,1 @@
+ALTER TABLE "starlink_clients" ADD COLUMN "help_requested_at" text;

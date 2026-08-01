@@ -195,6 +195,10 @@ export const starlinkClients = pgTable("starlink_clients", {
   // as "not owned by the editing technician," same as any other author
   // mismatch — see lib/auth/approval.ts.
   createdBy: text("created_by"),
+  // Set when the client self-reports needing technician help (self-service,
+  // no approval flow); cleared back to null once a technician/super_admin
+  // resolves it. Null means no open request.
+  helpRequestedAt: text("help_requested_at"),
 });
 
 type AcademyLesson = {

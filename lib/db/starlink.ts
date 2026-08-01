@@ -47,6 +47,7 @@ export type StarlinkClient = {
   sites: StarlinkSite[];
   createdAt: string;
   createdBy: string | null;
+  helpRequestedAt: string | null;
 };
 
 export async function getStarlinkClients(): Promise<StarlinkClient[]> {

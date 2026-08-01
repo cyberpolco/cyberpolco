@@ -6,7 +6,6 @@ import { getInquiriesStats } from "@/lib/db/inquiries";
 import { getApplications, getApplicationsStats } from "@/lib/db/applications";
 import { getStarlinkClientById, getStarlinkStats } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById, getEnrollmentsByStudentId, getAcademyCourses, getAcademyStats } from "@/lib/db/academy";
-import { getSettings } from "@/lib/db/settings";
 import { getUsersStats } from "@/lib/db/users";
 import { getSession } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/auth/roles";
@@ -31,11 +30,8 @@ export default async function DashboardPage() {
   const role = session?.role as Role;
 
   if (role === "viewer" && session?.viewerType === "starlink_client") {
-    const [client, settings] = await Promise.all([
-      session.linkedId ? getStarlinkClientById(session.linkedId) : Promise.resolve(undefined),
-      getSettings(),
-    ]);
-    return <StarlinkViewerDashboard client={client} pricing={settings.starlinkPricing} />;
+    const client = session.linkedId ? await getStarlinkClientById(session.linkedId) : undefined;
+    return <StarlinkViewerDashboard client={client} />;
   }
 
   if (role === "viewer" && session?.viewerType === "academy_student") {

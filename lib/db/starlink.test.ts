@@ -32,6 +32,7 @@ function makeClient(sites: StarlinkSite[], overrides: Partial<StarlinkClient> = 
     sites,
     createdAt: "2026-01-01T00:00:00.000Z",
     createdBy: null,
+    helpRequestedAt: null,
     ...overrides,
   };
 }

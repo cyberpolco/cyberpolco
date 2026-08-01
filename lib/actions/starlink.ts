@@ -88,6 +88,11 @@ export async function upsertStarlinkClientAction(formData: FormData) {
     sites: await parseSites(formData),
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     createdBy: existing ? existing.createdBy : session.userId,
+    // Not form-editable — carry it over so an unrelated edit (e.g. a
+    // technician updating the phone number) can't silently clear an open
+    // help request. Only requestTechnicianHelpAction/resolveTechnicianHelpAction
+    // ever change this.
+    helpRequestedAt: existing?.helpRequestedAt ?? null,
   };
 
   if (
@@ -157,19 +162,48 @@ export async function updateStarlinkPricingAction(formData: FormData) {
 // re-checks the payable window server-side since forms can be resubmitted.
 export async function payStarlinkSubscriptionAction(formData: FormData) {
   const session = await requireRole(["viewer"]);
-  if (session.viewerType !== "starlink_client" || !session.linkedId) redirect("/admin/dashboard");
+  if (session.viewerType !== "starlink_client" || !session.linkedId) redirect("/admin/starlink/my-info");
 
   const client = await getStarlinkClientById(session.linkedId);
-  if (!client) redirect("/admin/dashboard");
+  if (!client) redirect("/admin/starlink/my-info");
 
   const siteId = field(formData, "siteId");
   const site = client.sites.find((s) => s.id === siteId);
-  if (!site || !isSubscriptionPayable(site.subscriptionStartDate, new Date())) redirect("/admin/dashboard");
+  if (!site || !isSubscriptionPayable(site.subscriptionStartDate, new Date()))
+    redirect("/admin/starlink/my-info");
 
   const sites = client.sites.map((s) =>
     s.id === siteId ? { ...s, subscriptionStartDate: new Date().toISOString() } : s
   );
   await saveStarlinkClient({ ...client, sites });
+  revalidatePath("/admin/starlink/my-info");
   revalidatePath("/admin/dashboard");
-  redirect("/admin/dashboard");
+  redirect("/admin/starlink/my-info");
+}
+
+// Self-service — the client raises a flag on their own record (resolved via
+// session.linkedId, never a submitted client id, same pattern as above).
+// No approval queue: this is an operational alert, not a business-data edit.
+export async function requestTechnicianHelpAction() {
+  const session = await requireRole(["viewer"]);
+  if (session.viewerType !== "starlink_client" || !session.linkedId) redirect("/admin/dashboard");
+
+  const client = await getStarlinkClientById(session.linkedId);
+  if (!client) redirect("/admin/dashboard");
+
+  await saveStarlinkClient({ ...client, helpRequestedAt: new Date().toISOString() });
+  revalidatePath("/admin/starlink/get-help");
+  revalidatePath("/admin/starlink");
+  redirect("/admin/starlink/get-help");
+}
+
+export async function resolveTechnicianHelpAction(formData: FormData) {
+  await requireRole(["super_admin", "technician"]);
+
+  const id = field(formData, "id");
+  const client = await getStarlinkClientById(id);
+  if (!client) return;
+
+  await saveStarlinkClient({ ...client, helpRequestedAt: null });
+  revalidatePath("/admin/starlink");
 }
