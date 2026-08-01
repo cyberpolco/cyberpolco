@@ -106,7 +106,6 @@ export default async function AdminLoginPage({
         errorMessages={errorMessages}
         roleLabels={[t.roleAdmin, t.roleClient, t.roleStudent]}
         roleContent={[t.roles.admin, t.roles.client, t.roles.student]}
-        identifierLabel={t.identifier}
         password={t.password}
         showPassword={t.showPassword}
         hidePassword={t.hidePassword}

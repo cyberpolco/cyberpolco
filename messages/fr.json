@@ -118,7 +118,6 @@
       "roleAdmin": "Admin",
       "roleClient": "Client",
       "roleStudent": "Étudiant",
-      "identifier": "E-mail ou ID",
       "password": "Mot de passe",
       "showPassword": "Afficher le mot de passe",
       "hidePassword": "Masquer le mot de passe",
@@ -129,16 +128,19 @@
       "roles": {
         "admin": {
           "subtitle": "Connectez-vous pour gérer le site.",
+          "identifierLabel": "E-mail",
           "errorInvalid": "E-mail ou mot de passe incorrect. Merci de contacter votre admin ou Lam.",
           "errorFormat": "Saisissez une adresse e-mail valide."
         },
         "client": {
           "subtitle": "Connectez-vous pour accéder à votre compte Starlink.",
+          "identifierLabel": "E-mail ou ID",
           "errorInvalid": "E-mail/ID ou mot de passe incorrect. Merci de contacter votre gestionnaire de compte.",
           "errorFormat": "Saisissez une adresse e-mail valide ou un ID client (ex. STK-0001)."
         },
         "student": {
           "subtitle": "Connectez-vous pour accéder à vos cours de l'Académie.",
+          "identifierLabel": "E-mail ou ID",
           "errorInvalid": "E-mail/ID ou mot de passe incorrect. Merci de contacter votre formateur.",
           "errorFormat": "Saisissez une adresse e-mail valide ou un ID étudiant (ex. CPC26J18M003)."
         }

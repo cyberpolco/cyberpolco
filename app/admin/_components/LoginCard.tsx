@@ -6,7 +6,7 @@ import PasswordField from "./PasswordField";
 import SignInButton from "./SignInButton";
 import ErrorToast from "./ErrorToast";
 
-type RoleContent = { subtitle: string; errorInvalid: string; errorFormat: string };
+type RoleContent = { subtitle: string; identifierLabel: string; errorInvalid: string; errorFormat: string };
 
 export default function LoginCard({
   loginAction,
@@ -14,7 +14,6 @@ export default function LoginCard({
   errorMessages,
   roleLabels,
   roleContent,
-  identifierLabel,
   password,
   showPassword,
   hidePassword,
@@ -26,7 +25,6 @@ export default function LoginCard({
   errorMessages: { config?: string; "rate-limit"?: string };
   roleLabels: [string, string, string];
   roleContent: [RoleContent, RoleContent, RoleContent];
-  identifierLabel: string;
   password: string;
   showPassword: string;
   hidePassword: string;
@@ -57,7 +55,7 @@ export default function LoginCard({
       <form action={loginAction} className="mt-6 space-y-4">
         <div>
           <label htmlFor="login-identifier" className="mb-1 block text-sm font-medium text-brand-dark">
-            {identifierLabel}
+            {content.identifierLabel}
           </label>
           <input
             id="login-identifier"
