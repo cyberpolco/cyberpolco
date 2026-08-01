@@ -29,6 +29,7 @@ export default function UserForm({
 }) {
   const action = user ? updateUserAction : createUserAction;
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <form action={action} className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
@@ -37,6 +38,7 @@ export default function UserForm({
       <div>
         <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Full name</label>
         <input
+          ref={nameInputRef}
           type="text"
           name="name"
           defaultValue={user?.name ?? ""}
@@ -65,6 +67,9 @@ export default function UserForm({
         academyEnrollments={academyEnrollments}
         onLinkedEmailChange={(email) => {
           if (emailInputRef.current) emailInputRef.current.value = email;
+        }}
+        onLinkedNameChange={(name) => {
+          if (nameInputRef.current) nameInputRef.current.value = name;
         }}
       />
 

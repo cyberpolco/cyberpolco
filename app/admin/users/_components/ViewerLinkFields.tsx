@@ -14,6 +14,7 @@ export default function ViewerLinkFields({
   starlinkClients,
   academyEnrollments,
   onLinkedEmailChange,
+  onLinkedNameChange,
 }: {
   defaultRole: Role;
   defaultViewerType?: ViewerType | null;
@@ -21,6 +22,7 @@ export default function ViewerLinkFields({
   starlinkClients: StarlinkClient[];
   academyEnrollments: AcademyEnrollment[];
   onLinkedEmailChange?: (email: string) => void;
+  onLinkedNameChange?: (name: string) => void;
 }) {
   const [role, setRole] = useState<Role>(defaultRole);
   const [viewerType, setViewerType] = useState<ViewerType>(defaultViewerType ?? "starlink_client");
@@ -74,7 +76,10 @@ export default function ViewerLinkFields({
                   secondary: c.name,
                   email: c.email,
                 }))}
-                onSelect={(item) => onLinkedEmailChange?.(item.email)}
+                onSelect={(item) => {
+                  onLinkedEmailChange?.(item.email);
+                  onLinkedNameChange?.(item.secondary);
+                }}
               />
             ) : (
               <LinkedRecordSearch
@@ -90,7 +95,10 @@ export default function ViewerLinkFields({
                   secondary: e.studentName,
                   email: e.email,
                 }))}
-                onSelect={(item) => onLinkedEmailChange?.(item.email)}
+                onSelect={(item) => {
+                  onLinkedEmailChange?.(item.email);
+                  onLinkedNameChange?.(item.secondary);
+                }}
               />
             )}
           </div>
