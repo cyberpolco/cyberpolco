@@ -66,7 +66,7 @@ const navItems: {
     href: "/admin/inquiries",
     label: "Inquiries",
     icon: Inbox,
-    roles: ["super_admin", "hr_recruiter", "technician"],
+    roles: ["super_admin", "hr_recruiter", "technician", "teacher"],
   },
   {
     href: "/admin/applications",
@@ -187,7 +187,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // Only queried for roles that can see Inquiries at all, to avoid an
   // unnecessary DB round-trip for everyone else.
   const canSeeInquiries =
-    session?.role === "super_admin" || session?.role === "hr_recruiter" || session?.role === "technician";
+    session?.role === "super_admin" ||
+    session?.role === "hr_recruiter" ||
+    session?.role === "technician" ||
+    session?.role === "teacher";
   const unreadInquiriesCount = canSeeInquiries ? await getUnreadInquiriesCount() : 0;
 
   // Only super_admin has a "Pending changes" nav item at all — see navItems.

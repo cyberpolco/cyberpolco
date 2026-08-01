@@ -29,8 +29,8 @@ describe("isRouteAllowed", () => {
     }
   });
 
-  it("restricts inquiries to super_admin, hr_recruiter, and technician", () => {
-    expect(rolesAllowedFor("/admin/inquiries")).toEqual(["super_admin", "hr_recruiter", "technician"]);
+  it("restricts inquiries to super_admin, hr_recruiter, technician, and teacher", () => {
+    expect(rolesAllowedFor("/admin/inquiries")).toEqual(["super_admin", "hr_recruiter", "technician", "teacher"]);
   });
 
   it("restricts Starlink Management to super_admin, technician, and viewer (starlink_client self-service)", () => {

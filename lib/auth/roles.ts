@@ -36,9 +36,9 @@ const ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/cms", roles: ["super_admin", "content_editor"] },
   { prefix: "/admin/jobs", roles: ["super_admin", "hr_recruiter"] },
   { prefix: "/admin/applications", roles: ["super_admin", "hr_recruiter"] },
-  // technician can view/mark-read here too, but not delete — enforced in
-  // lib/actions/inquiries.ts, same pattern as Starlink/Academy below.
-  { prefix: "/admin/inquiries", roles: ["super_admin", "hr_recruiter", "technician"] },
+  // technician/teacher can view/mark-read here too, but not delete —
+  // enforced in lib/actions/inquiries.ts, same pattern as Starlink/Academy below.
+  { prefix: "/admin/inquiries", roles: ["super_admin", "hr_recruiter", "technician", "teacher"] },
   { prefix: "/admin/users", roles: ["super_admin"] },
   // Technician/teacher can create and edit here, but not delete or approve —
   // that finer-grained distinction is enforced in the Server Actions

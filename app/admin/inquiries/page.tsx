@@ -5,7 +5,7 @@ import DeleteButton from "@/app/admin/_components/DeleteButton";
 import { requireRole } from "@/lib/auth/rbac";
 
 export default async function InquiriesPage() {
-  const session = await requireRole(["super_admin", "hr_recruiter", "technician"]);
+  const session = await requireRole(["super_admin", "hr_recruiter", "technician", "teacher"]);
 
   const inquiries = await getInquiries();
 
