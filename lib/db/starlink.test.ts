@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { computeStarlinkStats, daysUntilNextRenewal, type StarlinkClient, type StarlinkSite } from "./starlink";
+import {
+  computeStarlinkStats,
+  countOpenHelpRequests,
+  daysUntilNextRenewal,
+  type StarlinkClient,
+  type StarlinkSite,
+} from "./starlink";
 
 function makeSite(overrides: Partial<StarlinkSite> = {}): StarlinkSite {
   return {
@@ -18,6 +24,7 @@ function makeSite(overrides: Partial<StarlinkSite> = {}): StarlinkSite {
     accountPassword: "hunter3",
     paymentStatus: "pending",
     subscriptionStartDate: null,
+    helpRequestedAt: null,
     ...overrides,
   };
 }
@@ -32,7 +39,6 @@ function makeClient(sites: StarlinkSite[], overrides: Partial<StarlinkClient> = 
     sites,
     createdAt: "2026-01-01T00:00:00.000Z",
     createdBy: null,
-    helpRequestedAt: null,
     ...overrides,
   };
 }
@@ -133,5 +139,32 @@ describe("daysUntilNextRenewal", () => {
 
   it("returns null before the subscription has started", () => {
     expect(daysUntilNextRenewal(start, dayOffset(-1))).toBeNull();
+  });
+});
+
+describe("countOpenHelpRequests", () => {
+  it("counts sites, not clients — one client with 2 requesting sites counts as 2", () => {
+    const client = makeClient([
+      makeSite({ id: "site-1", helpRequestedAt: "2026-01-01T00:00:00.000Z" }),
+      makeSite({ id: "site-2", helpRequestedAt: "2026-01-02T00:00:00.000Z" }),
+    ]);
+    expect(countOpenHelpRequests([client])).toBe(2);
+  });
+
+  it("sums across multiple clients", () => {
+    const a = makeClient([makeSite({ id: "site-1", helpRequestedAt: "2026-01-01T00:00:00.000Z" })]);
+    const b = makeClient([makeSite({ id: "site-2", helpRequestedAt: "2026-01-02T00:00:00.000Z" })], {
+      id: "client-2",
+    });
+    expect(countOpenHelpRequests([a, b])).toBe(2);
+  });
+
+  it("ignores sites with no open request", () => {
+    const client = makeClient([makeSite({ id: "site-1", helpRequestedAt: null })]);
+    expect(countOpenHelpRequests([client])).toBe(0);
+  });
+
+  it("returns 0 for no clients", () => {
+    expect(countOpenHelpRequests([])).toBe(0);
   });
 });

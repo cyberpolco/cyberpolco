@@ -181,6 +181,11 @@ type StarlinkSite = {
   accountPassword: string;
   paymentStatus: "paid" | "pending" | "overdue";
   subscriptionStartDate: string | null;
+  // Set when the client self-reports this specific site needing technician
+  // help (self-service, no approval flow); cleared back to null once a
+  // technician/super_admin resolves it. Per-site (not per-client) since one
+  // client can have several sites and only some may need help.
+  helpRequestedAt: string | null;
 };
 
 export const starlinkClients = pgTable("starlink_clients", {
@@ -195,10 +200,6 @@ export const starlinkClients = pgTable("starlink_clients", {
   // as "not owned by the editing technician," same as any other author
   // mismatch — see lib/auth/approval.ts.
   createdBy: text("created_by"),
-  // Set when the client self-reports needing technician help (self-service,
-  // no approval flow); cleared back to null once a technician/super_admin
-  // resolves it. Null means no open request.
-  helpRequestedAt: text("help_requested_at"),
 });
 
 type AcademyLesson = {

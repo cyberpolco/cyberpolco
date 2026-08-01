@@ -1,0 +1,1 @@
+ALTER TABLE "starlink_clients" DROP COLUMN "help_requested_at";

@@ -36,6 +36,10 @@ export type StarlinkSite = {
   // planned future reminder (email via Resend + SMS to the client's phone,
   // 7 days before expiry) — not built yet, this field is the prerequisite.
   subscriptionStartDate: string | null;
+  // Set when the client self-reports this specific site needing technician
+  // help (self-service, no approval flow); cleared once resolved. Per-site,
+  // not per-client, since one client can have several sites.
+  helpRequestedAt: string | null;
 };
 
 export type StarlinkClient = {
@@ -47,7 +51,6 @@ export type StarlinkClient = {
   sites: StarlinkSite[];
   createdAt: string;
   createdBy: string | null;
-  helpRequestedAt: string | null;
 };
 
 export async function getStarlinkClients(): Promise<StarlinkClient[]> {
@@ -161,6 +164,13 @@ export function computeStarlinkStats(clients: StarlinkClient[]): StarlinkStats {
 
 export async function getStarlinkStats(): Promise<StarlinkStats> {
   return computeStarlinkStats(await getStarlinkClients());
+}
+
+// Total number of sites (across every client) with an open help request —
+// counts sites, not clients, so one client with 2 sites both requesting
+// help contributes 2, not 1. Used for the admin nav badge.
+export function countOpenHelpRequests(clients: StarlinkClient[]): number {
+  return clients.reduce((sum, c) => sum + c.sites.filter((s) => s.helpRequestedAt).length, 0);
 }
 
 /**

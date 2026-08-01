@@ -67,7 +67,14 @@ export default function StarlinkClientsTable({
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
+              {filtered.map((c) => {
+                const sitesNeedingHelp = c.sites.filter((s) => s.helpRequestedAt);
+                const helpTooltip =
+                  sitesNeedingHelp.length > 0
+                    ? `Urgent help needed by the customer: ${sitesNeedingHelp.map((s) => s.siteName).join(", ")}`
+                    : "";
+
+                return (
                 <tr key={c.id} className="border-t border-black/5 dark:border-white/10">
                   <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
                     {c.name}
@@ -76,15 +83,15 @@ export default function StarlinkClientsTable({
                         Pending review
                       </span>
                     )}
-                    {c.helpRequestedAt && (
+                    {sitesNeedingHelp.length > 0 && (
                       <div className="ml-2 inline-flex items-center gap-1 rounded-full bg-status-critical/15 pl-2 pr-1 py-0.5 align-middle">
                         <span
-                          title="Urgent help needed by the customer"
-                          aria-label="Urgent help needed by the customer"
+                          title={helpTooltip}
+                          aria-label={helpTooltip}
                           className="inline-flex items-center gap-1 text-xs font-semibold text-status-critical"
                         >
                           <AlertTriangle size={12} />
-                          Help requested
+                          {sitesNeedingHelp.length}
                         </span>
                         <form action={resolveTechnicianHelpAction}>
                           <input type="hidden" name="id" value={c.id} />
@@ -121,7 +128,8 @@ export default function StarlinkClientsTable({
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">

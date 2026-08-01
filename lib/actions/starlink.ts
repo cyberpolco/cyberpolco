@@ -24,8 +24,9 @@ function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
 }
 
-async function parseSites(formData: FormData): Promise<StarlinkSite[]> {
+async function parseSites(formData: FormData, existingSites: StarlinkSite[]): Promise<StarlinkSite[]> {
   const siteCount = Number(formData.get("siteCount") || 0);
+  const existingById = new Map(existingSites.map((s) => [s.id, s]));
   type Draft = Omit<StarlinkSite, "kitClientId"> & { kitClientId: string | null };
   const drafts: Draft[] = [];
 
@@ -54,6 +55,10 @@ async function parseSites(formData: FormData): Promise<StarlinkSite[]> {
       accountPassword: field(formData, `site_${i}_accountPassword`),
       paymentStatus: field(formData, `site_${i}_paymentStatus`) as StarlinkSite["paymentStatus"],
       subscriptionStartDate: field(formData, `site_${i}_subscriptionStartDate`) || null,
+      // Not form-editable — carry it over so an unrelated edit can't
+      // silently clear an open help request. Only
+      // requestTechnicianHelpAction/resolveTechnicianHelpAction change this.
+      helpRequestedAt: existingById.get(id)?.helpRequestedAt ?? null,
     });
   }
 
@@ -85,14 +90,9 @@ export async function upsertStarlinkClientAction(formData: FormData) {
     name: field(formData, "name"),
     email: field(formData, "email"),
     phone: field(formData, "phone"),
-    sites: await parseSites(formData),
+    sites: await parseSites(formData, existing?.sites ?? []),
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     createdBy: existing ? existing.createdBy : session.userId,
-    // Not form-editable — carry it over so an unrelated edit (e.g. a
-    // technician updating the phone number) can't silently clear an open
-    // help request. Only requestTechnicianHelpAction/resolveTechnicianHelpAction
-    // ever change this.
-    helpRequestedAt: existing?.helpRequestedAt ?? null,
   };
 
   if (
@@ -181,22 +181,33 @@ export async function payStarlinkSubscriptionAction(formData: FormData) {
   redirect("/admin/starlink/my-info");
 }
 
-// Self-service — the client raises a flag on their own record (resolved via
-// session.linkedId, never a submitted client id, same pattern as above).
-// No approval queue: this is an operational alert, not a business-data edit.
-export async function requestTechnicianHelpAction() {
+// Self-service — the client raises a flag on one of their own sites
+// (resolved via session.linkedId, never a submitted client id; only the
+// siteId — scoped to look up within that already-session-resolved client's
+// own sites — comes from the form). No approval queue: this is an
+// operational alert, not a business-data edit.
+export async function requestTechnicianHelpAction(formData: FormData) {
   const session = await requireRole(["viewer"]);
   if (session.viewerType !== "starlink_client" || !session.linkedId) redirect("/admin/dashboard");
 
   const client = await getStarlinkClientById(session.linkedId);
   if (!client) redirect("/admin/dashboard");
 
-  await saveStarlinkClient({ ...client, helpRequestedAt: new Date().toISOString() });
+  const siteId = field(formData, "siteId");
+  if (!client.sites.some((s) => s.id === siteId)) redirect("/admin/starlink/get-help");
+
+  const sites = client.sites.map((s) =>
+    s.id === siteId ? { ...s, helpRequestedAt: new Date().toISOString() } : s
+  );
+  await saveStarlinkClient({ ...client, sites });
   revalidatePath("/admin/starlink/get-help");
   revalidatePath("/admin/starlink");
   redirect("/admin/starlink/get-help");
 }
 
+// Resolves every open help request for this client in one action (a
+// technician visit typically addresses all of a client's open issues at
+// once) rather than requiring one click per site.
 export async function resolveTechnicianHelpAction(formData: FormData) {
   await requireRole(["super_admin", "technician"]);
 
@@ -204,6 +215,7 @@ export async function resolveTechnicianHelpAction(formData: FormData) {
   const client = await getStarlinkClientById(id);
   if (!client) return;
 
-  await saveStarlinkClient({ ...client, helpRequestedAt: null });
+  const sites = client.sites.map((s) => (s.helpRequestedAt ? { ...s, helpRequestedAt: null } : s));
+  await saveStarlinkClient({ ...client, sites });
   revalidatePath("/admin/starlink");
 }
