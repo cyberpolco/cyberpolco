@@ -133,7 +133,9 @@ export async function getNextStudentId(firstName: string, lastName: string): Pro
     if (!Number.isNaN(seq) && seq > max) max = seq;
   }
 
-  const next = max + 3;
+  // Round up to the next multiple of 3 rather than adding 3 outright, since
+  // `max` may be a leftover multiple of 7 from before the switch to 3.
+  const next = (Math.floor(max / 3) + 1) * 3;
   if (next > 999) throw new Error(`No Student ID sequence left for ${prefix} today — all 333 slots are used.`);
   return `${prefix}${String(next).padStart(3, "0")}`;
 }
