@@ -3,9 +3,11 @@ import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmission } from "@/lib/db/academy";
 import { findQuizById, isQuizAvailable } from "@/lib/academy/quiz";
+import { nextStepAfterQuiz } from "@/lib/academy/sequence";
 import { submitQuizAction } from "@/lib/actions/academy";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BackLink from "@/app/admin/_components/BackLink";
+import NextStepLink from "@/app/admin/academy/_components/NextStepLink";
 
 export default async function QuizPage({
   params,
@@ -82,6 +84,8 @@ export default async function QuizPage({
             );
           })}
         </div>
+
+        <NextStepLink step={nextStepAfterQuiz(course, quizId)} enrollmentId={enrollment.id} />
       </div>
     );
   }

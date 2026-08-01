@@ -2,10 +2,12 @@ import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById } from "@/lib/db/academy";
+import { nextStepAfterLesson } from "@/lib/academy/sequence";
 import { updateOwnProgressAction } from "@/lib/actions/academy";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BackLink from "@/app/admin/_components/BackLink";
 import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
+import NextStepLink from "@/app/admin/academy/_components/NextStepLink";
 
 export default async function LessonDetailPage({
   params,
@@ -53,6 +55,12 @@ export default async function LessonDetailPage({
         <input type="hidden" name="redirectTo" value={lessonPath} />
         <SubmitButton pendingLabel="Saving...">{isDone ? "Mark incomplete" : "Mark complete"}</SubmitButton>
       </form>
+
+      {isDone && (
+        <div>
+          <NextStepLink step={nextStepAfterLesson(course, moduleId, lesson.id)} enrollmentId={enrollment.id} />
+        </div>
+      )}
     </div>
   );
 }
