@@ -10,13 +10,15 @@ import {
   type Achievement,
 } from "@/lib/db/achievements";
 import { requireRole } from "@/lib/auth/rbac";
+import { needsApproval } from "@/lib/auth/approval";
+import { addPendingChange } from "@/lib/db/pending-changes";
 
 function resolveImage(formData: FormData, fieldName: string, existingUrl: string | null): string | null {
   return String(formData.get(fieldName) || "") || existingUrl;
 }
 
 export async function upsertAchievementAction(formData: FormData) {
-  await requireRole(["super_admin", "content_editor"]);
+  const session = await requireRole(["super_admin", "content_editor"]);
 
   const originalId = String(formData.get("id") || "");
   const id = originalId || crypto.randomUUID();
@@ -39,6 +41,21 @@ export async function upsertAchievementAction(formData: FormData) {
       description: String(formData.get("description_en") || ""),
     },
   };
+
+  // Achievements have no createdBy/ownership concept — see the identical
+  // comment in lib/actions/articles.ts.
+  if (
+    existing &&
+    needsApproval({ existingRecord: { createdBy: null }, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "achievement",
+      targetId: existing.id,
+      proposedData: achievement,
+      proposedBy: session.userId,
+    });
+    redirect("/admin/cms/achievements?pending=1");
+  }
 
   await saveAchievement(achievement);
   revalidatePath("/admin/cms/achievements");

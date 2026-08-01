@@ -1,19 +1,34 @@
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { getSortedAchievements } from "@/lib/db/achievements";
+import { getPendingChanges } from "@/lib/db/pending-changes";
 import { deleteAchievementAction } from "@/lib/actions/achievements";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 
-export default async function AdminAchievementsPage() {
+export default async function AdminAchievementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
   await requireRole(["super_admin", "content_editor"]);
+  const { pending } = await searchParams;
 
-  const items = await getSortedAchievements();
+  const [items, pendingChanges] = await Promise.all([getSortedAchievements(), getPendingChanges("pending")]);
+  const pendingTargetIds = new Set(
+    pendingChanges.filter((c) => c.targetTable === "achievement").map((c) => c.targetId)
+  );
 
   return (
     <div>
       <BackLink href="/admin/cms" label="Back to CMS" />
+
+      {pending === "1" && (
+        <div className="mt-4 rounded-xl bg-brand-blue/10 p-4 text-sm text-brand-dark dark:text-white">
+          Your changes have been submitted for super_admin approval.
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Achievements</h1>
@@ -39,7 +54,14 @@ export default async function AdminAchievementsPage() {
             {items.map((a) => (
               <tr key={a.id} className="border-t border-black/5 dark:border-white/10">
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{a.date}</td>
-                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{a.en.title}</td>
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
+                  {a.en.title}
+                  {pendingTargetIds.has(a.id) && (
+                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
+                      Pending review
+                    </span>
+                  )}
+                </td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-3">
                     <Link href={`/admin/cms/achievements/${a.id}/edit`} className="text-brand-blue">

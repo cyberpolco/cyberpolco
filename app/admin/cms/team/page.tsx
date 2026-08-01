@@ -2,19 +2,34 @@ import Image from "next/image";
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { getTeamMembers } from "@/lib/db/team";
+import { getPendingChanges } from "@/lib/db/pending-changes";
 import { deleteTeamMemberAction } from "@/lib/actions/team";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 
-export default async function AdminTeamPage() {
+export default async function AdminTeamPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
   await requireRole(["super_admin", "content_editor"]);
+  const { pending } = await searchParams;
 
-  const members = await getTeamMembers();
+  const [members, pendingChanges] = await Promise.all([getTeamMembers(), getPendingChanges("pending")]);
+  const pendingTargetIds = new Set(
+    pendingChanges.filter((c) => c.targetTable === "team_member").map((c) => c.targetId)
+  );
 
   return (
     <div>
       <BackLink href="/admin/cms" label="Back to CMS" />
+
+      {pending === "1" && (
+        <div className="mt-4 rounded-xl bg-brand-blue/10 p-4 text-sm text-brand-dark dark:text-white">
+          Your changes have been submitted for super_admin approval.
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Team</h1>
@@ -45,7 +60,14 @@ export default async function AdminTeamPage() {
                     <Image src={m.photo || "/images/logo-mark.png"} alt="" fill sizes="36px" className="object-cover" />
                   </div>
                 </td>
-                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{m.name}</td>
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
+                  {m.name}
+                  {pendingTargetIds.has(m.id) && (
+                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
+                      Pending review
+                    </span>
+                  )}
+                </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{m.en.title}</td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-3">

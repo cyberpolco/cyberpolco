@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSettings, saveSettings } from "@/lib/db/settings";
 import { requireRole } from "@/lib/auth/rbac";
+import { needsApproval } from "@/lib/auth/approval";
+import { addPendingChange } from "@/lib/db/pending-changes";
 
 export async function updateSettingsAction(formData: FormData) {
-  await requireRole(["super_admin", "content_editor"]);
+  const session = await requireRole(["super_admin", "content_editor"]);
 
   const current = await getSettings();
 
@@ -19,6 +22,20 @@ export async function updateSettingsAction(formData: FormData) {
       formData.get("social_whatsapp") || current.socialLinks.whatsappChannel
     ),
   };
+
+  // Settings is a global singleton with no owner — always needs review from
+  // a non-super_admin, same as Starlink pricing (lib/actions/starlink.ts).
+  if (
+    needsApproval({ existingRecord: { createdBy: null }, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "settings",
+      targetId: "singleton",
+      proposedData: { socialLinks },
+      proposedBy: session.userId,
+    });
+    redirect("/admin/cms/settings?pending=1");
+  }
 
   await saveSettings({ ...current, socialLinks });
 

@@ -4,15 +4,22 @@ import { updateServicesPageAction } from "@/lib/actions/content";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
 import BackLink from "@/app/admin/_components/BackLink";
+import PendingContentBanner from "@/app/admin/cms/_components/PendingContentBanner";
 
-export default async function ServicesPageContentPage() {
+export default async function ServicesPageContentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
   await requireRole(["super_admin", "content_editor"]);
+  const { pending } = await searchParams;
 
   const intro = await getBlockBoth("services.intro");
 
   return (
     <div>
       <BackLink href="/admin/cms/pages" label="Back to Pages" />
+      <PendingContentBanner targetId="services" pending={pending} />
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Services page</h1>
       <p className="mt-1 text-brand-gray dark:text-white/60">

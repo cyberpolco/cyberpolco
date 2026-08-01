@@ -1,19 +1,34 @@
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { getArticles } from "@/lib/db/articles";
+import { getPendingChanges } from "@/lib/db/pending-changes";
 import { deleteArticleAction } from "@/lib/actions/articles";
 import { requireRole } from "@/lib/auth/rbac";
 import { isArticlePublished } from "@/lib/articles/visibility";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 
-export default async function AdminArticlesPage() {
+export default async function AdminArticlesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
   await requireRole(["super_admin", "content_editor"]);
+  const { pending } = await searchParams;
 
-  const articles = await getArticles();
+  const [articles, pendingChanges] = await Promise.all([getArticles(), getPendingChanges("pending")]);
   const sorted = [...articles].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const pendingTargetIds = new Set(
+    pendingChanges.filter((c) => c.targetTable === "article").map((c) => c.targetId)
+  );
 
   return (
     <div>
+      {pending === "1" && (
+        <div className="mb-4 rounded-xl bg-brand-blue/10 p-4 text-sm text-brand-dark dark:text-white">
+          Your changes have been submitted for super_admin approval.
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Articles</h1>
         <Link
@@ -43,6 +58,11 @@ export default async function AdminArticlesPage() {
                   {!isArticlePublished(a.date) && (
                     <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
                       Scheduled
+                    </span>
+                  )}
+                  {pendingTargetIds.has(a.slug) && (
+                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
+                      Pending review
                     </span>
                   )}
                 </td>

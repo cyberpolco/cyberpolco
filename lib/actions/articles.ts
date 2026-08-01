@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { saveArticle, deleteArticle } from "@/lib/db/articles";
+import { saveArticle, deleteArticle, getArticleBySlug } from "@/lib/db/articles";
 import { requireRole } from "@/lib/auth/rbac";
+import { needsApproval } from "@/lib/auth/approval";
+import { addPendingChange } from "@/lib/db/pending-changes";
 import type { Article } from "@/lib/content/articles";
 import { isTextAlign, type TextAlign } from "@/lib/types/text-align";
 
@@ -22,7 +24,7 @@ function slugify(input: string) {
 }
 
 export async function upsertArticleAction(formData: FormData) {
-  await requireRole(["super_admin", "content_editor"]);
+  const session = await requireRole(["super_admin", "content_editor"]);
 
   const originalSlug = String(formData.get("originalSlug") || "");
   const submittedSlug = String(formData.get("slug") || "").trim();
@@ -61,6 +63,24 @@ export async function upsertArticleAction(formData: FormData) {
       bodyAlign: textAlign(formData, "bodyAlign_en"),
     },
   };
+
+  // Articles have no createdBy/ownership concept, so — like the other
+  // no-owner content types — any edit of an existing article by a
+  // non-super_admin always needs review; only creating a brand new one
+  // is free (see lib/auth/approval.ts).
+  const existing = originalSlug ? await getArticleBySlug(originalSlug) : undefined;
+  if (
+    existing &&
+    needsApproval({ existingRecord: { createdBy: null }, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "article",
+      targetId: originalSlug,
+      proposedData: article,
+      proposedBy: session.userId,
+    });
+    redirect("/admin/articles?pending=1");
+  }
 
   await saveArticle(article);
   // Articles are keyed by slug (onConflictDoUpdate targets it), so editing

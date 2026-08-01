@@ -6,9 +6,12 @@ import {
   saveService,
   deleteService,
   getNextDisplayOrder,
+  getServiceBySlug,
   type Service,
 } from "@/lib/db/services";
 import { requireRole } from "@/lib/auth/rbac";
+import { needsApproval } from "@/lib/auth/approval";
+import { addPendingChange } from "@/lib/db/pending-changes";
 import type { ServiceIconKey } from "@/lib/content/service-icons";
 import { isTextAlign, type TextAlign } from "@/lib/types/text-align";
 
@@ -27,7 +30,7 @@ function slugify(input: string) {
 }
 
 export async function upsertServiceAction(formData: FormData) {
-  await requireRole(["super_admin", "content_editor"]);
+  const session = await requireRole(["super_admin", "content_editor"]);
 
   const originalSlug = String(formData.get("originalSlug") || "");
   const name_fr = String(formData.get("name_fr") || "");
@@ -63,6 +66,22 @@ export async function upsertServiceAction(formData: FormData) {
         .filter(Boolean),
     },
   };
+
+  // Services have no createdBy/ownership concept — see the identical comment
+  // in lib/actions/articles.ts.
+  const existing = originalSlug ? await getServiceBySlug(originalSlug) : undefined;
+  if (
+    existing &&
+    needsApproval({ existingRecord: { createdBy: null }, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "service",
+      targetId: slug,
+      proposedData: service,
+      proposedBy: session.userId,
+    });
+    redirect("/admin/cms/services?pending=1");
+  }
 
   await saveService(service);
   revalidatePath("/admin/cms/services");

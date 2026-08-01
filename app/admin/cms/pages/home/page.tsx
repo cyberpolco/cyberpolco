@@ -5,9 +5,15 @@ import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { updateHomeContentAction } from "@/lib/actions/content";
 import { TextInput, TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
 import BackLink from "@/app/admin/_components/BackLink";
+import PendingContentBanner from "@/app/admin/cms/_components/PendingContentBanner";
 
-export default async function HomeContentPage() {
+export default async function HomeContentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
   await requireRole(["super_admin", "content_editor"]);
+  const { pending } = await searchParams;
 
   const [
     hero,
@@ -36,6 +42,7 @@ export default async function HomeContentPage() {
   return (
     <div>
       <BackLink href="/admin/cms/pages" label="Back to Pages" />
+      <PendingContentBanner targetId="home" pending={pending} />
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Homepage content</h1>
       <p className="mt-1 text-brand-gray dark:text-white/60">Edit the copy shown on the public homepage.</p>

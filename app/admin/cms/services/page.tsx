@@ -1,19 +1,32 @@
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { getServices } from "@/lib/db/services";
+import { getPendingChanges } from "@/lib/db/pending-changes";
 import { deleteServiceAction } from "@/lib/actions/services";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 
-export default async function AdminServicesPage() {
+export default async function AdminServicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
   await requireRole(["super_admin", "content_editor"]);
+  const { pending } = await searchParams;
 
-  const services = await getServices();
+  const [services, pendingChanges] = await Promise.all([getServices(), getPendingChanges("pending")]);
+  const pendingTargetIds = new Set(pendingChanges.filter((c) => c.targetTable === "service").map((c) => c.targetId));
 
   return (
     <div>
       <BackLink href="/admin/cms" label="Back to CMS" />
+
+      {pending === "1" && (
+        <div className="mt-4 rounded-xl bg-brand-blue/10 p-4 text-sm text-brand-dark dark:text-white">
+          Your changes have been submitted for super_admin approval.
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-brand-dark dark:text-white">Services</h1>
@@ -39,7 +52,14 @@ export default async function AdminServicesPage() {
           <tbody>
             {services.map((s) => (
               <tr key={s.slug} className="border-t border-black/5 dark:border-white/10">
-                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{s.en.name}</td>
+                <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
+                  {s.en.name}
+                  {pendingTargetIds.has(s.slug) && (
+                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
+                      Pending review
+                    </span>
+                  )}
+                </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{s.icon}</td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{s.slug}</td>
                 <td className="px-5 py-3">

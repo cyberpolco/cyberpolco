@@ -252,7 +252,18 @@ export const academyEnrollments = pgTable("academy_enrollments", {
 export const pendingChanges = pgTable("pending_changes", {
   id: text("id").primaryKey(),
   targetTable: text("target_table", {
-    enum: ["starlink_client", "academy_course", "academy_enrollment", "starlink_pricing"],
+    enum: [
+      "starlink_client",
+      "academy_course",
+      "academy_enrollment",
+      "starlink_pricing",
+      "article",
+      "team_member",
+      "service",
+      "achievement",
+      "settings",
+      "content_block",
+    ],
   }).notNull(),
   targetId: text("target_id").notNull(),
   // The full proposed record, same shape the upsert action already builds —

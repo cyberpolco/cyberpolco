@@ -4,15 +4,22 @@ import { updateContactPageAction } from "@/lib/actions/content";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { TextArea, ContentSection, LocaleColumn } from "@/app/admin/cms/_components/Fields";
 import BackLink from "@/app/admin/_components/BackLink";
+import PendingContentBanner from "@/app/admin/cms/_components/PendingContentBanner";
 
-export default async function ContactPageContentPage() {
+export default async function ContactPageContentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pending?: string }>;
+}) {
   await requireRole(["super_admin", "content_editor"]);
+  const { pending } = await searchParams;
 
   const intro = await getBlockBoth("contact.intro");
 
   return (
     <div>
       <BackLink href="/admin/cms/pages" label="Back to Pages" />
+      <PendingContentBanner targetId="contact" pending={pending} />
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Contact page</h1>
       <p className="mt-1 text-brand-gray dark:text-white/60">Edit the intro subtitle shown under the Contact page title.</p>

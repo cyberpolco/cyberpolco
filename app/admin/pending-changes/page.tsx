@@ -3,6 +3,11 @@ import { getPendingChanges, type PendingChange } from "@/lib/db/pending-changes"
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getAcademyCourseById, getAcademyEnrollmentById } from "@/lib/db/academy";
 import { getSettings } from "@/lib/db/settings";
+import { getArticleBySlug } from "@/lib/db/articles";
+import { getTeamMemberById } from "@/lib/db/team";
+import { getServiceBySlug } from "@/lib/db/services";
+import { getAchievementById } from "@/lib/db/achievements";
+import { getContentBlock, type ContentBundle } from "@/lib/db/content";
 import { getUserById } from "@/lib/db/users";
 import { approvePendingChangeAction, rejectPendingChangeAction } from "@/lib/actions/pending-changes";
 
@@ -11,6 +16,12 @@ const TARGET_LABELS: Record<PendingChange["targetTable"], string> = {
   academy_course: "Academy course",
   academy_enrollment: "Academy student",
   starlink_pricing: "Starlink subscription pricing",
+  article: "Article",
+  team_member: "Team member",
+  service: "Service",
+  achievement: "Achievement",
+  settings: "Site settings",
+  content_block: "Page content",
 };
 
 async function getLiveRecord(change: PendingChange): Promise<Record<string, unknown> | undefined> {
@@ -23,13 +34,36 @@ async function getLiveRecord(change: PendingChange): Promise<Record<string, unkn
       return getAcademyEnrollmentById(change.targetId) as Promise<Record<string, unknown> | undefined>;
     case "starlink_pricing":
       return (await getSettings()).starlinkPricing;
+    case "article":
+      return getArticleBySlug(change.targetId) as Promise<Record<string, unknown> | undefined>;
+    case "team_member":
+      return getTeamMemberById(change.targetId) as Promise<Record<string, unknown> | undefined>;
+    case "service":
+      return getServiceBySlug(change.targetId) as Promise<Record<string, unknown> | undefined>;
+    case "achievement":
+      return getAchievementById(change.targetId) as Promise<Record<string, unknown> | undefined>;
+    case "settings":
+      return getSettings();
+    case "content_block": {
+      const proposal = change.proposedData as ContentBundle;
+      const blocks: Record<string, unknown> = {};
+      for (const key of Object.keys(proposal.blocks)) {
+        blocks[key] = await getContentBlock(key);
+      }
+      const settings = proposal.stats || proposal.offices ? await getSettings() : undefined;
+      return {
+        blocks,
+        ...(proposal.stats ? { stats: settings?.stats } : {}),
+        ...(proposal.offices ? { offices: settings?.offices } : {}),
+      };
+    }
   }
 }
 
 // Skip fields that never carry a meaningful before/after for a reviewer, or
 // that are objects/arrays a shallow comparison can't usefully render — those
 // are shown as full before/after blocks instead, per the plan.
-const SKIP_KEYS = new Set(["id", "createdAt", "createdBy"]);
+const SKIP_KEYS = new Set(["id", "createdAt", "createdBy", "revalidate"]);
 
 function diffFields(
   before: Record<string, unknown> | undefined,

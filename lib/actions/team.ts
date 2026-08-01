@@ -11,9 +11,11 @@ import {
   type TeamMember,
 } from "@/lib/db/team";
 import { requireRole } from "@/lib/auth/rbac";
+import { needsApproval } from "@/lib/auth/approval";
+import { addPendingChange } from "@/lib/db/pending-changes";
 
 export async function upsertTeamMemberAction(formData: FormData) {
-  await requireRole(["super_admin", "content_editor"]);
+  const session = await requireRole(["super_admin", "content_editor"]);
 
   const originalId = String(formData.get("originalId") || "");
   const id = originalId || crypto.randomUUID();
@@ -39,6 +41,21 @@ export async function upsertTeamMemberAction(formData: FormData) {
       bio: String(formData.get("bio_en") || ""),
     },
   };
+
+  // Team members have no createdBy/ownership concept — see the identical
+  // comment in lib/actions/articles.ts.
+  if (
+    existing &&
+    needsApproval({ existingRecord: { createdBy: null }, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "team_member",
+      targetId: existing.id,
+      proposedData: member,
+      proposedBy: session.userId,
+    });
+    redirect("/admin/cms/team?pending=1");
+  }
 
   await saveTeamMember(member);
   revalidatePath("/admin/cms/team");
