@@ -12,6 +12,10 @@ import { getSettings } from "@/lib/db/settings";
 import { getLatestArticles } from "@/lib/db/articles";
 import { getBlock } from "@/lib/content/blocks";
 
+// Content edits already trigger an immediate revalidatePath; this is a
+// ceiling so scheduled-publish articles still surface without an edit.
+export const revalidate = 60;
+
 export default async function HomePage({
   params,
 }: {

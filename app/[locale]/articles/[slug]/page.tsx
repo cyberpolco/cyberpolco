@@ -9,6 +9,10 @@ import { isArticlePublished } from "@/lib/articles/visibility";
 import ShareButton from "@/components/articles/ShareButton";
 import ArticleViewTracker from "@/components/articles/ArticleViewTracker";
 
+// Content edits already trigger an immediate revalidatePath; this is a
+// ceiling so a scheduled-publish date takes effect without an edit.
+export const revalidate = 60;
+
 export function generateStaticParams() {
   return seedArticles.map((a) => ({ slug: a.slug }));
 }

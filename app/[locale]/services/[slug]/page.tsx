@@ -5,6 +5,10 @@ import { getServiceBySlug } from "@/lib/db/services";
 import { localeAlternates } from "@/lib/seo";
 import ServiceDetail from "../_components/ServiceDetail";
 
+// No time-based visibility rule here (unlike articles) — a plain hourly
+// ceiling is enough since saves already revalidatePath immediately.
+export const revalidate = 3600;
+
 export function generateStaticParams() {
   return seedServices.map((s) => ({ slug: s.slug }));
 }

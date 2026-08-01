@@ -3,6 +3,10 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { getPublishedArticles } from "@/lib/db/articles";
 
+// Content edits already trigger an immediate revalidatePath; this is a
+// ceiling so scheduled-publish articles still surface without an edit.
+export const revalidate = 60;
+
 export default async function ArticlesPage({
   params,
 }: {

@@ -7,6 +7,10 @@ import { SERVICE_ICONS } from "@/lib/content/service-icons";
 import { getBlock } from "@/lib/content/blocks";
 import { localeAlternates } from "@/lib/seo";
 
+// No time-based visibility rule here (unlike articles) — a plain hourly
+// ceiling is enough since saves already revalidatePath immediately.
+export const revalidate = 3600;
+
 export async function generateMetadata({
   params,
 }: {
