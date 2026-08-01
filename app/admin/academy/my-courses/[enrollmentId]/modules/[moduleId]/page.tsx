@@ -1,12 +1,10 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CircleCheckBig, Circle } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmissionsForEnrollment } from "@/lib/db/academy";
-import { updateOwnProgressAction } from "@/lib/actions/academy";
-import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BackLink from "@/app/admin/_components/BackLink";
-import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
 import QuizStatusCard from "@/app/admin/academy/_components/QuizStatusCard";
 
 export default async function ModuleDetailPage({
@@ -43,34 +41,18 @@ export default async function ModuleDetailPage({
         {courseModule.lessons.map((l) => {
           const isDone = completed.has(l.id);
           return (
-            <div key={l.id} className="rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-brand-dark dark:text-white">
-                  {isDone ? (
-                    <CircleCheckBig size={16} className="text-brand-blue" />
-                  ) : (
-                    <Circle size={16} className="text-black/20 dark:text-white/20" />
-                  )}
-                  {l.title}
-                </div>
-                <form action={updateOwnProgressAction}>
-                  <input type="hidden" name="enrollmentId" value={enrollment.id} />
-                  <input type="hidden" name="lessonId" value={l.id} />
-                  <input type="hidden" name="completed" value={(!isDone).toString()} />
-                  <SubmitButton variant="compact" pendingLabel="Saving...">
-                    {isDone ? "Mark incomplete" : "Mark complete"}
-                  </SubmitButton>
-                </form>
-              </div>
-              {l.description && (
-                <p className="mt-2 text-sm text-brand-gray dark:text-white/60">{l.description}</p>
+            <Link
+              key={l.id}
+              href={`/admin/academy/my-courses/${enrollment.id}/modules/${moduleId}/lessons/${l.id}`}
+              className="flex items-center gap-2 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-4 text-sm font-medium text-brand-dark dark:text-white transition-shadow hover:shadow-md"
+            >
+              {isDone ? (
+                <CircleCheckBig size={16} className="text-brand-blue" />
+              ) : (
+                <Circle size={16} className="text-black/20 dark:text-white/20" />
               )}
-              {l.materialUrl && (
-                <div className="mt-2">
-                  <LessonMaterialViewer materialUrl={l.materialUrl} materialFileName={l.materialFileName} />
-                </div>
-              )}
-            </div>
+              {l.title}
+            </Link>
           );
         })}
         {courseModule.lessons.length === 0 && (

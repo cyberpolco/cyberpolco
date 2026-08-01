@@ -338,7 +338,12 @@ export async function updateOwnProgressAction(formData: FormData) {
   revalidatePath("/admin/academy/my-courses");
   revalidatePath("/admin/academy/progress");
   revalidatePath("/admin/dashboard");
-  redirect("/admin/academy/my-courses");
+
+  // Only ever redirect back into the student's own academy pages — never an
+  // arbitrary submitted path — so the lesson page can send the student back
+  // to itself instead of always bouncing to the top-level My Courses list.
+  const redirectTo = field(formData, "redirectTo");
+  redirect(redirectTo.startsWith("/admin/academy/") ? redirectTo : "/admin/academy/my-courses");
 }
 
 // A student enrolling themselves in another available course reuses their
