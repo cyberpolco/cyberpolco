@@ -91,3 +91,18 @@ export function diffFields(before: Record<string, unknown> | undefined, after: R
 
   return { changedFlat, changedComplex };
 }
+
+// Reduces a target's full change history to its single most recent change
+// (any status) per targetId — used by content list pages to show "Pending
+// review" or "Rejected: <note>" inline next to the item, not just on the
+// submitter's separate My Submissions page. An approved-then-untouched-since
+// item has no history worth surfacing, so callers only render when the
+// latest status is "pending" or "rejected".
+export function latestChangeByTargetId(changes: PendingChange[]): Map<string, PendingChange> {
+  const latest = new Map<string, PendingChange>();
+  for (const change of changes) {
+    const current = latest.get(change.targetId);
+    if (!current || change.proposedAt > current.proposedAt) latest.set(change.targetId, change);
+  }
+  return latest;
+}

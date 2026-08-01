@@ -3,10 +3,12 @@ import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { getTeamMembers } from "@/lib/db/team";
 import { getPendingChanges } from "@/lib/db/pending-changes";
+import { latestChangeByTargetId } from "@/lib/pending-changes/review";
 import { deleteTeamMemberAction } from "@/lib/actions/team";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
+import ChangeStatusBadge from "@/app/admin/pending-changes/_components/ChangeStatusBadge";
 
 export default async function AdminTeamPage({
   searchParams,
@@ -16,10 +18,8 @@ export default async function AdminTeamPage({
   await requireRole(["super_admin", "content_editor"]);
   const { pending } = await searchParams;
 
-  const [members, pendingChanges] = await Promise.all([getTeamMembers(), getPendingChanges("pending")]);
-  const pendingTargetIds = new Set(
-    pendingChanges.filter((c) => c.targetTable === "team_member").map((c) => c.targetId)
-  );
+  const [members, allChanges] = await Promise.all([getTeamMembers(), getPendingChanges()]);
+  const latestChangeById = latestChangeByTargetId(allChanges.filter((c) => c.targetTable === "team_member"));
 
   return (
     <div>
@@ -62,11 +62,7 @@ export default async function AdminTeamPage({
                 </td>
                 <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
                   {m.name}
-                  {pendingTargetIds.has(m.id) && (
-                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
-                      Pending review
-                    </span>
-                  )}
+                  <ChangeStatusBadge change={latestChangeById.get(m.id)} />
                 </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{m.en.title}</td>
                 <td className="px-5 py-3">

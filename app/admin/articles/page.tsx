@@ -2,10 +2,12 @@ import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { getArticles } from "@/lib/db/articles";
 import { getPendingChanges } from "@/lib/db/pending-changes";
+import { latestChangeByTargetId } from "@/lib/pending-changes/review";
 import { deleteArticleAction } from "@/lib/actions/articles";
 import { requireRole } from "@/lib/auth/rbac";
 import { isArticlePublished } from "@/lib/articles/visibility";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
+import ChangeStatusBadge from "@/app/admin/pending-changes/_components/ChangeStatusBadge";
 
 export default async function AdminArticlesPage({
   searchParams,
@@ -15,11 +17,9 @@ export default async function AdminArticlesPage({
   await requireRole(["super_admin", "content_editor"]);
   const { pending } = await searchParams;
 
-  const [articles, pendingChanges] = await Promise.all([getArticles(), getPendingChanges("pending")]);
+  const [articles, allChanges] = await Promise.all([getArticles(), getPendingChanges()]);
   const sorted = [...articles].sort((a, b) => (a.date < b.date ? 1 : -1));
-  const pendingTargetIds = new Set(
-    pendingChanges.filter((c) => c.targetTable === "article").map((c) => c.targetId)
-  );
+  const latestChangeBySlug = latestChangeByTargetId(allChanges.filter((c) => c.targetTable === "article"));
 
   return (
     <div>
@@ -60,11 +60,7 @@ export default async function AdminArticlesPage({
                       Scheduled
                     </span>
                   )}
-                  {pendingTargetIds.has(a.slug) && (
-                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
-                      Pending review
-                    </span>
-                  )}
+                  <ChangeStatusBadge change={latestChangeBySlug.get(a.slug)} />
                 </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{a.date}</td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{a.slug}</td>

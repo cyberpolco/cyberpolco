@@ -1,9 +1,9 @@
 import { getSettings } from "@/lib/db/settings";
-import { getPendingChangeForTarget } from "@/lib/db/pending-changes";
 import { updateSettingsAction } from "@/lib/actions/settings";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
+import PendingContentBanner from "@/app/admin/cms/_components/PendingContentBanner";
 
 export default async function SettingsPage({
   searchParams,
@@ -13,22 +13,12 @@ export default async function SettingsPage({
   await requireRole(["super_admin", "content_editor"]);
   const { pending } = await searchParams;
 
-  const [settings, pendingChange] = await Promise.all([
-    getSettings(),
-    getPendingChangeForTarget("settings", "singleton"),
-  ]);
+  const settings = await getSettings();
 
   return (
     <div>
       <BackLink href="/admin/cms" label="Back to CMS" />
-
-      {(pending === "1" || pendingChange) && (
-        <div className="mt-4 rounded-xl bg-brand-blue/10 p-4 text-sm text-brand-dark dark:text-white">
-          {pending === "1"
-            ? "Your changes have been submitted for super_admin approval."
-            : "There's a change to these settings awaiting super_admin approval."}
-        </div>
-      )}
+      <PendingContentBanner targetTable="settings" targetId="singleton" pending={pending} />
 
       <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">Settings</h1>
       <p className="mt-1 text-brand-gray dark:text-white/60">

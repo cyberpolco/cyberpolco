@@ -83,6 +83,22 @@ export async function getPendingChangeForTarget(
   return row as PendingChange | undefined;
 }
 
+// Most recent change for a target, any status — unlike getPendingChangeForTarget
+// (pending only), this also surfaces a rejected outcome so a singleton page
+// (settings, a content-block page) can show why its last submission was
+// turned down, not just whether one is currently awaiting review.
+export async function getLatestChangeForTarget(
+  targetTable: TargetTable,
+  targetId: string
+): Promise<PendingChange | undefined> {
+  const rows = await db
+    .select()
+    .from(pendingChangesTable)
+    .where(and(eq(pendingChangesTable.targetTable, targetTable), eq(pendingChangesTable.targetId, targetId)));
+  const sorted = (rows as PendingChange[]).sort((a, b) => (a.proposedAt < b.proposedAt ? 1 : -1));
+  return sorted[0];
+}
+
 export async function resolvePendingChange(
   id: string,
   status: "approved" | "rejected",

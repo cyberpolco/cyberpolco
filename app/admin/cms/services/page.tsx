@@ -2,10 +2,12 @@ import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { getServices } from "@/lib/db/services";
 import { getPendingChanges } from "@/lib/db/pending-changes";
+import { latestChangeByTargetId } from "@/lib/pending-changes/review";
 import { deleteServiceAction } from "@/lib/actions/services";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
+import ChangeStatusBadge from "@/app/admin/pending-changes/_components/ChangeStatusBadge";
 
 export default async function AdminServicesPage({
   searchParams,
@@ -15,8 +17,8 @@ export default async function AdminServicesPage({
   await requireRole(["super_admin", "content_editor"]);
   const { pending } = await searchParams;
 
-  const [services, pendingChanges] = await Promise.all([getServices(), getPendingChanges("pending")]);
-  const pendingTargetIds = new Set(pendingChanges.filter((c) => c.targetTable === "service").map((c) => c.targetId));
+  const [services, allChanges] = await Promise.all([getServices(), getPendingChanges()]);
+  const latestChangeBySlug = latestChangeByTargetId(allChanges.filter((c) => c.targetTable === "service"));
 
   return (
     <div>
@@ -54,11 +56,7 @@ export default async function AdminServicesPage({
               <tr key={s.slug} className="border-t border-black/5 dark:border-white/10">
                 <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">
                   {s.en.name}
-                  {pendingTargetIds.has(s.slug) && (
-                    <span className="ml-2 rounded-full bg-status-warning/15 px-2 py-0.5 text-xs font-semibold text-status-warning">
-                      Pending review
-                    </span>
-                  )}
+                  <ChangeStatusBadge change={latestChangeBySlug.get(s.slug)} />
                 </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{s.icon}</td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{s.slug}</td>
