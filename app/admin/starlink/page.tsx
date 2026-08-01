@@ -2,8 +2,10 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { getStarlinkClients } from "@/lib/db/starlink";
 import { getPendingChanges } from "@/lib/db/pending-changes";
+import { getSettings } from "@/lib/db/settings";
 import { requireRole } from "@/lib/auth/rbac";
 import StarlinkClientsTable from "./_components/StarlinkClientsTable";
+import SubscriptionPricingForm from "./_components/SubscriptionPricingForm";
 
 export default async function StarlinkClientsPage({
   searchParams,
@@ -13,13 +15,15 @@ export default async function StarlinkClientsPage({
   const session = await requireRole(["super_admin", "technician"]);
   const { pending } = await searchParams;
 
-  const [clients, pendingChanges] = await Promise.all([
+  const [clients, pendingChanges, settings] = await Promise.all([
     getStarlinkClients(),
     getPendingChanges("pending"),
+    getSettings(),
   ]);
   const pendingTargetIds = new Set(
     pendingChanges.filter((c) => c.targetTable === "starlink_client").map((c) => c.targetId)
   );
+  const pricingPending = pendingChanges.some((c) => c.targetTable === "starlink_pricing");
 
   return (
     <div>
@@ -37,6 +41,14 @@ export default async function StarlinkClientsPage({
         >
           <Plus size={16} /> New client
         </Link>
+      </div>
+
+      <div className="mt-6">
+        <SubscriptionPricingForm
+          pricing={settings.starlinkPricing}
+          isSuperAdmin={session.role === "super_admin"}
+          isPending={pricingPending}
+        />
       </div>
 
       <div className="mt-6">

@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "./client";
 import { pendingChanges as pendingChangesTable } from "./schema";
 
-export type TargetTable = "starlink_client" | "academy_course" | "academy_enrollment";
+export type TargetTable = "starlink_client" | "academy_course" | "academy_enrollment" | "starlink_pricing";
 export type PendingChangeStatus = "pending" | "approved" | "rejected";
 
 export type PendingChange = {

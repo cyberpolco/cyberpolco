@@ -23,6 +23,7 @@ type LocalizedService = {
   bullets: string[];
 };
 type Stat = { value: string; fr: string; en: string };
+type SubscriptionPricing = Record<"residential" | "business" | "roam" | "250gb", number>;
 type SocialLinks = {
   x: string;
   linkedin: string;
@@ -97,6 +98,10 @@ export const settings = pgTable("settings", {
   // no default would fail the migration. getSettings() falls back to the
   // static defaults when this is null, same pattern as getBlock/getServices.
   offices: jsonb("offices").$type<Office[]>(),
+  // USD cents per Subscription type, super_admin-only (technician proposes
+  // via the pending-changes queue). Same nullable/fallback reasoning as
+  // offices above.
+  starlinkPricing: jsonb("starlink_pricing").$type<SubscriptionPricing>(),
 });
 
 export const users = pgTable("users", {
@@ -212,6 +217,9 @@ export const academyCourses = pgTable("academy_courses", {
   fr: jsonb("fr").$type<LocalizedCourseText>().notNull(),
   en: jsonb("en").$type<LocalizedCourseText>().notNull(),
   modules: jsonb("modules").$type<AcademyModule[]>().notNull(),
+  // In USD cents, super_admin-only. Nullable/0 means no enrollment fee — the
+  // student dashboard only paywalls lesson materials when this is set.
+  enrollmentFeeCents: integer("enrollment_fee_cents"),
   createdAt: text("created_at").notNull(),
   // Nullable — see starlinkClients.createdBy above; same reasoning.
   createdBy: text("created_by"),
@@ -229,6 +237,10 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   completedLessonIds: jsonb("completed_lesson_ids").$type<string[]>().notNull(),
   certificateIssued: boolean("certificate_issued").notNull().default(false),
   certificateFileUrl: text("certificate_file_url"),
+  // Self-service honor system: the student clicks "Pay" and this flips —
+  // no payment gateway is involved. See feePaidAt for when.
+  feePaid: boolean("fee_paid").notNull().default(false),
+  feePaidAt: text("fee_paid_at"),
   createdAt: text("created_at").notNull(),
   // Nullable — see starlinkClients.createdBy above; same reasoning.
   createdBy: text("created_by"),
@@ -240,7 +252,7 @@ export const academyEnrollments = pgTable("academy_enrollments", {
 export const pendingChanges = pgTable("pending_changes", {
   id: text("id").primaryKey(),
   targetTable: text("target_table", {
-    enum: ["starlink_client", "academy_course", "academy_enrollment"],
+    enum: ["starlink_client", "academy_course", "academy_enrollment", "starlink_pricing"],
   }).notNull(),
   targetId: text("target_id").notNull(),
   // The full proposed record, same shape the upsert action already builds —

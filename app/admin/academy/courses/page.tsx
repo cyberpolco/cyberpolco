@@ -4,6 +4,7 @@ import { getAcademyCourses } from "@/lib/db/academy";
 import { getPendingChanges } from "@/lib/db/pending-changes";
 import { deleteAcademyCourseAction } from "@/lib/actions/academy";
 import { requireRole } from "@/lib/auth/rbac";
+import { formatUsdCents } from "@/lib/content/money";
 import BackLink from "@/app/admin/_components/BackLink";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 
@@ -50,6 +51,7 @@ export default async function AcademyCoursesPage({
               <th className="px-5 py-3">Slug</th>
               <th className="px-5 py-3">Modules</th>
               <th className="px-5 py-3">Lessons</th>
+              <th className="px-5 py-3">Fee</th>
               <th className="px-5 py-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -70,6 +72,9 @@ export default async function AcademyCoursesPage({
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">
                   {c.modules.reduce((n, m) => n + m.lessons.length, 0)}
                 </td>
+                <td className="px-5 py-3 text-brand-gray dark:text-white/60">
+                  {c.enrollmentFeeCents ? formatUsdCents(c.enrollmentFeeCents) : "Free"}
+                </td>
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-3">
                     <Link href={`/admin/academy/courses/${c.id}/edit`} className="text-brand-blue">
@@ -89,7 +94,7 @@ export default async function AcademyCoursesPage({
             ))}
             {courses.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
+                <td colSpan={7} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                   No courses yet.
                 </td>
               </tr>

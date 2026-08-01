@@ -77,6 +77,18 @@ export const SUBSCRIPTION_TYPE_CODE: Record<(typeof SUBSCRIPTION_TYPE_OPTIONS)[n
   "250gb": "GB",
 };
 
+// Monthly price in USD cents, one per Subscription type — super_admin-only
+// (see lib/db/settings.ts, lib/actions/starlink.ts). Defaults to 0 ("not set
+// yet") until a super_admin configures real pricing.
+export type SubscriptionPricingCents = Record<(typeof SUBSCRIPTION_TYPE_OPTIONS)[number]["value"], number>;
+
+export const SUBSCRIPTION_PRICING_DEFAULTS_CENTS: SubscriptionPricingCents = {
+  residential: 0,
+  business: 0,
+  roam: 0,
+  "250gb": 0,
+};
+
 export const STARLINK_OPTION_LABELS = {
   subscriptionType: Object.fromEntries(SUBSCRIPTION_TYPE_OPTIONS.map((o) => [o.value, o.label])),
   dishType: Object.fromEntries(DISH_TYPE_OPTIONS.map((o) => [o.value, o.label])),

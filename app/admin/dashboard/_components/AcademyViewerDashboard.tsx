@@ -1,5 +1,8 @@
-import { CircleCheckBig, Circle, FileDown } from "lucide-react";
+import { CircleCheckBig, Circle, FileDown, Lock } from "lucide-react";
 import { progressPercent } from "@/lib/academy/progress";
+import { formatUsdCents } from "@/lib/content/money";
+import { payEnrollmentFeeAction } from "@/lib/actions/academy";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 import type { AcademyCourse, AcademyEnrollment } from "@/lib/db/academy";
 
 export default function AcademyViewerDashboard({
@@ -23,6 +26,8 @@ export default function AcademyViewerDashboard({
 
   const percent = progressPercent(enrollment, course);
   const completed = new Set(enrollment.completedLessonIds);
+  const feeCents = course?.enrollmentFeeCents ?? 0;
+  const locked = feeCents > 0 && !enrollment.feePaid;
 
   return (
     <div>
@@ -38,6 +43,19 @@ export default function AcademyViewerDashboard({
           <div className="h-full rounded-full bg-brand-blue" style={{ width: `${percent}%` }} />
         </div>
 
+        {locked && (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-4">
+            <p className="flex items-center gap-2 text-sm font-medium text-brand-dark dark:text-white">
+              <Lock size={16} className="text-brand-yellow" />
+              This course requires a one-time enrollment fee of {formatUsdCents(feeCents)} before you can open
+              lesson materials.
+            </p>
+            <form action={payEnrollmentFeeAction}>
+              <SubmitButton pendingLabel="Processing...">Pay {formatUsdCents(feeCents)}</SubmitButton>
+            </form>
+          </div>
+        )}
+
         <div className="mt-6 space-y-4">
           {(course?.modules ?? []).map((m) => (
             <div key={m.id}>
@@ -51,7 +69,7 @@ export default function AcademyViewerDashboard({
                       <Circle size={16} className="text-black/20 dark:text-white/20" />
                     )}
                     <span className="flex-1">{l.title}</span>
-                    {l.materialUrl && (
+                    {l.materialUrl && !locked && (
                       <a
                         href={l.materialUrl}
                         target="_blank"

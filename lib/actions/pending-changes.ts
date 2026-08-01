@@ -5,6 +5,8 @@ import { requireRole } from "@/lib/auth/rbac";
 import { getPendingChangeById, resolvePendingChange } from "@/lib/db/pending-changes";
 import { saveStarlinkClient, type StarlinkClient } from "@/lib/db/starlink";
 import { saveAcademyCourse, saveAcademyEnrollment, type AcademyCourse, type AcademyEnrollment } from "@/lib/db/academy";
+import { getSettings, saveSettings } from "@/lib/db/settings";
+import type { SubscriptionPricingCents } from "@/lib/content/starlink-options";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -34,6 +36,13 @@ export async function approvePendingChangeAction(formData: FormData) {
       revalidatePath("/admin/academy/students");
       revalidatePath(`/admin/academy/students/${change.targetId}`);
       break;
+    case "starlink_pricing": {
+      const current = await getSettings();
+      await saveSettings({ ...current, starlinkPricing: change.proposedData as SubscriptionPricingCents });
+      revalidatePath("/admin/starlink");
+      revalidatePath("/admin/dashboard");
+      break;
+    }
   }
 
   await resolvePendingChange(id, "approved", session.userId);

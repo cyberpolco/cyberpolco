@@ -43,6 +43,21 @@ export default async function StudentDetailPage({
       )}
 
       <div className="mt-6 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
+        {!!course?.enrollmentFeeCents && (
+          <div className="mb-4 flex items-center justify-between text-sm">
+            <span className="font-medium text-brand-dark dark:text-white">Enrollment fee</span>
+            <span
+              className={
+                enrollment.feePaid
+                  ? "rounded-full bg-status-good/15 px-2.5 py-0.5 text-xs font-semibold text-status-good"
+                  : "rounded-full bg-status-warning/15 px-2.5 py-0.5 text-xs font-semibold text-status-warning"
+              }
+            >
+              {enrollment.feePaid ? "Paid" : "Unpaid"}
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium text-brand-dark dark:text-white">Progress</span>
           <span className="text-brand-gray dark:text-white/60">{percent}%</span>

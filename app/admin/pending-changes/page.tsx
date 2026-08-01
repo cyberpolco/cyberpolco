@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { getPendingChanges, type PendingChange } from "@/lib/db/pending-changes";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getAcademyCourseById, getAcademyEnrollmentById } from "@/lib/db/academy";
+import { getSettings } from "@/lib/db/settings";
 import { getUserById } from "@/lib/db/users";
 import { approvePendingChangeAction, rejectPendingChangeAction } from "@/lib/actions/pending-changes";
 
@@ -9,6 +10,7 @@ const TARGET_LABELS: Record<PendingChange["targetTable"], string> = {
   starlink_client: "Starlink client",
   academy_course: "Academy course",
   academy_enrollment: "Academy student",
+  starlink_pricing: "Starlink subscription pricing",
 };
 
 async function getLiveRecord(change: PendingChange): Promise<Record<string, unknown> | undefined> {
@@ -19,6 +21,8 @@ async function getLiveRecord(change: PendingChange): Promise<Record<string, unkn
       return getAcademyCourseById(change.targetId) as Promise<Record<string, unknown> | undefined>;
     case "academy_enrollment":
       return getAcademyEnrollmentById(change.targetId) as Promise<Record<string, unknown> | undefined>;
+    case "starlink_pricing":
+      return (await getSettings()).starlinkPricing;
   }
 }
 

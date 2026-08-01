@@ -6,6 +6,7 @@ import { upsertAcademyCourseAction } from "@/lib/actions/academy";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BlobFileField from "@/app/admin/_components/BlobFileField";
 import { COURSE_ID_PREFIX_PATTERN } from "@/lib/content/academy-options";
+import { formatUsdCents } from "@/lib/content/money";
 import type { AcademyCourse, Lesson, Module } from "@/lib/db/academy";
 
 type LessonRow = {
@@ -129,6 +130,38 @@ export default function CourseForm({
           </>
         ) : (
           <p className="text-sm text-brand-gray dark:text-white/60">Not yet assigned — a super admin needs to set it.</p>
+        )}
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
+          Enrollment fee (USD)
+        </label>
+        {isSuperAdmin ? (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="text-brand-gray dark:text-white/60">$</span>
+              <input
+                name="enrollmentFeeUsd"
+                type="number"
+                min={0}
+                step="0.01"
+                defaultValue={
+                  course?.enrollmentFeeCents != null ? (course.enrollmentFeeCents / 100).toFixed(2) : ""
+                }
+                placeholder="0.00"
+                className="w-32 rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
+              />
+            </div>
+            <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
+              Leave blank for a free course. Students must pay this before they can open lesson materials.
+            </p>
+          </>
+        ) : (
+          <p className="text-sm text-brand-gray dark:text-white/60">
+            {course?.enrollmentFeeCents ? formatUsdCents(course.enrollmentFeeCents) : "Free"} — only a super admin
+            can change this.
+          </p>
         )}
       </div>
 

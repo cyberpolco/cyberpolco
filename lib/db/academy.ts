@@ -20,6 +20,7 @@ export type AcademyCourse = {
   fr: LocalizedCourseText;
   en: LocalizedCourseText;
   modules: Module[];
+  enrollmentFeeCents: number | null;
   createdAt: string;
   createdBy: string | null;
 };
@@ -34,6 +35,8 @@ export type AcademyEnrollment = {
   completedLessonIds: string[];
   certificateIssued: boolean;
   certificateFileUrl: string | null;
+  feePaid: boolean;
+  feePaidAt: string | null;
   createdAt: string;
   createdBy: string | null;
 };
@@ -105,6 +108,13 @@ export async function saveAcademyEnrollment(enrollment: AcademyEnrollment): Prom
     .insert(academyEnrollmentsTable)
     .values(enrollment)
     .onConflictDoUpdate({ target: academyEnrollmentsTable.id, set: enrollment });
+}
+
+export async function markEnrollmentFeePaid(id: string): Promise<void> {
+  await db
+    .update(academyEnrollmentsTable)
+    .set({ feePaid: true, feePaidAt: new Date().toISOString() })
+    .where(eq(academyEnrollmentsTable.id, id));
 }
 
 export async function deleteAcademyEnrollment(id: string): Promise<void> {

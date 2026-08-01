@@ -15,12 +15,14 @@ import {
   getAcademyEnrollmentById,
   getEnrollmentByStudentId,
   getNextStudentId,
+  markEnrollmentFeePaid,
   type AcademyCourse,
   type AcademyEnrollment,
   type Module,
   type Lesson,
 } from "@/lib/db/academy";
 import { isValidCourseIdPrefix } from "@/lib/content/academy-options";
+import { parseUsdToCents } from "@/lib/content/money";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -90,6 +92,20 @@ export async function upsertAcademyCourseAction(formData: FormData) {
     }
   }
 
+  // Enrollment fee: super_admin-only, same rule as the Course ID prefix
+  // above — a teacher's submitted value is ignored, not just hidden in the UI.
+  let enrollmentFeeCents = existing?.enrollmentFeeCents ?? null;
+  if (session.role === "super_admin") {
+    const rawFee = field(formData, "enrollmentFeeUsd").trim();
+    if (rawFee) {
+      const cents = parseUsdToCents(rawFee);
+      if (cents === null) {
+        throw new Error(`Invalid enrollment fee "${rawFee}" — expected a USD amount like 49.99.`);
+      }
+      enrollmentFeeCents = cents;
+    }
+  }
+
   const course: AcademyCourse = {
     id: existingId || crypto.randomUUID(),
     courseId,
@@ -97,6 +113,7 @@ export async function upsertAcademyCourseAction(formData: FormData) {
     fr: { title: titleFr, description: field(formData, "description_fr") },
     en: { title: titleEn, description: field(formData, "description_en") },
     modules: parseModules(formData),
+    enrollmentFeeCents,
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     createdBy: existing ? existing.createdBy : session.userId,
   };
@@ -160,6 +177,8 @@ export async function createEnrollmentAction(formData: FormData) {
     completedLessonIds: [],
     certificateIssued: false,
     certificateFileUrl: null,
+    feePaid: false,
+    feePaidAt: null,
     createdAt: new Date().toISOString(),
     createdBy: session.userId,
   };
@@ -214,4 +233,16 @@ export async function updateEnrollmentProgressAction(formData: FormData) {
   revalidatePath(`/admin/academy/students/${id}`);
   revalidatePath("/admin/academy/students");
   redirect(`/admin/academy/students/${id}`);
+}
+
+// Self-service, honor-system payment: the student clicks "Pay" and their own
+// enrollment (identified from the session, never a submitted form field, so
+// a student can't pay off someone else's fee) is immediately marked paid.
+export async function payEnrollmentFeeAction() {
+  const session = await requireRole(["viewer"]);
+  if (session.viewerType !== "academy_student" || !session.linkedId) redirect("/admin/dashboard");
+
+  await markEnrollmentFeePaid(session.linkedId);
+  revalidatePath("/admin/dashboard");
+  redirect("/admin/dashboard");
 }

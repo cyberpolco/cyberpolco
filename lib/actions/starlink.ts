@@ -15,7 +15,10 @@ import {
   type StarlinkClient,
   type StarlinkSite,
 } from "@/lib/db/starlink";
-import { isValidKitNumber } from "@/lib/content/starlink-options";
+import { isValidKitNumber, SUBSCRIPTION_TYPE_OPTIONS, type SubscriptionPricingCents } from "@/lib/content/starlink-options";
+import { parseUsdToCents } from "@/lib/content/money";
+import { getSettings, saveSettings } from "@/lib/db/settings";
+import { isSubscriptionPayable } from "@/lib/starlink/subscription";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -111,4 +114,62 @@ export async function deleteStarlinkClientAction(formData: FormData) {
   const id = field(formData, "id");
   await deleteStarlinkClient(id);
   revalidatePath("/admin/starlink");
+}
+
+export async function updateStarlinkPricingAction(formData: FormData) {
+  const session = await requireRole(["super_admin", "technician"]);
+
+  const current = await getSettings();
+  const proposedPricing: SubscriptionPricingCents = { ...current.starlinkPricing };
+  for (const { value } of SUBSCRIPTION_TYPE_OPTIONS) {
+    const raw = field(formData, `price_${value}`).trim();
+    if (!raw) continue;
+    const cents = parseUsdToCents(raw);
+    if (cents === null) throw new Error(`Invalid price "${raw}" for ${value} — expected a USD amount like 49.99.`);
+    proposedPricing[value] = cents;
+  }
+
+  // Global pricing has no single owner/creator, so a technician's edit
+  // always needs review — the same "no createdBy" fail-safe needsApproval
+  // already applies to legacy per-record rows.
+  if (
+    needsApproval({ existingRecord: { createdBy: null }, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "starlink_pricing",
+      targetId: "singleton",
+      proposedData: proposedPricing,
+      proposedBy: session.userId,
+    });
+    redirect("/admin/starlink?pending=1");
+  }
+
+  await saveSettings({ ...current, starlinkPricing: proposedPricing });
+  revalidatePath("/admin/starlink");
+  revalidatePath("/admin/dashboard");
+  redirect("/admin/starlink");
+}
+
+// Self-service, honor-system renewal: the client clicks "Pay" and their own
+// site's cycle (identified from the session + a site id they don't control
+// the outcome of, never a targetId that lets them touch another client's
+// record) renews immediately. The disabled button is just UX — this
+// re-checks the payable window server-side since forms can be resubmitted.
+export async function payStarlinkSubscriptionAction(formData: FormData) {
+  const session = await requireRole(["viewer"]);
+  if (session.viewerType !== "starlink_client" || !session.linkedId) redirect("/admin/dashboard");
+
+  const client = await getStarlinkClientById(session.linkedId);
+  if (!client) redirect("/admin/dashboard");
+
+  const siteId = field(formData, "siteId");
+  const site = client.sites.find((s) => s.id === siteId);
+  if (!site || !isSubscriptionPayable(site.subscriptionStartDate, new Date())) redirect("/admin/dashboard");
+
+  const sites = client.sites.map((s) =>
+    s.id === siteId ? { ...s, subscriptionStartDate: new Date().toISOString() } : s
+  );
+  await saveStarlinkClient({ ...client, sites });
+  revalidatePath("/admin/dashboard");
+  redirect("/admin/dashboard");
 }
