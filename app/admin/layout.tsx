@@ -57,7 +57,7 @@ const navItems: {
     href: "/admin/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["super_admin", "content_editor", "hr_recruiter", "technician", "viewer"],
+    roles: ["super_admin", "content_editor", "hr_recruiter", "technician", "teacher", "viewer"],
   },
   { href: "/admin/articles", label: "Articles", icon: Newspaper, roles: ["super_admin", "content_editor"] },
   { href: "/admin/cms", label: "CMS", icon: FileStack, roles: ["super_admin", "content_editor"] },
