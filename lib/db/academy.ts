@@ -114,7 +114,7 @@ export async function deleteAcademyEnrollment(id: string): Promise<void> {
 /**
  * CPCYYFDDLNNN — YY/DD are the registration year/day (today), F/L are the
  * first letters of the student's first/last name, and NNN is the next
- * available multiple of 7 among existing students sharing that exact
+ * available multiple of 3 among existing students sharing that exact
  * YY+F+DD+L combination (see docs/student-id-spec).
  */
 export async function getNextStudentId(firstName: string, lastName: string): Promise<string> {
@@ -133,8 +133,8 @@ export async function getNextStudentId(firstName: string, lastName: string): Pro
     if (!Number.isNaN(seq) && seq > max) max = seq;
   }
 
-  const next = max + 7;
-  if (next > 994) throw new Error(`No Student ID sequence left for ${prefix} today — all 142 slots are used.`);
+  const next = max + 3;
+  if (next > 999) throw new Error(`No Student ID sequence left for ${prefix} today — all 333 slots are used.`);
   return `${prefix}${String(next).padStart(3, "0")}`;
 }
 

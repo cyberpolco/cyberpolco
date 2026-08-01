@@ -1,6 +1,6 @@
 // Student identifier: CPC + YY (registration year) + F (first-name initial)
 // + DD (registration day) + L (last-name initial) + NNN (sequence, multiple
-// of 7). e.g. CPC26J18M007.
+// of 3). e.g. CPC26J18M003.
 export const STUDENT_ID_PATTERN = /^CPC(\d{2})[A-Z](\d{2})[A-Z](\d{3})$/;
 
 export function isValidStudentId(value: string): boolean {
@@ -11,7 +11,7 @@ export function isValidStudentId(value: string): boolean {
   const year = Number(yy);
   const day = Number(dd);
   const seq = Number(nnn);
-  return year >= 26 && year <= 99 && day >= 1 && day <= 31 && seq >= 7 && seq <= 994 && seq % 7 === 0;
+  return year >= 26 && year <= 99 && day >= 1 && day <= 31 && seq >= 3 && seq <= 999 && seq % 3 === 0;
 }
 
 // Course identifier: a super_admin-chosen 4-character prefix (3 letters +

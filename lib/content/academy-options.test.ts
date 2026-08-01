@@ -3,11 +3,11 @@ import { isValidCourseId, isValidCourseIdPrefix, isValidStudentId } from "./acad
 
 describe("isValidStudentId", () => {
   it("accepts the documented format: CPC + YY + F + DD + L + NNN", () => {
-    expect(isValidStudentId("CPC26J18M007")).toBe(true);
-    expect(isValidStudentId("CPC26A01K014")).toBe(true);
+    expect(isValidStudentId("CPC26J18M003")).toBe(true);
+    expect(isValidStudentId("CPC26A01K015")).toBe(true);
   });
 
-  it("rejects a sequence that isn't a multiple of 7", () => {
+  it("rejects a sequence that isn't a multiple of 3", () => {
     expect(isValidStudentId("CPC26J18M008")).toBe(false);
   });
 

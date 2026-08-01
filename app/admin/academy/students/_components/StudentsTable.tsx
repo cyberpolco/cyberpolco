@@ -45,7 +45,7 @@ export default function StudentsTable({
         />
       </div>
       {showFormatHint && (
-        <p className="mt-1 text-xs text-brand-red">Doesn&apos;t match the Student ID format: CPCYYFDDLNNN (e.g. CPC26J18M007)</p>
+        <p className="mt-1 text-xs text-brand-red">Doesn&apos;t match the Student ID format: CPCYYFDDLNNN (e.g. CPC26J18M003)</p>
       )}
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2">
