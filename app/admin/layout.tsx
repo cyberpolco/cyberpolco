@@ -14,6 +14,7 @@ import {
   BookOpen,
   TrendingUp,
   UserCircle,
+  History,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
@@ -22,6 +23,7 @@ import type { ViewerType } from "@/lib/db/users";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById } from "@/lib/db/academy";
 import { getUnreadInquiriesCount } from "@/lib/db/inquiries";
+import { getPendingChanges } from "@/lib/db/pending-changes";
 import ThemeToggle from "@/app/admin/_components/ThemeToggle";
 import MobileNav from "@/app/admin/_components/MobileNav";
 import AdminNavLink from "@/app/admin/_components/AdminNavLink";
@@ -109,6 +111,12 @@ const navItems: {
     icon: ClipboardCheck,
     roles: ["super_admin"],
   },
+  {
+    href: "/admin/my-submissions",
+    label: "My Submissions",
+    icon: History,
+    roles: ["content_editor", "technician", "teacher", "hr_recruiter"],
+  },
 ];
 
 const ROLE_BADGES: Record<Exclude<Role, "viewer">, string> = {
@@ -153,10 +161,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const canSeeInquiries =
     session?.role === "super_admin" || session?.role === "hr_recruiter" || session?.role === "technician";
   const unreadInquiriesCount = canSeeInquiries ? await getUnreadInquiriesCount() : 0;
-  const navItemsWithBadges = visibleNavItems.map((item) => ({
-    ...item,
-    badge: item.href === "/admin/inquiries" && unreadInquiriesCount > 0 ? unreadInquiriesCount : undefined,
-  }));
+
+  // Only super_admin has a "Pending changes" nav item at all — see navItems.
+  const pendingChangesCount =
+    session?.role === "super_admin" ? (await getPendingChanges("pending")).length : 0;
+
+  const BADGE_COUNTS_BY_HREF: Record<string, number> = {
+    "/admin/inquiries": unreadInquiriesCount,
+    "/admin/pending-changes": pendingChangesCount,
+  };
+  const navItemsWithBadges = visibleNavItems.map((item) => {
+    const count = BADGE_COUNTS_BY_HREF[item.href];
+    return { ...item, badge: count > 0 ? count : undefined };
+  });
 
   const cookieStore = await cookies();
   const isDark = cookieStore.get(THEME_COOKIE_NAME)?.value === "dark";

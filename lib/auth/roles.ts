@@ -50,6 +50,9 @@ const ROUTE_RULES: RouteRule[] = [
   // super_admin/teacher individually, unaffected by this broader rule.
   { prefix: "/admin/academy", roles: ["super_admin", "teacher", "viewer"] },
   { prefix: "/admin/pending-changes", roles: ["super_admin"] },
+  // Status view for whoever can submit a change into the queue above — see
+  // their own submissions' approved/rejected outcome and any review note.
+  { prefix: "/admin/my-submissions", roles: ["content_editor", "technician", "teacher", "hr_recruiter"] },
 ];
 
 /**

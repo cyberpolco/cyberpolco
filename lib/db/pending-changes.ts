@@ -58,6 +58,14 @@ export async function getPendingChangeById(id: string): Promise<PendingChange | 
   return row as PendingChange | undefined;
 }
 
+// Every change a given user has ever proposed, any status — powers the
+// submitter-facing "My Submissions" status page (as opposed to
+// getPendingChanges, which is the super_admin review queue).
+export async function getPendingChangesByProposer(proposedBy: string): Promise<PendingChange[]> {
+  const items = await db.select().from(pendingChangesTable).where(eq(pendingChangesTable.proposedBy, proposedBy));
+  return (items as PendingChange[]).sort((a, b) => (a.proposedAt < b.proposedAt ? 1 : -1));
+}
+
 export async function getPendingChangeForTarget(
   targetTable: TargetTable,
   targetId: string
