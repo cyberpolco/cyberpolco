@@ -114,7 +114,7 @@ export default function CourseForm({
                 maxLength={4}
                 required
                 pattern={COURSE_ID_PREFIX_PATTERN.source}
-                title="4 uppercase letters, e.g. CYBR"
+                title="3 uppercase letters + a letter or digit, e.g. CYBR or CYB1"
                 placeholder="CYBR"
                 onInput={(e) => {
                   e.currentTarget.value = e.currentTarget.value.toUpperCase();
@@ -124,7 +124,7 @@ export default function CourseForm({
               <span className="text-sm text-brand-gray dark:text-white/60">+ {creationYY} (added automatically)</span>
             </div>
             <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
-              4 letters — the creation year is appended automatically and can&apos;t be changed later.
+              3 letters + a letter or digit — the creation year is appended automatically and can&apos;t be changed later.
             </p>
           </>
         ) : (

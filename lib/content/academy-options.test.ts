@@ -34,12 +34,16 @@ describe("isValidStudentId", () => {
 });
 
 describe("isValidCourseIdPrefix", () => {
-  it("accepts exactly 4 uppercase letters", () => {
+  it("accepts 3 uppercase letters followed by a letter", () => {
     expect(isValidCourseIdPrefix("CYBR")).toBe(true);
   });
 
-  it("rejects digits, lowercase, or the wrong length", () => {
-    expect(isValidCourseIdPrefix("CYB1")).toBe(false);
+  it("accepts 3 uppercase letters followed by a digit", () => {
+    expect(isValidCourseIdPrefix("CYB1")).toBe(true);
+  });
+
+  it("rejects a digit outside the 4th position, lowercase, or the wrong length", () => {
+    expect(isValidCourseIdPrefix("1YBR")).toBe(false);
     expect(isValidCourseIdPrefix("cybr")).toBe(false);
     expect(isValidCourseIdPrefix("CYBER")).toBe(false);
     expect(isValidCourseIdPrefix("CYB")).toBe(false);
@@ -47,8 +51,9 @@ describe("isValidCourseIdPrefix", () => {
 });
 
 describe("isValidCourseId", () => {
-  it("accepts the documented format: 4 letters + 2-digit year", () => {
+  it("accepts the documented format: 3 letters + letter-or-digit + 2-digit year", () => {
     expect(isValidCourseId("CYBR26")).toBe(true);
+    expect(isValidCourseId("CYB126")).toBe(true);
   });
 
   it("rejects a missing or malformed year suffix", () => {

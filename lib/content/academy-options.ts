@@ -14,11 +14,12 @@ export function isValidStudentId(value: string): boolean {
   return year >= 26 && year <= 99 && day >= 1 && day <= 31 && seq >= 7 && seq <= 994 && seq % 7 === 0;
 }
 
-// Course identifier: a super_admin-chosen 4-letter prefix + the 2-digit
-// creation year, e.g. CYBR26. The prefix is the only part a person enters —
-// the year is appended automatically at creation time.
-export const COURSE_ID_PREFIX_PATTERN = /^[A-Z]{4}$/;
-export const COURSE_ID_PATTERN = /^[A-Z]{4}\d{2}$/;
+// Course identifier: a super_admin-chosen 4-character prefix (3 letters +
+// a 4th character that may be a letter or digit) + the 2-digit creation
+// year, e.g. CYB126. The prefix is the only part a person enters — the
+// year is appended automatically at creation time.
+export const COURSE_ID_PREFIX_PATTERN = /^[A-Z]{3}[A-Z0-9]$/;
+export const COURSE_ID_PATTERN = /^[A-Z]{3}[A-Z0-9]\d{2}$/;
 
 export function isValidCourseIdPrefix(value: string): boolean {
   return COURSE_ID_PREFIX_PATTERN.test(value);
