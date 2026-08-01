@@ -4,6 +4,7 @@ import { getUserById } from "@/lib/db/users";
 import { approvePendingChangeAction, rejectPendingChangeAction } from "@/lib/actions/pending-changes";
 import { TARGET_LABELS, getLiveRecord, diffFields } from "@/lib/pending-changes/review";
 import ExpandableDiff from "./_components/ExpandableDiff";
+import SubmitButton from "@/app/admin/_components/SubmitButton";
 
 export default async function PendingChangesPage() {
   await requireRole(["super_admin"]);
@@ -43,12 +44,13 @@ export default async function PendingChangesPage() {
               <div className="flex flex-col items-stretch gap-2 sm:items-end">
                 <form action={approvePendingChangeAction}>
                   <input type="hidden" name="id" value={change.id} />
-                  <button
-                    type="submit"
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full bg-status-good/10 px-4 py-2 text-sm font-semibold text-status-good"
+                  <SubmitButton
+                    variant="subtle"
+                    pendingLabel="Approving..."
+                    className="w-full !border-none !bg-status-good/10 !text-status-good hover:!bg-status-good/20"
                   >
                     Approve
-                  </button>
+                  </SubmitButton>
                 </form>
                 <form action={rejectPendingChangeAction} className="flex flex-col items-stretch gap-1.5 sm:items-end">
                   <input type="hidden" name="id" value={change.id} />
@@ -58,12 +60,13 @@ export default async function PendingChangesPage() {
                     rows={2}
                     className="w-full rounded-lg border border-black/10 dark:border-white/15 px-2.5 py-1.5 text-xs dark:bg-white/5 dark:text-white sm:w-56"
                   />
-                  <button
-                    type="submit"
-                    className="flex items-center gap-1.5 rounded-full bg-status-critical/10 px-4 py-2 text-sm font-semibold text-status-critical"
+                  <SubmitButton
+                    variant="subtle"
+                    pendingLabel="Rejecting..."
+                    className="!border-none !bg-status-critical/10 !text-status-critical hover:!bg-status-critical/20"
                   >
                     Reject
-                  </button>
+                  </SubmitButton>
                 </form>
               </div>
             </div>
