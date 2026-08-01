@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "./client";
 import { users as usersTable } from "./schema";
 import { ROLES, ROLE_LABELS, type Role } from "@/lib/auth/roles";
@@ -37,6 +37,17 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
     .select()
     .from(usersTable)
     .where(eq(usersTable.email, normalizeEmail(email)));
+  return user;
+}
+
+// Resolves a viewer account by the internal id of its linked academy
+// enrollment or Starlink client row — not the human-readable Student/Client
+// ID, which callers must resolve to that internal id first.
+export async function getUserByLinkedId(viewerType: ViewerType, linkedId: string): Promise<User | undefined> {
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(and(eq(usersTable.viewerType, viewerType), eq(usersTable.linkedId, linkedId)));
   return user;
 }
 

@@ -6,7 +6,7 @@ import PasswordField from "./PasswordField";
 import SignInButton from "./SignInButton";
 import ErrorToast from "./ErrorToast";
 
-type RoleContent = { subtitle: string; errorInvalid: string };
+type RoleContent = { subtitle: string; errorInvalid: string; errorFormat: string };
 
 export default function LoginCard({
   loginAction,
@@ -14,7 +14,7 @@ export default function LoginCard({
   errorMessages,
   roleLabels,
   roleContent,
-  email,
+  identifierLabel,
   password,
   showPassword,
   hidePassword,
@@ -26,7 +26,7 @@ export default function LoginCard({
   errorMessages: { config?: string; "rate-limit"?: string };
   roleLabels: [string, string, string];
   roleContent: [RoleContent, RoleContent, RoleContent];
-  email: string;
+  identifierLabel: string;
   password: string;
   showPassword: string;
   hidePassword: string;
@@ -35,7 +35,12 @@ export default function LoginCard({
 }) {
   const [role, setRole] = useState(0);
   const content = roleContent[role];
-  const errorMessage = error === "invalid" ? content.errorInvalid : errorMessages[error as "config" | "rate-limit"];
+  const errorMessage =
+    error === "invalid"
+      ? content.errorInvalid
+      : error === "format"
+        ? content.errorFormat
+        : errorMessages[error as "config" | "rate-limit"];
 
   return (
     <>
@@ -51,13 +56,14 @@ export default function LoginCard({
 
       <form action={loginAction} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-brand-dark">
-            {email}
+          <label htmlFor="login-identifier" className="mb-1 block text-sm font-medium text-brand-dark">
+            {identifierLabel}
           </label>
           <input
-            id="login-email"
-            type="email"
-            name="email"
+            id="login-identifier"
+            type="text"
+            name="identifier"
+            autoComplete="username"
             required
             className="w-full rounded-lg border border-black/10 px-4 py-2.5 outline-none focus:border-brand-blue"
           />

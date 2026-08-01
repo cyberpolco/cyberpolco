@@ -58,6 +58,11 @@ export async function getStarlinkClientById(id: string): Promise<StarlinkClient 
   return row;
 }
 
+export async function getStarlinkClientByClientId(clientId: string): Promise<StarlinkClient | undefined> {
+  const [row] = await db.select().from(starlinkClientsTable).where(eq(starlinkClientsTable.clientId, clientId));
+  return row;
+}
+
 export async function saveStarlinkClient(client: StarlinkClient): Promise<void> {
   await db
     .insert(starlinkClientsTable)
