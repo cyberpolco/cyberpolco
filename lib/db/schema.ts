@@ -204,7 +204,25 @@ type AcademyLesson = {
   materialUrl: string | null;
   materialFileName: string | null;
 };
-type AcademyModule = { id: string; title: string; lessons: AcademyLesson[] };
+type AcademyQuizQuestion = {
+  id: string;
+  text: string;
+  options: string[];
+  correctOptionIndex: number;
+};
+// Shared shape for a module's test and the course's final exam.
+// availableAt is a datetime set by super_admin/teacher — null (never
+// scheduled) or in the future both mean students can't access it yet. This
+// is the opposite default of lessons, which are open unless explicitly
+// gated — see AGENTS.md-adjacent comment on the enrollment fee lock for the
+// lesson-side rule.
+type AcademyQuiz = {
+  id: string;
+  title: string;
+  availableAt: string | null;
+  questions: AcademyQuizQuestion[];
+};
+type AcademyModule = { id: string; title: string; lessons: AcademyLesson[]; test: AcademyQuiz | null };
 type LocalizedCourseText = { title: string; description: string };
 
 export const academyCourses = pgTable("academy_courses", {
@@ -220,9 +238,25 @@ export const academyCourses = pgTable("academy_courses", {
   // In USD cents, super_admin-only. Nullable/0 means no enrollment fee — the
   // student dashboard only paywalls lesson materials when this is set.
   enrollmentFeeCents: integer("enrollment_fee_cents"),
+  // The course-wide exam, taken after every module — same shape/rules as a
+  // per-module test above. Nullable: most existing courses won't have one.
+  finalExam: jsonb("final_exam").$type<AcademyQuiz | null>(),
   createdAt: text("created_at").notNull(),
   // Nullable — see starlinkClients.createdBy above; same reasoning.
   createdBy: text("created_by"),
+});
+
+// One row per student attempt at a module test or the final exam — insert
+// only, never updated, so a submitted score can't be silently overwritten
+// (lib/actions/academy.ts submitQuizAction rejects a second attempt outright
+// rather than allowing a retake).
+export const academyQuizSubmissions = pgTable("academy_quiz_submissions", {
+  id: text("id").primaryKey(),
+  enrollmentId: text("enrollment_id").notNull(),
+  quizId: text("quiz_id").notNull(),
+  answers: jsonb("answers").$type<Record<string, number>>().notNull(),
+  scorePercent: integer("score_percent").notNull(),
+  submittedAt: text("submitted_at").notNull(),
 });
 
 export const academyEnrollments = pgTable("academy_enrollments", {

@@ -7,6 +7,7 @@ import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BlobFileField from "@/app/admin/_components/BlobFileField";
 import { COURSE_ID_PREFIX_PATTERN } from "@/lib/content/academy-options";
 import { formatUsdCents } from "@/lib/content/money";
+import QuizEditor from "./QuizEditor";
 import type { AcademyCourse, Lesson, Module } from "@/lib/db/academy";
 
 type LessonRow = {
@@ -323,6 +324,10 @@ export default function CourseForm({
                   <Plus size={14} /> Add lesson
                 </button>
               </div>
+
+              <div className="mt-4">
+                <QuizEditor namePrefix={`module_${i}_test`} label="Module Test" quiz={row.module?.test} />
+              </div>
             </div>
           ))}
           {modules.length === 0 && (
@@ -331,6 +336,11 @@ export default function CourseForm({
             </p>
           )}
         </div>
+      </div>
+
+      <div>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-brand-blue">Final Exam</h2>
+        <QuizEditor namePrefix="finalExam" label="Final Exam" quiz={course?.finalExam} />
       </div>
 
       <SubmitButton pendingLabel={course ? "Saving..." : "Creating..."}>

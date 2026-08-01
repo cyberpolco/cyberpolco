@@ -17,14 +17,19 @@ import {
   getEnrollmentsByStudentId,
   getNextStudentId,
   markEnrollmentFeePaid,
+  getQuizSubmission,
+  saveQuizSubmission,
   type AcademyCourse,
   type AcademyEnrollment,
   type Module,
   type Lesson,
+  type Quiz,
+  type QuizQuestion,
 } from "@/lib/db/academy";
 import { isValidCourseIdPrefix } from "@/lib/content/academy-options";
 import { parseUsdToCents } from "@/lib/content/money";
 import { progressPercent } from "@/lib/academy/progress";
+import { isQuizAvailable, scoreQuiz, findQuizById, fromDatetimeLocalValue } from "@/lib/academy/quiz";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -37,6 +42,39 @@ function slugify(input: string) {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
+}
+
+// Parses a module test or the course's final exam — same field-naming
+// convention as the lesson parsing above (`${prefix}_question_${j}_...`).
+// Returns null when nothing was configured, so a course/module with no
+// quiz stays null instead of an empty-but-present Quiz object.
+function parseQuiz(formData: FormData, prefix: string): Quiz | null {
+  const title = field(formData, `${prefix}_title`);
+  const availableAtRaw = field(formData, `${prefix}_availableAt`);
+  const questionCount = Number(formData.get(`${prefix}_questionCount`) || 0);
+  if (!title && !availableAtRaw && questionCount === 0) return null;
+
+  const questions: QuizQuestion[] = [];
+  for (let j = 0; j < questionCount; j++) {
+    const optionCount = Number(formData.get(`${prefix}_question_${j}_optionCount`) || 0);
+    const options: string[] = [];
+    for (let k = 0; k < optionCount; k++) {
+      options.push(field(formData, `${prefix}_question_${j}_option_${k}`));
+    }
+    questions.push({
+      id: field(formData, `${prefix}_question_${j}_id`) || crypto.randomUUID(),
+      text: field(formData, `${prefix}_question_${j}_text`),
+      options,
+      correctOptionIndex: Number(formData.get(`${prefix}_question_${j}_correctOption`) || 0),
+    });
+  }
+
+  return {
+    id: field(formData, `${prefix}_id`) || crypto.randomUUID(),
+    title,
+    availableAt: fromDatetimeLocalValue(availableAtRaw),
+    questions,
+  };
 }
 
 function parseModules(formData: FormData): Module[] {
@@ -61,6 +99,7 @@ function parseModules(formData: FormData): Module[] {
       id: field(formData, `module_${i}_id`) || crypto.randomUUID(),
       title: field(formData, `module_${i}_title`),
       lessons,
+      test: parseQuiz(formData, `module_${i}_test`),
     });
   }
 
@@ -116,6 +155,7 @@ export async function upsertAcademyCourseAction(formData: FormData) {
     en: { title: titleEn, description: field(formData, "description_en") },
     modules: parseModules(formData),
     enrollmentFeeCents,
+    finalExam: parseQuiz(formData, "finalExam"),
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     createdBy: existing ? existing.createdBy : session.userId,
   };
@@ -336,4 +376,42 @@ export async function selfEnrollAction(formData: FormData) {
   revalidatePath("/admin/academy/my-courses");
   revalidatePath("/admin/dashboard");
   redirect("/admin/academy/my-courses");
+}
+
+// One attempt per quiz, ever — a submission is never overwritten (see the
+// schema.ts comment on academyQuizSubmissions). Re-checks availability
+// server-side since the "Take test" link being hidden is just UX.
+export async function submitQuizAction(formData: FormData) {
+  const session = await requireRole(["viewer"]);
+  const { studentId } = await requireOwnEnrollment(session);
+
+  const enrollment = await getAcademyEnrollmentById(field(formData, "enrollmentId"));
+  if (!enrollment || enrollment.studentId !== studentId) redirect("/admin/academy/my-courses");
+
+  const course = await getAcademyCourseById(enrollment.courseId);
+  const quizId = field(formData, "quizId");
+  const quiz = findQuizById(course, quizId);
+  const resultPath = `/admin/academy/my-courses/${enrollment.id}/quiz/${quizId}`;
+  if (!quiz || !isQuizAvailable(quiz, new Date())) redirect(resultPath);
+
+  const alreadySubmitted = await getQuizSubmission(enrollment.id, quizId);
+  if (alreadySubmitted) redirect(resultPath);
+
+  const answers: Record<string, number> = {};
+  for (const q of quiz.questions) {
+    const selected = formData.get(`question_${q.id}`);
+    if (selected !== null) answers[q.id] = Number(selected);
+  }
+
+  await saveQuizSubmission({
+    id: crypto.randomUUID(),
+    enrollmentId: enrollment.id,
+    quizId,
+    answers,
+    scorePercent: scoreQuiz(quiz, answers),
+    submittedAt: new Date().toISOString(),
+  });
+
+  revalidatePath(resultPath);
+  redirect(resultPath);
 }

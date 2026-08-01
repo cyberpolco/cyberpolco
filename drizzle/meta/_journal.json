@@ -92,6 +92,13 @@
       "when": 1785548294486,
       "tag": "0012_wakeful_ares",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1785552732916,
+      "tag": "0013_daily_magma",
+      "breakpoints": true
     }
   ]
 }

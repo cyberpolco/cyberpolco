@@ -10,12 +10,14 @@ function makeCourse(lessonsPerModule: number[], overrides: Partial<AcademyCourse
     fr: { title: "Cours", description: "" },
     en: { title: "Course", description: "" },
     enrollmentFeeCents: null,
+    finalExam: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     createdBy: null,
     ...overrides,
     modules: lessonsPerModule.map((count, mIndex) => ({
       id: `module-${mIndex}`,
       title: `Module ${mIndex}`,
+      test: null,
       lessons: Array.from({ length: count }, (_, lIndex) => ({
         id: `m${mIndex}-l${lIndex}`,
         title: `Lesson ${lIndex}`,

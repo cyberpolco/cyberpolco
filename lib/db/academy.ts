@@ -1,6 +1,10 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "./client";
-import { academyCourses as academyCoursesTable, academyEnrollments as academyEnrollmentsTable } from "./schema";
+import {
+  academyCourses as academyCoursesTable,
+  academyEnrollments as academyEnrollmentsTable,
+  academyQuizSubmissions as academyQuizSubmissionsTable,
+} from "./schema";
 import { progressPercent } from "@/lib/academy/progress";
 
 export type Lesson = {
@@ -10,7 +14,19 @@ export type Lesson = {
   materialUrl: string | null;
   materialFileName: string | null;
 };
-export type Module = { id: string; title: string; lessons: Lesson[] };
+export type QuizQuestion = {
+  id: string;
+  text: string;
+  options: string[];
+  correctOptionIndex: number;
+};
+export type Quiz = {
+  id: string;
+  title: string;
+  availableAt: string | null;
+  questions: QuizQuestion[];
+};
+export type Module = { id: string; title: string; lessons: Lesson[]; test: Quiz | null };
 export type LocalizedCourseText = { title: string; description: string };
 
 export type AcademyCourse = {
@@ -21,8 +37,18 @@ export type AcademyCourse = {
   en: LocalizedCourseText;
   modules: Module[];
   enrollmentFeeCents: number | null;
+  finalExam: Quiz | null;
   createdAt: string;
   createdBy: string | null;
+};
+
+export type QuizSubmission = {
+  id: string;
+  enrollmentId: string;
+  quizId: string;
+  answers: Record<string, number>;
+  scorePercent: number;
+  submittedAt: string;
 };
 
 export type AcademyEnrollment = {
@@ -128,6 +154,30 @@ export async function markEnrollmentFeePaid(id: string): Promise<void> {
 
 export async function deleteAcademyEnrollment(id: string): Promise<void> {
   await db.delete(academyEnrollmentsTable).where(eq(academyEnrollmentsTable.id, id));
+}
+
+export async function getQuizSubmission(
+  enrollmentId: string,
+  quizId: string
+): Promise<QuizSubmission | undefined> {
+  const [row] = await db
+    .select()
+    .from(academyQuizSubmissionsTable)
+    .where(and(eq(academyQuizSubmissionsTable.enrollmentId, enrollmentId), eq(academyQuizSubmissionsTable.quizId, quizId)));
+  return row;
+}
+
+export async function getQuizSubmissionsForEnrollment(enrollmentId: string): Promise<QuizSubmission[]> {
+  return db
+    .select()
+    .from(academyQuizSubmissionsTable)
+    .where(eq(academyQuizSubmissionsTable.enrollmentId, enrollmentId));
+}
+
+// Insert only — a submission is never updated (see the identical comment on
+// the academyQuizSubmissions table in schema.ts).
+export async function saveQuizSubmission(submission: QuizSubmission): Promise<void> {
+  await db.insert(academyQuizSubmissionsTable).values(submission);
 }
 
 /**
