@@ -22,10 +22,10 @@ import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
 import type { Role } from "@/lib/auth/roles";
 import type { ViewerType } from "@/lib/db/users";
-import { getStarlinkClientById, getStarlinkClients, countOpenHelpRequests } from "@/lib/db/starlink";
+import { getStarlinkClientById, getOpenHelpRequestsCount } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById } from "@/lib/db/academy";
 import { getUnreadInquiriesCount } from "@/lib/db/inquiries";
-import { getPendingChanges } from "@/lib/db/pending-changes";
+import { getPendingChangesCount } from "@/lib/db/pending-changes";
 import { getUserById } from "@/lib/db/users";
 import ThemeToggle from "@/app/admin/_components/ThemeToggle";
 import MobileNav from "@/app/admin/_components/MobileNav";
@@ -195,11 +195,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Only super_admin has a "Pending changes" nav item at all — see navItems.
   const pendingChangesCount =
-    session?.role === "super_admin" ? (await getPendingChanges("pending")).length : 0;
+    session?.role === "super_admin" ? await getPendingChangesCount("pending") : 0;
 
   // Only super_admin/technician manage Starlink clients at all.
   const canSeeStarlink = session?.role === "super_admin" || session?.role === "technician";
-  const openHelpRequestCount = canSeeStarlink ? countOpenHelpRequests(await getStarlinkClients()) : 0;
+  const openHelpRequestCount = canSeeStarlink ? await getOpenHelpRequestsCount() : 0;
 
   const BADGE_COUNTS_BY_HREF: Record<string, number> = {
     "/admin/inquiries": unreadInquiriesCount,

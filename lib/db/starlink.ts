@@ -169,8 +169,15 @@ export async function getStarlinkStats(): Promise<StarlinkStats> {
 // Total number of sites (across every client) with an open help request —
 // counts sites, not clients, so one client with 2 sites both requesting
 // help contributes 2, not 1. Used for the admin nav badge.
-export function countOpenHelpRequests(clients: StarlinkClient[]): number {
+export function countOpenHelpRequests(clients: { sites: StarlinkSite[] }[]): number {
   return clients.reduce((sum, c) => sum + c.sites.filter((s) => s.helpRequestedAt).length, 0);
+}
+
+// Count-only variant for the nav badge — selects just the sites column
+// instead of every client's name/email/phone/etc.
+export async function getOpenHelpRequestsCount(): Promise<number> {
+  const rows = await db.select({ sites: starlinkClientsTable.sites }).from(starlinkClientsTable);
+  return countOpenHelpRequests(rows);
 }
 
 /**

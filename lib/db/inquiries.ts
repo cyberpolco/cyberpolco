@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { db } from "./client";
 import { inquiries as inquiriesTable } from "./schema";
 import { monthlyTrend } from "@/lib/utils/monthly-trend";
@@ -44,11 +44,11 @@ export async function deleteInquiry(id: string): Promise<void> {
 }
 
 export async function getUnreadInquiriesCount(): Promise<number> {
-  const rows = await db
-    .select({ id: inquiriesTable.id })
+  const [row] = await db
+    .select({ value: count() })
     .from(inquiriesTable)
     .where(eq(inquiriesTable.read, false));
-  return rows.length;
+  return row?.value ?? 0;
 }
 
 export type InquiriesStats = {

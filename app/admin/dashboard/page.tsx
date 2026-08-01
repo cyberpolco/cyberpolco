@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Newspaper, Briefcase, FileText, Eye, GraduationCap, Users, Award, SatelliteDish } from "lucide-react";
-import { getArticles, getTopArticlesByViews, getTopArticlesByShares } from "@/lib/db/articles";
+import { getArticles, topArticlesByViews, topArticlesByShares } from "@/lib/db/articles";
 import { getJobs } from "@/lib/db/jobs";
 import { getInquiriesStats } from "@/lib/db/inquiries";
 import { getApplications, getApplicationsStats } from "@/lib/db/applications";
@@ -43,13 +43,9 @@ export default async function DashboardPage() {
     return <AcademyViewerDashboard enrollments={enrollments} courses={courses} />;
   }
 
-  const [articles, jobs, applications, topByViews, topByShares] = await Promise.all([
-    getArticles(),
-    getJobs(),
-    getApplications(),
-    getTopArticlesByViews(5),
-    getTopArticlesByShares(5),
-  ]);
+  const [articles, jobs, applications] = await Promise.all([getArticles(), getJobs(), getApplications()]);
+  const topByViews = topArticlesByViews(articles, 5);
+  const topByShares = topArticlesByShares(articles, 5);
 
   const openJobs = jobs.filter((j) => j.status === "open").length;
   const totalViews = articles.reduce((sum, a) => sum + (a.viewCount ?? 0), 0);

@@ -55,12 +55,10 @@ export async function incrementArticleShare(slug: string): Promise<void> {
     .where(eq(articlesTable.slug, slug));
 }
 
-export async function getTopArticlesByViews(count: number): Promise<Article[]> {
-  const items = await getArticles();
+export function topArticlesByViews(items: Article[], count: number): Article[] {
   return [...items].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0)).slice(0, count);
 }
 
-export async function getTopArticlesByShares(count: number): Promise<Article[]> {
-  const items = await getArticles();
+export function topArticlesByShares(items: Article[], count: number): Article[] {
   return [...items].sort((a, b) => (b.shareCount ?? 0) - (a.shareCount ?? 0)).slice(0, count);
 }

@@ -19,22 +19,35 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("home");
-  const latestArticles = await getLatestArticles(3);
-  const services = await getServices();
-  const { stats } = await getSettings();
-  const [hero, mission, vision, map, servicesIntro, clientsIntro, statsIntro, articlesIntro, finalCta] =
-    await Promise.all([
-      getBlock("home.hero", locale),
-      getBlock("home.mission", locale),
-      getBlock("home.vision", locale),
-      getBlock("home.map", locale),
-      getBlock("home.servicesIntro", locale),
-      getBlock("home.clientsIntro", locale),
-      getBlock("home.statsIntro", locale),
-      getBlock("home.articlesIntro", locale),
-      getBlock("home.finalCta", locale),
-    ]);
+  const [
+    t,
+    latestArticles,
+    services,
+    { stats },
+    hero,
+    mission,
+    vision,
+    map,
+    servicesIntro,
+    clientsIntro,
+    statsIntro,
+    articlesIntro,
+    finalCta,
+  ] = await Promise.all([
+    getTranslations("home"),
+    getLatestArticles(3),
+    getServices(),
+    getSettings(),
+    getBlock("home.hero", locale),
+    getBlock("home.mission", locale),
+    getBlock("home.vision", locale),
+    getBlock("home.map", locale),
+    getBlock("home.servicesIntro", locale),
+    getBlock("home.clientsIntro", locale),
+    getBlock("home.statsIntro", locale),
+    getBlock("home.articlesIntro", locale),
+    getBlock("home.finalCta", locale),
+  ]);
 
   const heroParticles = [
     { top: "12%", left: "8%", size: 3, color: "bg-brand-blue", duration: "6s", twinkle: "3.2s", delay: "0s" },

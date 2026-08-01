@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { db } from "./client";
 import { pendingChanges as pendingChangesTable } from "./schema";
 
@@ -51,6 +51,15 @@ export async function getPendingChanges(status?: PendingChangeStatus): Promise<P
     ? await db.select().from(pendingChangesTable).where(eq(pendingChangesTable.status, status))
     : await db.select().from(pendingChangesTable);
   return (items as PendingChange[]).sort((a, b) => (a.proposedAt < b.proposedAt ? 1 : -1));
+}
+
+// Count-only variant for the nav badge — avoids transferring every pending
+// row's jsonb proposedData just to read rows.length.
+export async function getPendingChangesCount(status?: PendingChangeStatus): Promise<number> {
+  const [row] = status
+    ? await db.select({ value: count() }).from(pendingChangesTable).where(eq(pendingChangesTable.status, status))
+    : await db.select({ value: count() }).from(pendingChangesTable);
+  return row?.value ?? 0;
 }
 
 export async function getPendingChangeById(id: string): Promise<PendingChange | undefined> {
