@@ -54,6 +54,7 @@ export default async function MyInfoPage() {
                     <h2 className="font-semibold">{site.siteName}</h2>
                   </div>
                   <dl className="mt-4 space-y-2 text-sm">
+                    <Row label="Site ID" value={site.kitClientId ?? "—"} />
                     <Row label="Subscription" value={STARLINK_OPTION_LABELS.subscriptionType[site.subscriptionType]} />
                     <Row label="Price" value={`${formatUsdCents(priceCents)}/mo`} />
                     <Row label="Dish type" value={STARLINK_OPTION_LABELS.dishType[site.dishType]} />
