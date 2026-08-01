@@ -12,7 +12,9 @@ const csp = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
   "connect-src 'self' https://api.resend.com https://cdn.jsdelivr.net https://vercel.com https://*.public.blob.vercel-storage.com https://challenges.cloudflare.com",
-  "frame-src https://challenges.cloudflare.com",
+  // Blob storage is also in frame-src so lesson-material PDFs can render
+  // inline (see LessonMaterialViewer) instead of opening in a new tab.
+  "frame-src https://challenges.cloudflare.com https://*.public.blob.vercel-storage.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

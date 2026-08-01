@@ -44,7 +44,11 @@ const ROUTE_RULES: RouteRule[] = [
   // that finer-grained distinction is enforced in the Server Actions
   // themselves (lib/actions/starlink.ts, lib/actions/academy.ts), not here.
   { prefix: "/admin/starlink", roles: ["super_admin", "technician"] },
-  { prefix: "/admin/academy", roles: ["super_admin", "teacher"] },
+  // "viewer" here is for the academy_student self-service portal
+  // (my-courses/progress/profile) — those pages check session.viewerType
+  // themselves; the teacher/admin pages under this prefix still gate to
+  // super_admin/teacher individually, unaffected by this broader rule.
+  { prefix: "/admin/academy", roles: ["super_admin", "teacher", "viewer"] },
   { prefix: "/admin/pending-changes", roles: ["super_admin"] },
 ];
 

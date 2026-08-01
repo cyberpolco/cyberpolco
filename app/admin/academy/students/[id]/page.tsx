@@ -19,7 +19,6 @@ export default async function StudentDetailPage({
   if (!enrollment) notFound();
 
   const course = await getAcademyCourseById(enrollment.courseId);
-  const allLessonIds = (course?.modules ?? []).flatMap((m) => m.lessons.map((l) => l.id));
   const percent = progressPercent(enrollment, course);
 
   const users = await getUsers();
@@ -69,8 +68,8 @@ export default async function StudentDetailPage({
         <StudentProgressForm
           enrollmentId={enrollment.id}
           modules={course?.modules ?? []}
-          allLessonIds={allLessonIds}
           completedLessonIds={enrollment.completedLessonIds}
+          isComplete={percent === 100}
           certificateIssued={enrollment.certificateIssued}
           certificateFileUrl={enrollment.certificateFileUrl}
         />

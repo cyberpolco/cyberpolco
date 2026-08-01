@@ -11,10 +11,14 @@ import {
   SatelliteDish,
   GraduationCap,
   ClipboardCheck,
+  BookOpen,
+  TrendingUp,
+  UserCircle,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
 import type { Role } from "@/lib/auth/roles";
+import type { ViewerType } from "@/lib/db/users";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById } from "@/lib/db/academy";
 import { getUnreadInquiriesCount } from "@/lib/db/inquiries";
@@ -34,7 +38,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const navItems: { href: string; label: string; icon: typeof LayoutDashboard; roles: Role[] }[] = [
+const navItems: {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  roles: Role[];
+  // When set, further restricts a "viewer" role entry to a specific
+  // viewerType — e.g. the academy_student self-service pages shouldn't show
+  // up for starlink_client viewers.
+  viewerTypes?: ViewerType[];
+}[] = [
   {
     href: "/admin/dashboard",
     label: "Dashboard",
@@ -68,6 +81,27 @@ const navItems: { href: string; label: string; icon: typeof LayoutDashboard; rol
     label: "Cyber PolCo Academy",
     icon: GraduationCap,
     roles: ["super_admin", "teacher"],
+  },
+  {
+    href: "/admin/academy/my-courses",
+    label: "My Courses",
+    icon: BookOpen,
+    roles: ["viewer"],
+    viewerTypes: ["academy_student"],
+  },
+  {
+    href: "/admin/academy/progress",
+    label: "Progress Report",
+    icon: TrendingUp,
+    roles: ["viewer"],
+    viewerTypes: ["academy_student"],
+  },
+  {
+    href: "/admin/academy/profile",
+    label: "My Information",
+    icon: UserCircle,
+    roles: ["viewer"],
+    viewerTypes: ["academy_student"],
   },
   {
     href: "/admin/pending-changes",
@@ -106,7 +140,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getSession();
   const showChrome = Boolean(session) && !session?.mustChangePassword;
   const visibleNavItems = session
-    ? navItems.filter((item) => item.roles.includes(session.role))
+    ? navItems.filter(
+        (item) =>
+          item.roles.includes(session.role) &&
+          (!item.viewerTypes || (session.viewerType && item.viewerTypes.includes(session.viewerType)))
+      )
     : [];
   const roleBadge = await getRoleBadge(session);
 

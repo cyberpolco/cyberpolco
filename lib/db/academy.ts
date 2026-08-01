@@ -86,6 +86,15 @@ export async function getEnrollmentByStudentId(studentId: string): Promise<Acade
   return row;
 }
 
+// A student can be enrolled in several courses (one row per course, all
+// sharing the same studentId — see getNextStudentId), but users.linkedId
+// only points at one of those rows. The student-facing portal resolves the
+// studentId from that one linked row, then uses this to fetch every course
+// they're enrolled in.
+export async function getEnrollmentsByStudentId(studentId: string): Promise<AcademyEnrollment[]> {
+  return db.select().from(academyEnrollmentsTable).where(eq(academyEnrollmentsTable.studentId, studentId));
+}
+
 /** One row per distinct student (deduped from possibly-many course rows), for the "existing student" picker. */
 export async function getDistinctStudents(): Promise<
   Pick<AcademyEnrollment, "studentId" | "studentName" | "email" | "phone">[]

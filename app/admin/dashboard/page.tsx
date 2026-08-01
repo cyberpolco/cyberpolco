@@ -5,7 +5,7 @@ import { getJobs } from "@/lib/db/jobs";
 import { getInquiriesStats } from "@/lib/db/inquiries";
 import { getApplications, getApplicationsStats } from "@/lib/db/applications";
 import { getStarlinkClientById, getStarlinkStats } from "@/lib/db/starlink";
-import { getAcademyEnrollmentById, getAcademyCourseById, getAcademyStats } from "@/lib/db/academy";
+import { getAcademyEnrollmentById, getEnrollmentsByStudentId, getAcademyCourses, getAcademyStats } from "@/lib/db/academy";
 import { getSettings } from "@/lib/db/settings";
 import { getUsersStats } from "@/lib/db/users";
 import { getSession } from "@/lib/auth/rbac";
@@ -39,9 +39,12 @@ export default async function DashboardPage() {
   }
 
   if (role === "viewer" && session?.viewerType === "academy_student") {
-    const enrollment = session.linkedId ? await getAcademyEnrollmentById(session.linkedId) : undefined;
-    const course = enrollment ? await getAcademyCourseById(enrollment.courseId) : undefined;
-    return <AcademyViewerDashboard enrollment={enrollment} course={course} />;
+    const linkedEnrollment = session.linkedId ? await getAcademyEnrollmentById(session.linkedId) : undefined;
+    const [enrollments, courses] = await Promise.all([
+      linkedEnrollment ? getEnrollmentsByStudentId(linkedEnrollment.studentId) : Promise.resolve([]),
+      getAcademyCourses(),
+    ]);
+    return <AcademyViewerDashboard enrollments={enrollments} courses={courses} />;
   }
 
   const [articles, jobs, applications, topByViews, topByShares] = await Promise.all([

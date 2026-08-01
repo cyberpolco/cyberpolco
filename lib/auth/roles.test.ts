@@ -37,8 +37,8 @@ describe("isRouteAllowed", () => {
     expect(rolesAllowedFor("/admin/starlink")).toEqual(["super_admin", "technician"]);
   });
 
-  it("restricts Academy to super_admin and teacher", () => {
-    expect(rolesAllowedFor("/admin/academy")).toEqual(["super_admin", "teacher"]);
+  it("restricts Academy to super_admin, teacher, and viewer (academy_student self-service)", () => {
+    expect(rolesAllowedFor("/admin/academy")).toEqual(["super_admin", "teacher", "viewer"]);
   });
 
   it("does not let technician into Academy or teacher into Starlink", () => {
