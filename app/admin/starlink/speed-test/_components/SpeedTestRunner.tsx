@@ -6,6 +6,14 @@ import { computeMbps, generateRandomPayload, DEFAULT_DOWNLOAD_BYTES, UPLOAD_BYTE
 
 type Phase = "idle" | "ping" | "download" | "upload" | "done" | "error";
 
+// Each of download/upload runs 3 times and averages, to smooth out one-off
+// network blips — ping already averages 3 round-trips on its own.
+const TEST_RUNS = 3;
+
+function average(values: number[]): number {
+  return Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
+}
+
 async function measurePing(): Promise<number> {
   const samples: number[] = [];
   for (let i = 0; i < 3; i++) {
@@ -17,9 +25,9 @@ async function measurePing(): Promise<number> {
   return Math.round(samples.reduce((a, b) => a + b, 0) / samples.length);
 }
 
-async function measureDownload(): Promise<number> {
+async function measureDownloadOnce(runIndex: number): Promise<number> {
   const start = performance.now();
-  const res = await fetch(`/api/speedtest/download?size=${DEFAULT_DOWNLOAD_BYTES}&_=${Date.now()}`, {
+  const res = await fetch(`/api/speedtest/download?size=${DEFAULT_DOWNLOAD_BYTES}&_=${Date.now()}-${runIndex}`, {
     cache: "no-store",
   });
   if (!res.ok) throw new Error("download failed");
@@ -28,7 +36,7 @@ async function measureDownload(): Promise<number> {
   return computeMbps(buf.byteLength, seconds);
 }
 
-async function measureUpload(): Promise<number> {
+async function measureUploadOnce(): Promise<number> {
   const payload = generateRandomPayload(UPLOAD_BYTES);
   const start = performance.now();
   const res = await fetch("/api/speedtest/upload", {
@@ -41,8 +49,27 @@ async function measureUpload(): Promise<number> {
   return computeMbps(payload.byteLength, seconds);
 }
 
+async function measureDownload(onRun: (run: number) => void): Promise<number> {
+  const results: number[] = [];
+  for (let i = 0; i < TEST_RUNS; i++) {
+    onRun(i + 1);
+    results.push(await measureDownloadOnce(i));
+  }
+  return average(results);
+}
+
+async function measureUpload(onRun: (run: number) => void): Promise<number> {
+  const results: number[] = [];
+  for (let i = 0; i < TEST_RUNS; i++) {
+    onRun(i + 1);
+    results.push(await measureUploadOnce());
+  }
+  return average(results);
+}
+
 export default function SpeedTestRunner() {
   const [phase, setPhase] = useState<Phase>("idle");
+  const [run, setRun] = useState(0);
   const [ping, setPing] = useState<number | null>(null);
   const [download, setDownload] = useState<number | null>(null);
   const [upload, setUpload] = useState<number | null>(null);
@@ -51,19 +78,27 @@ export default function SpeedTestRunner() {
 
   async function runTest() {
     setPhase("ping");
+    setRun(0);
     setPing(null);
     setDownload(null);
     setUpload(null);
     try {
       setPing(await measurePing());
       setPhase("download");
-      setDownload(await measureDownload());
+      setDownload(await measureDownload(setRun));
       setPhase("upload");
-      setUpload(await measureUpload());
+      setRun(0);
+      setUpload(await measureUpload(setRun));
       setPhase("done");
     } catch {
       setPhase("error");
     }
+  }
+
+  function status(phaseKey: Phase): string {
+    return phaseKey === "download" || phaseKey === "upload"
+      ? `Testing (${run}/${TEST_RUNS})...`
+      : "Testing...";
   }
 
   return (
@@ -73,17 +108,17 @@ export default function SpeedTestRunner() {
           <Tile
             icon={Wifi}
             label="Ping"
-            value={ping !== null ? `${ping} ms` : phase === "ping" ? "Testing..." : "—"}
+            value={ping !== null ? `${ping} ms` : phase === "ping" ? status(phase) : "—"}
           />
           <Tile
             icon={Download}
-            label="Download"
-            value={download !== null ? `${download} Mbps` : phase === "download" ? "Testing..." : "—"}
+            label="Download (avg of 3)"
+            value={download !== null ? `${download} Mbps` : phase === "download" ? status(phase) : "—"}
           />
           <Tile
             icon={Upload}
-            label="Upload"
-            value={upload !== null ? `${upload} Mbps` : phase === "upload" ? "Testing..." : "—"}
+            label="Upload (avg of 3)"
+            value={upload !== null ? `${upload} Mbps` : phase === "upload" ? status(phase) : "—"}
           />
         </div>
 
