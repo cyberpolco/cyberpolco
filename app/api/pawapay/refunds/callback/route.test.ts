@@ -3,9 +3,11 @@ import { NextRequest } from "next/server";
 
 vi.mock("@/lib/pawapay/verify", () => ({ verifyPawaPayCallback: vi.fn() }));
 vi.mock("@/lib/db/payments", () => ({ upsertPawaPayTransaction: vi.fn() }));
+vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn(), getClientIp: vi.fn(() => "1.2.3.4") }));
 
 const { verifyPawaPayCallback } = await import("@/lib/pawapay/verify");
 const { upsertPawaPayTransaction } = await import("@/lib/db/payments");
+const { checkRateLimit } = await import("@/lib/rate-limit");
 const { POST } = await import("./route");
 
 function makeRequest(body: unknown) {
@@ -21,6 +23,7 @@ describe("POST /api/pawapay/refunds/callback", () => {
     vi.clearAllMocks();
     vi.mocked(verifyPawaPayCallback).mockReturnValue(true);
     vi.mocked(upsertPawaPayTransaction).mockResolvedValue(undefined);
+    vi.mocked(checkRateLimit).mockResolvedValue({ success: true, remaining: 29 });
   });
 
   it("returns 401 when signature verification fails", async () => {

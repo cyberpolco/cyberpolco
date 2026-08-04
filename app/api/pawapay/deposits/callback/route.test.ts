@@ -3,9 +3,11 @@ import { NextRequest } from "next/server";
 
 vi.mock("@/lib/pawapay/verify", () => ({ verifyPawaPayCallback: vi.fn() }));
 vi.mock("@/lib/db/payments", () => ({ upsertPawaPayTransaction: vi.fn() }));
+vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn(), getClientIp: vi.fn(() => "1.2.3.4") }));
 
 const { verifyPawaPayCallback } = await import("@/lib/pawapay/verify");
 const { upsertPawaPayTransaction } = await import("@/lib/db/payments");
+const { checkRateLimit } = await import("@/lib/rate-limit");
 const { POST } = await import("./route");
 
 const validPayload = { depositId: "dep-123", status: "COMPLETED", amount: "10.00", currency: "ZMW" };
@@ -23,6 +25,15 @@ describe("POST /api/pawapay/deposits/callback", () => {
     vi.clearAllMocks();
     vi.mocked(verifyPawaPayCallback).mockReturnValue(true);
     vi.mocked(upsertPawaPayTransaction).mockResolvedValue(undefined);
+    vi.mocked(checkRateLimit).mockResolvedValue({ success: true, remaining: 29 });
+  });
+
+  it("returns 429 and never checks the signature when rate limited", async () => {
+    vi.mocked(checkRateLimit).mockResolvedValue({ success: false, remaining: 0 });
+    const res = await POST(makeRequest(validPayload));
+    expect(res.status).toBe(429);
+    expect(verifyPawaPayCallback).not.toHaveBeenCalled();
+    expect(upsertPawaPayTransaction).not.toHaveBeenCalled();
   });
 
   it("returns 401 and never touches the DB when signature verification fails", async () => {
