@@ -48,6 +48,10 @@ export async function updateApplicationNotes(id: string, notes: string): Promise
   return record;
 }
 
+export async function deleteApplication(id: string): Promise<void> {
+  await db.delete(applicationsTable).where(eq(applicationsTable.id, id));
+}
+
 export type ApplicationsStats = {
   byStage: { label: string; value: number }[];
   perMonth: { label: string; value: number }[];

@@ -3,6 +3,7 @@ import { toggleInquiryReadAction, deleteInquiryAction } from "@/lib/actions/inqu
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 import { requireRole } from "@/lib/auth/rbac";
+import { formatDateTime } from "@/lib/utils/date-format";
 
 export default async function InquiriesPage() {
   const session = await requireRole(["super_admin", "hr_recruiter", "technician", "teacher"]);
@@ -50,7 +51,7 @@ export default async function InquiriesPage() {
             </div>
             <p className="mt-3 whitespace-pre-line text-sm text-brand-gray dark:text-white/60">{inq.message}</p>
             <p className="mt-3 text-xs text-brand-gray/70 dark:text-white/50">
-              {new Date(inq.createdAt).toLocaleString()}
+              {formatDateTime(inq.createdAt)}
             </p>
           </div>
         ))}

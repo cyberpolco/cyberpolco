@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { getPendingChangesByProposer } from "@/lib/db/pending-changes";
 import { getUserById } from "@/lib/db/users";
 import { TARGET_LABELS, getLiveRecord, diffFields } from "@/lib/pending-changes/review";
+import { formatDateTime } from "@/lib/utils/date-format";
 import ExpandableDiff from "@/app/admin/pending-changes/_components/ExpandableDiff";
 
 const STATUS_BADGE: Record<string, string> = {
@@ -45,7 +46,7 @@ export default async function MySubmissionsPage() {
                   {TARGET_LABELS[change.targetTable]}
                 </p>
                 <p className="text-sm text-brand-gray dark:text-white/60">
-                  Submitted {new Date(change.proposedAt).toLocaleString()}
+                  Submitted {formatDateTime(change.proposedAt)}
                 </p>
               </div>
               <span
@@ -58,7 +59,7 @@ export default async function MySubmissionsPage() {
             {change.status !== "pending" && (
               <p className="mt-2 text-sm text-brand-gray dark:text-white/60">
                 {change.status === "approved" ? "Approved" : "Rejected"} by {reviewerEmail ?? "a super admin"}
-                {change.reviewedAt && ` · ${new Date(change.reviewedAt).toLocaleString()}`}
+                {change.reviewedAt && ` · ${formatDateTime(change.reviewedAt)}`}
               </p>
             )}
 

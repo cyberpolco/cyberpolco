@@ -3,6 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { requestTechnicianHelpAction } from "@/lib/actions/starlink";
+import { formatDateTime } from "@/lib/utils/date-format";
 import HelpRequestButton from "./_components/HelpRequestButton";
 
 export default async function GetHelpPage() {
@@ -47,10 +48,10 @@ export default async function GetHelpPage() {
                   </div>
                   <div className="mt-4 max-w-[14rem] space-y-1 text-xs">
                     <p className="font-medium text-brand-dark dark:text-white">
-                      Sent {new Date(site.helpRequestedAt).toLocaleString()}
+                      Sent {formatDateTime(site.helpRequestedAt)}
                     </p>
                     <p className="italic text-brand-gray dark:text-white/60">
-                      Envoyé le {new Date(site.helpRequestedAt).toLocaleString()}
+                      Envoyé le {formatDateTime(site.helpRequestedAt)}
                     </p>
                   </div>
                 </div>

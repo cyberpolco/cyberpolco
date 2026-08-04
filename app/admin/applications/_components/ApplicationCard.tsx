@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import type { Application, Stage } from "@/lib/types/applications";
+import { formatDate } from "@/lib/utils/date-format";
 import StageSelect from "./StageSelect";
 
 export default function ApplicationCard({
@@ -56,7 +57,7 @@ export default function ApplicationCard({
       </div>
 
       <p className="mt-2 text-[11px] text-brand-gray/70 dark:text-white/50">
-        {new Date(application.createdAt).toLocaleDateString()}
+        {formatDate(application.createdAt)}
       </p>
     </div>
   );

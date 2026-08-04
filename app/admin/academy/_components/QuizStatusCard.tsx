@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Lock, FileQuestion } from "lucide-react";
 import { isQuizAvailable } from "@/lib/academy/quiz";
 import type { Quiz, QuizSubmission } from "@/lib/db/academy";
+import { formatDateTime } from "@/lib/utils/date-format";
 
 export default function QuizStatusCard({
   label,
@@ -39,7 +40,7 @@ export default function QuizStatusCard({
         ) : (
           <span className="flex items-center gap-1 rounded-full bg-black/5 dark:bg-white/10 px-2.5 py-0.5 text-xs font-medium text-brand-gray dark:text-white/60">
             <Lock size={11} />
-            {quiz.availableAt ? `Available ${new Date(quiz.availableAt).toLocaleString()}` : "Not yet scheduled"}
+            {quiz.availableAt ? `Available ${formatDateTime(quiz.availableAt)}` : "Not yet scheduled"}
           </span>
         )}
       </div>

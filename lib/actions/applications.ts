@@ -6,6 +6,7 @@ import {
   getApplicationById,
   updateApplicationStage,
   updateApplicationNotes,
+  deleteApplication,
   STAGES,
   type Stage,
 } from "@/lib/db/applications";
@@ -41,4 +42,12 @@ export async function updateApplicationNotesAction(id: string, notes: string) {
 
   await updateApplicationNotes(id, notes);
   revalidatePath(`/admin/applications/${id}`);
+}
+
+export async function deleteApplicationAction(formData: FormData) {
+  await requireRole(["super_admin"]);
+
+  const id = String(formData.get("id") || "");
+  await deleteApplication(id);
+  revalidatePath("/admin/applications");
 }

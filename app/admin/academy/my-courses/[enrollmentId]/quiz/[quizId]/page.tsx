@@ -8,6 +8,7 @@ import { submitQuizAction } from "@/lib/actions/academy";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BackLink from "@/app/admin/_components/BackLink";
 import NextStepLink from "@/app/admin/academy/_components/NextStepLink";
+import { formatDateTime } from "@/lib/utils/date-format";
 
 export default async function QuizPage({
   params,
@@ -32,7 +33,7 @@ export default async function QuizPage({
         <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">{quiz.title}</h1>
         <p className="mt-4 rounded-2xl border border-dashed border-black/15 dark:border-white/15 p-6 text-sm text-brand-gray dark:text-white/60">
           {quiz.availableAt
-            ? `This isn't available yet — it opens ${new Date(quiz.availableAt).toLocaleString()}.`
+            ? `This isn't available yet — it opens ${formatDateTime(quiz.availableAt)}.`
             : "This hasn't been scheduled yet by your instructor."}
         </p>
       </div>
@@ -45,7 +46,7 @@ export default async function QuizPage({
         <BackLink href={backHref} label={`Back to ${course.en.title}`} />
         <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">{quiz.title}</h1>
         <p className="mt-1 text-brand-gray dark:text-white/60">
-          Submitted {new Date(submission.submittedAt).toLocaleString()} — Score: {submission.scorePercent}%
+          Submitted {formatDateTime(submission.submittedAt)} — Score: {submission.scorePercent}%
         </p>
 
         <div className="mt-6 space-y-4">

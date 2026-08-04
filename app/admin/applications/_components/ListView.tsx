@@ -4,11 +4,19 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
 import type { Application, Stage } from "@/lib/types/applications";
-import { moveApplicationStageAction } from "@/lib/actions/applications";
+import { moveApplicationStageAction, deleteApplicationAction } from "@/lib/actions/applications";
 import { useToast } from "@/components/ui/toast";
+import { formatDate } from "@/lib/utils/date-format";
 import StageSelect from "./StageSelect";
+import DeleteButton from "@/app/admin/_components/DeleteButton";
 
-export default function ListView({ applications }: { applications: Application[] }) {
+export default function ListView({
+  applications,
+  canDelete,
+}: {
+  applications: Application[];
+  canDelete: boolean;
+}) {
   const [items, setItems] = useState(applications);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
@@ -50,6 +58,7 @@ export default function ListView({ applications }: { applications: Application[]
               <th className="px-5 py-3">CV</th>
               <th className="px-5 py-3">Stage</th>
               <th className="px-5 py-3">Received</th>
+              {canDelete && <th className="px-5 py-3 text-right">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -90,13 +99,23 @@ export default function ListView({ applications }: { applications: Application[]
                   />
                 </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">
-                  {new Date(app.createdAt).toLocaleDateString()}
+                  {formatDate(app.createdAt)}
                 </td>
+                {canDelete && (
+                  <td className="px-5 py-3 text-right">
+                    <DeleteButton
+                      action={deleteApplicationAction}
+                      id={app.id}
+                      confirmTitle="Delete this application?"
+                      confirmBody={`"${app.name}"'s application for ${app.jobTitle} will be permanently removed.`}
+                    />
+                  </td>
+                )}
               </tr>
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
+                <td colSpan={canDelete ? 7 : 6} className="px-5 py-8 text-center text-brand-gray dark:text-white/60">
                   No applications yet.
                 </td>
               </tr>

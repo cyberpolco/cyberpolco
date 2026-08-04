@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { FileText } from "lucide-react";
 import { getApplicationById } from "@/lib/db/applications";
 import { requireRole } from "@/lib/auth/rbac";
+import { formatDateTime } from "@/lib/utils/date-format";
 import ApplicationDetailPanel from "../_components/ApplicationDetailPanel";
 import BackLink from "@/app/admin/_components/BackLink";
 
@@ -55,7 +56,7 @@ export default async function ApplicationDetailPage({
         )}
 
         <p className="mt-6 text-xs text-brand-gray dark:text-white/60">
-          Received {new Date(application.createdAt).toLocaleString()}
+          Received {formatDateTime(application.createdAt)}
         </p>
 
         <div className="mt-8 border-t border-black/5 dark:border-white/10 pt-6">

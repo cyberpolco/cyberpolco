@@ -3,6 +3,7 @@ import { getPendingChanges } from "@/lib/db/pending-changes";
 import { getUserById } from "@/lib/db/users";
 import { approvePendingChangeAction, rejectPendingChangeAction } from "@/lib/actions/pending-changes";
 import { TARGET_LABELS, getLiveRecord, diffFields } from "@/lib/pending-changes/review";
+import { formatDateTime } from "@/lib/utils/date-format";
 import ExpandableDiff from "./_components/ExpandableDiff";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 
@@ -38,7 +39,7 @@ export default async function PendingChangesPage() {
                   {TARGET_LABELS[change.targetTable]}
                 </p>
                 <p className="text-sm text-brand-gray dark:text-white/60">
-                  Proposed by {proposerEmail} · {new Date(change.proposedAt).toLocaleString()}
+                  Proposed by {proposerEmail} · {formatDateTime(change.proposedAt)}
                 </p>
               </div>
               <div className="flex flex-col items-stretch gap-2 sm:items-end">

@@ -9,7 +9,7 @@ export default async function ApplicationsPage({
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
-  await requireRole(["super_admin", "hr_recruiter"]);
+  const session = await requireRole(["super_admin", "hr_recruiter"]);
 
   const { view } = await searchParams;
   const applications = await getApplications();
@@ -46,7 +46,7 @@ export default async function ApplicationsPage({
 
       <div className="mt-6">
         {isListView ? (
-          <ListView applications={applications} />
+          <ListView applications={applications} canDelete={session.role === "super_admin"} />
         ) : (
           <KanbanBoard applications={applications} />
         )}

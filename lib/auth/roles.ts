@@ -35,6 +35,8 @@ const ROUTE_RULES: RouteRule[] = [
   // Content, Services, Footer, and Settings all live under one CMS section.
   { prefix: "/admin/cms", roles: ["super_admin", "content_editor"] },
   { prefix: "/admin/jobs", roles: ["super_admin", "hr_recruiter"] },
+  // hr_recruiter can view/manage applications here too, but not delete —
+  // enforced in lib/actions/applications.ts, same pattern as inquiries below.
   { prefix: "/admin/applications", roles: ["super_admin", "hr_recruiter"] },
   // technician/teacher can view/mark-read here too, but not delete —
   // enforced in lib/actions/inquiries.ts, same pattern as Starlink/Academy below.
