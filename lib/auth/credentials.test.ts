@@ -24,6 +24,8 @@ const adminUser = {
   lastLoginAt: null,
   viewerType: null,
   linkedId: null,
+  phone: null,
+  phoneUpdatedAt: null,
 };
 
 const studentUser = { ...adminUser, id: "user-2", role: "viewer" as const, viewerType: "academy_student" as const, linkedId: "enrollment-1" };

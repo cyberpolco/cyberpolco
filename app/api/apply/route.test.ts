@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 vi.mock("@/lib/db/applications", () => ({ addApplication: vi.fn() }));
 vi.mock("@/lib/db/jobs", () => ({ getJobBySlug: vi.fn(), getEffectiveJobStatus: vi.fn() }));
 vi.mock("@/lib/email", () => ({ sendEmail: vi.fn() }));
+vi.mock("@/lib/email/templates", () => ({ renderTemplate: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({
   checkRateLimit: vi.fn(),
   getClientIp: vi.fn(() => "1.2.3.4"),
@@ -13,6 +14,7 @@ vi.mock("@/lib/turnstile", () => ({ verifyTurnstileToken: vi.fn() }));
 const { addApplication } = await import("@/lib/db/applications");
 const { getJobBySlug, getEffectiveJobStatus } = await import("@/lib/db/jobs");
 const { sendEmail } = await import("@/lib/email");
+const { renderTemplate } = await import("@/lib/email/templates");
 const { checkRateLimit } = await import("@/lib/rate-limit");
 const { verifyTurnstileToken } = await import("@/lib/turnstile");
 const { POST } = await import("./route");
@@ -63,6 +65,10 @@ describe("POST /api/apply", () => {
       notes: null,
     });
     vi.mocked(sendEmail).mockResolvedValue({ simulated: true });
+    vi.mocked(renderTemplate).mockImplementation(async (_key, locale) => ({
+      subject: locale === "fr" ? "Votre candidature a bien été reçue" : "Your application has been received",
+      html: "<p>ack</p>",
+    }));
   });
 
   it("saves the application and sends an acknowledgement email on success", async () => {
@@ -81,6 +87,11 @@ describe("POST /api/apply", () => {
       cvFileName: "resume.pdf",
       cvUrl: "https://abc123.public.blob.vercel-storage.com/cvs/resume.pdf",
     });
+    expect(renderTemplate).toHaveBeenCalledWith(
+      "apply_ack",
+      "en",
+      expect.objectContaining({ name: "Ada Lovelace", jobTitle: "SOC Analyst" })
+    );
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "ada@example.com",

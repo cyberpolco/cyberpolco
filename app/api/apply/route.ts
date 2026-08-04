@@ -3,6 +3,8 @@ import { applicationSchema } from "@/lib/validation/schemas";
 import { addApplication } from "@/lib/db/applications";
 import { getJobBySlug, getEffectiveJobStatus } from "@/lib/db/jobs";
 import { sendEmail } from "@/lib/email";
+import { renderTemplate } from "@/lib/email/templates";
+import { escapeHtml } from "@/lib/email/escape-html";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -80,37 +82,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await sendEmail({
-      to: email,
-      from: "Cyber PolCo <no-reply@cyberpolco.com>",
-      subject:
-        locale === "fr" ? "Votre candidature a bien été reçue" : "Your application has been received",
-      html:
-        locale === "fr"
-          ? `
-        <h2>Merci pour votre candidature, ${escapeHtml(name)}</h2>
-        <p>Nous avons bien reçu votre candidature pour le poste de <strong>${escapeHtml(jobTitle)}</strong>.</p>
-        <p>Notre équipe RH examinera votre dossier et vous recontactera si votre profil correspond.</p>
-        <p>— L'équipe Cyber PolCo</p>
-      `
-          : `
-        <h2>Thank you for applying, ${escapeHtml(name)}</h2>
-        <p>We've received your application for the <strong>${escapeHtml(jobTitle)}</strong> position.</p>
-        <p>Our HR team will review your profile and reach out if it's a match.</p>
-        <p>— The Cyber PolCo team</p>
-      `,
+    const { subject, html } = await renderTemplate("apply_ack", locale, {
+      name: escapeHtml(name),
+      jobTitle: escapeHtml(jobTitle),
     });
+    await sendEmail({ to: email, from: "Cyber PolCo <no-reply@cyberpolco.com>", subject, html });
   } catch (err) {
     console.error("Failed to send application acknowledgement email:", err);
   }
 
   return NextResponse.json({ ok: true, id: application.id });
-}
-
-function escapeHtml(input: string) {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

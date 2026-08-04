@@ -130,6 +130,16 @@ export const users = pgTable("users", {
   // settings.offices above (existing rows, no default to backfill with).
   viewerType: text("viewer_type", { enum: ["starlink_client", "academy_student"] }),
   linkedId: text("linked_id"),
+  // Nullable: existing rows predate this column. Canonical "+<1-3 digit
+  // country code><9 digit local number>" form, no leading zero on the local
+  // part — see lib/validation/phone.ts. Self-managed by technicians
+  // (/admin/my-phone) or set by a super_admin editing the user directly.
+  phone: text("phone"),
+  // Nullable — bumped on every phone write, by the technician or an admin.
+  // Self-service writes are additionally rate-limited to once every
+  // PHONE_UPDATE_COOLDOWN_DAYS via lib/auth/phone-cooldown.ts; admin writes
+  // bypass that check but still bump this timestamp, resetting the clock.
+  phoneUpdatedAt: text("phone_updated_at"),
 });
 
 // Generic keyed content for one-off page sections (hero, mission, vision,
@@ -294,6 +304,52 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   createdAt: text("created_at").notNull(),
   // Nullable — see starlinkClients.createdBy above; same reasoning.
   createdBy: text("created_by"),
+});
+
+type LocalizedTemplateContent = { subject: string; body: string };
+
+// Fixed, code-referenced set of outbound message templates (see
+// lib/email/template-registry.ts for the exact keys) — not an
+// admin-creatable resource, so `key` is the primary key rather than a
+// separate id. Editable only by super_admin/hr_recruiter under
+// /admin/templates.
+export const messageTemplates = pgTable("message_templates", {
+  key: text("key").primaryKey(),
+  // Extensible for a later SMS phase without a schema rewrite — unused
+  // beyond "email" today.
+  channel: text("channel", { enum: ["email"] }).notNull().default("email"),
+  fr: jsonb("fr").$type<LocalizedTemplateContent>().notNull(),
+  en: jsonb("en").$type<LocalizedTemplateContent>().notNull(),
+  updatedAt: text("updated_at").notNull(),
+  updatedBy: text("updated_by"),
+});
+
+// Generic payment-gateway transaction record — links to either a Starlink
+// subscription or an Academy fee via referenceType/referenceId, the same
+// generic-reference pattern as pendingChanges.targetTable/targetId above.
+// pawapayId is a merchant-generated UUID PawaPay echoes back in every
+// callback for that transaction, so it's the idempotency key the callback
+// routes upsert on (see lib/db/payments.ts).
+export const pawapayTransactions = pgTable("pawapay_transactions", {
+  id: text("id").primaryKey(),
+  pawapayId: text("pawapay_id").notNull().unique(),
+  type: text("type", { enum: ["checkout", "deposit", "payout", "refund"] }).notNull(),
+  // Free text, not an enum: PawaPay's exact status vocabulary isn't
+  // confirmed yet (no API docs pulled in at implementation time).
+  status: text("status").notNull(),
+  // String, not integer/float — avoids precision drift; PawaPay's own
+  // amount format should be confirmed once real payloads are seen.
+  amount: text("amount").notNull(),
+  currency: text("currency").notNull(),
+  payerMsisdn: text("payer_msisdn"),
+  // Nullable link to whichever domain object this payment is for. Set by
+  // the future outbound-initiation code (lib/pawapay/client.ts, not built
+  // yet) before calling PawaPay's API — never guessed at from the callback.
+  referenceType: text("reference_type", { enum: ["starlink_subscription", "academy_fee"] }),
+  referenceId: text("reference_id"),
+  rawPayload: jsonb("raw_payload").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
 // A create/edit by "technician"/"teacher" to a record they didn't create

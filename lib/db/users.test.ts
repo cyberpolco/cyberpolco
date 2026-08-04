@@ -15,6 +15,8 @@ function makeUser(role: Role, overrides: Partial<User> = {}): User {
     lastLoginAt: null,
     viewerType: null,
     linkedId: null,
+    phone: null,
+    phoneUpdatedAt: null,
     ...overrides,
   };
 }

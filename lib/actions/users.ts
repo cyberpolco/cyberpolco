@@ -15,6 +15,7 @@ import {
   type User,
   type ViewerType,
 } from "@/lib/db/users";
+import { phoneInputSchema, composePhone } from "@/lib/validation/phone";
 
 const MIN_PASSWORD_LENGTH = 10;
 const VIEWER_TYPES: ViewerType[] = ["starlink_client", "academy_student"];
@@ -72,6 +73,8 @@ export async function createUserAction(formData: FormData) {
     lastLoginAt: null,
     viewerType: viewerLink.viewerType,
     linkedId: viewerLink.linkedId,
+    phone: null,
+    phoneUpdatedAt: null,
   };
 
   await saveUser(user);
@@ -86,6 +89,8 @@ export async function updateUserAction(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
   const role = parseRole(formData.get("role"));
   const tempPassword = String(formData.get("tempPassword") || "");
+  const countryCode = String(formData.get("countryCode") || "").trim();
+  const localNumber = String(formData.get("localNumber") || "").trim();
 
   const existingUser = await getUserById(id);
   if (!existingUser) redirect("/admin/users");
@@ -117,6 +122,24 @@ export async function updateUserAction(formData: FormData) {
     mustChangePassword = true;
   }
 
+  // Admin phone edit — optional (leave both fields blank to not touch the
+  // phone at all) and never subject to the technician's self-service
+  // cooldown. Any actual change still bumps phoneUpdatedAt, resetting that
+  // cooldown clock — see lib/auth/phone-cooldown.ts.
+  let phone = existingUser.phone;
+  let phoneUpdatedAt = existingUser.phoneUpdatedAt;
+  if (countryCode || localNumber) {
+    const parsed = phoneInputSchema.safeParse({ countryCode, localNumber });
+    if (!parsed.success) {
+      redirect(`/admin/users/${id}/edit?error=phone`);
+    }
+    const composed = composePhone(parsed.data.countryCode, parsed.data.localNumber);
+    if (composed !== existingUser.phone) {
+      phone = composed;
+      phoneUpdatedAt = new Date().toISOString();
+    }
+  }
+
   const user: User = {
     ...existingUser,
     email,
@@ -126,6 +149,8 @@ export async function updateUserAction(formData: FormData) {
     mustChangePassword,
     viewerType: viewerLink.viewerType,
     linkedId: viewerLink.linkedId,
+    phone,
+    phoneUpdatedAt,
   };
 
   await saveUser(user);

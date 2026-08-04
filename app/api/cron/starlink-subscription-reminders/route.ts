@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStarlinkClients, daysUntilNextRenewal } from "@/lib/db/starlink";
 import { sendEmail } from "@/lib/email";
-import { buildSubscriptionReminderEmail } from "@/lib/email/starlink-reminder";
+import { renderBilingualTemplate } from "@/lib/email/templates";
+import { escapeHtml } from "@/lib/email/escape-html";
 
 const REMINDER_WINDOW_DAYS = 7;
 
@@ -34,12 +35,13 @@ export async function GET(req: NextRequest) {
       if (daysUntilNextRenewal(site.subscriptionStartDate, now) !== REMINDER_WINDOW_DAYS) continue;
 
       try {
-        const { subject, html } = buildSubscriptionReminderEmail({
-          clientName: client.name,
-          siteName: site.siteName,
-          expiryDateFr,
-          expiryDateEn,
-        });
+        const clientName = escapeHtml(client.name);
+        const siteName = escapeHtml(site.siteName);
+        const { subject, html } = await renderBilingualTemplate(
+          "starlink_reminder",
+          { clientName, siteName, expiryDate: expiryDateFr },
+          { clientName, siteName, expiryDate: expiryDateEn }
+        );
         await sendEmail({ to: client.email, from: "Cyber PolCo <no-reply@cyberpolco.com>", subject, html });
         sent++;
       } catch (err) {

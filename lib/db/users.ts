@@ -18,6 +18,8 @@ export type User = {
   lastLoginAt: string | null;
   viewerType: ViewerType | null;
   linkedId: string | null;
+  phone: string | null;
+  phoneUpdatedAt: string | null;
 };
 
 function normalizeEmail(email: string): string {
@@ -93,6 +95,21 @@ export async function touchLastLogin(id: string): Promise<void> {
     .update(usersTable)
     .set({ lastLoginAt: new Date().toISOString() })
     .where(eq(usersTable.id, id));
+}
+
+export async function updateUserPhone(id: string, phone: string, updatedAt: string): Promise<void> {
+  await db
+    .update(usersTable)
+    .set({ phone, phoneUpdatedAt: updatedAt })
+    .where(eq(usersTable.id, id));
+}
+
+export async function getTechnicianEmails(): Promise<string[]> {
+  const rows = await db
+    .select({ email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.role, "technician"));
+  return rows.map((r) => r.email);
 }
 
 export type UsersStats = {

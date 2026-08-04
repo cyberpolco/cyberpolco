@@ -5,6 +5,7 @@ import PasswordField from "@/app/admin/_components/PasswordField";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import ViewerLinkFields from "@/app/admin/users/_components/ViewerLinkFields";
 import { createUserAction, updateUserAction } from "@/lib/actions/users";
+import { splitPhone } from "@/lib/validation/phone";
 import type { User } from "@/lib/db/users";
 import type { StarlinkClient } from "@/lib/db/starlink";
 import type { AcademyEnrollment } from "@/lib/db/academy";
@@ -14,6 +15,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   duplicate: "A user with that email already exists.",
   "last-super-admin": "You can't remove the last remaining Super Admin.",
   "viewer-link": "Select a viewer type and a linked record.",
+  phone: "Invalid phone number.",
 };
 
 export default function UserForm({
@@ -30,6 +32,7 @@ export default function UserForm({
   const action = user ? updateUserAction : createUserAction;
   const emailInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const { countryCode, localNumber } = splitPhone(user?.phone ?? null);
 
   return (
     <form action={action} className="space-y-4 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
@@ -58,6 +61,32 @@ export default function UserForm({
           className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 outline-none focus:border-brand-blue dark:bg-white/5 dark:text-white"
         />
       </div>
+
+      {user && (
+        <div>
+          <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Phone number</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="countryCode"
+              defaultValue={countryCode}
+              inputMode="numeric"
+              className="w-20 rounded-lg border border-black/10 dark:border-white/15 px-3 py-2.5 outline-none focus:border-brand-blue dark:bg-white/5 dark:text-white"
+            />
+            <input
+              type="text"
+              name="localNumber"
+              defaultValue={localNumber}
+              placeholder="991234567"
+              inputMode="numeric"
+              className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 outline-none focus:border-brand-blue dark:bg-white/5 dark:text-white"
+            />
+          </div>
+          <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
+            Leave both blank to leave the phone number unchanged.
+          </p>
+        </div>
+      )}
 
       <ViewerLinkFields
         defaultRole={user?.role ?? "viewer"}

@@ -31,6 +31,8 @@ export async function ensureBootstrapSuperAdmin(): Promise<void> {
       lastLoginAt: null,
       viewerType: null,
       linkedId: null,
+      phone: null,
+      phoneUpdatedAt: null,
     });
   } catch {
     // Another concurrent request already bootstrapped the table — fine.

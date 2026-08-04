@@ -31,6 +31,7 @@ type RouteRule = { prefix: string; roles: Role[] };
 const ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/dashboard", roles: ALL_ROLES },
   { prefix: "/admin/change-password", roles: ALL_ROLES },
+  { prefix: "/admin/my-phone", roles: ["technician"] },
   { prefix: "/admin/articles", roles: ["super_admin", "content_editor"] },
   // Content, Services, Footer, and Settings all live under one CMS section.
   { prefix: "/admin/cms", roles: ["super_admin", "content_editor"] },
@@ -56,6 +57,7 @@ const ROUTE_RULES: RouteRule[] = [
   // super_admin/teacher individually, unaffected by this broader rule.
   { prefix: "/admin/academy", roles: ["super_admin", "teacher", "viewer"] },
   { prefix: "/admin/pending-changes", roles: ["super_admin"] },
+  { prefix: "/admin/templates", roles: ["super_admin", "hr_recruiter"] },
   // Status view for whoever can submit a change into the queue above — see
   // their own submissions' approved/rejected outcome and any review note.
   { prefix: "/admin/my-submissions", roles: ["content_editor", "technician", "teacher", "hr_recruiter"] },

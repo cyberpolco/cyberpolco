@@ -17,6 +17,8 @@ import {
   History,
   Gauge,
   LifeBuoy,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
@@ -136,10 +138,22 @@ const navItems: {
     roles: ["super_admin"],
   },
   {
+    href: "/admin/templates",
+    label: "Templates",
+    icon: Mail,
+    roles: ["super_admin", "hr_recruiter"],
+  },
+  {
     href: "/admin/my-submissions",
     label: "My Submissions",
     icon: History,
     roles: ["content_editor", "technician", "teacher", "hr_recruiter"],
+  },
+  {
+    href: "/admin/my-phone",
+    label: "My Phone",
+    icon: Phone,
+    roles: ["technician"],
   },
 ];
 

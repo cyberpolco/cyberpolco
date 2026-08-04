@@ -19,6 +19,7 @@ import { isValidKitNumber, SUBSCRIPTION_TYPE_OPTIONS, type SubscriptionPricingCe
 import { parseUsdToCents } from "@/lib/content/money";
 import { getSettings, saveSettings } from "@/lib/db/settings";
 import { isSubscriptionPayable } from "@/lib/starlink/subscription";
+import { notifyTechniciansOfHelpRequest } from "@/lib/notifications/notify-technicians";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -200,6 +201,21 @@ export async function requestTechnicianHelpAction(formData: FormData) {
     s.id === siteId ? { ...s, helpRequestedAt: new Date().toISOString() } : s
   );
   await saveStarlinkClient({ ...client, sites });
+
+  // A notification failure must never block recording the help request
+  // itself (the DB write above already succeeded) — the helper already
+  // catches per-technician send errors; this outer catch guards against the
+  // whole lookup/dispatch failing (e.g. DB down for getTechnicianEmails).
+  try {
+    await notifyTechniciansOfHelpRequest({
+      clientName: client.name,
+      clientId: client.clientId,
+      siteName: sites.find((s) => s.id === siteId)?.siteName ?? "",
+    });
+  } catch (err) {
+    console.error("Failed to notify technicians of help request:", err);
+  }
+
   revalidatePath("/admin/starlink/get-help");
   revalidatePath("/admin/starlink");
   redirect("/admin/starlink/get-help");
