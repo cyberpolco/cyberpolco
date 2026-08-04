@@ -3,6 +3,7 @@ import { getStarlinkClients, daysUntilNextRenewal } from "@/lib/db/starlink";
 import { sendEmail } from "@/lib/email";
 import { renderBilingualTemplate } from "@/lib/email/templates";
 import { escapeHtml } from "@/lib/email/escape-html";
+import { formatDate } from "@/lib/utils/date-format";
 
 const REMINDER_WINDOW_DAYS = 7;
 
@@ -23,8 +24,7 @@ export async function GET(req: NextRequest) {
   const clients = await getStarlinkClients();
   const now = new Date();
   const expiry = new Date(now.getTime() + REMINDER_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-  const expiryDateFr = expiry.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  const expiryDateEn = expiry.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
+  const expiryDate = formatDate(expiry);
 
   let sent = 0;
   let failed = 0;
@@ -39,8 +39,8 @@ export async function GET(req: NextRequest) {
         const siteName = escapeHtml(site.siteName);
         const { subject, html } = await renderBilingualTemplate(
           "starlink_reminder",
-          { clientName, siteName, expiryDate: expiryDateFr },
-          { clientName, siteName, expiryDate: expiryDateEn }
+          { clientName, siteName, expiryDate },
+          { clientName, siteName, expiryDate }
         );
         await sendEmail({ to: client.email, from: "Cyber PolCo <no-reply@cyberpolco.com>", subject, html });
         sent++;

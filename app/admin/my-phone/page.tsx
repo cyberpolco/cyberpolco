@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/rbac";
 import { getUserById } from "@/lib/db/users";
 import { canUpdatePhone, nextPhoneUpdateDate } from "@/lib/auth/phone-cooldown";
+import { formatDate } from "@/lib/utils/date-format";
 import UpdatePhoneForm from "./_components/UpdatePhoneForm";
 
 export default async function MyPhonePage({
@@ -29,7 +30,7 @@ export default async function MyPhonePage({
         <UpdatePhoneForm error={error} success={success} />
       ) : (
         <p className="mt-4 rounded-2xl border border-dashed border-black/15 dark:border-white/15 p-6 text-sm text-brand-gray dark:text-white/60">
-          You can update your phone number again on {unlockDate?.toLocaleDateString()}.
+          You can update your phone number again on {unlockDate ? formatDate(unlockDate) : ""}.
         </p>
       )}
     </div>

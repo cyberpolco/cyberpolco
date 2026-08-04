@@ -3,6 +3,7 @@ import { Pencil } from "lucide-react";
 import { requireRole } from "@/lib/auth/rbac";
 import { getAllTemplateRows } from "@/lib/db/templates";
 import { TEMPLATE_KEYS, TEMPLATE_REGISTRY } from "@/lib/email/template-registry";
+import { formatDate } from "@/lib/utils/date-format";
 
 export default async function AdminTemplatesPage() {
   await requireRole(["super_admin", "hr_recruiter"]);
@@ -41,7 +42,7 @@ export default async function AdminTemplatesPage() {
                     </td>
                     <td className="px-5 py-3 text-brand-gray dark:text-white/60">{subject}</td>
                     <td className="px-5 py-3 text-brand-gray dark:text-white/60">
-                      {row ? new Date(row.updatedAt).toLocaleDateString() : "Never (default content)"}
+                      {row ? formatDate(row.updatedAt) : "Never (default content)"}
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex justify-end">
