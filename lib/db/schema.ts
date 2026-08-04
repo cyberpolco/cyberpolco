@@ -53,7 +53,15 @@ export const articles = pgTable("articles", {
 export const jobs = pgTable("jobs", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull().unique(),
-  status: text("status", { enum: ["open", "closed"] }).notNull(),
+  // "draft" is never public regardless of dates. "closed" is an explicit
+  // early-close override. "open" is further gated by openAt/closeAt below —
+  // see getEffectiveJobStatus in lib/db/jobs.ts for the resulting public state.
+  status: text("status", { enum: ["open", "closed", "draft"] }).notNull(),
+  // Nullable: no schedule means "open" is immediately/indefinitely visible,
+  // same as before this column existed. Same nullable-ISO-string convention
+  // as AcademyQuiz.availableAt above.
+  openAt: text("open_at"),
+  closeAt: text("close_at"),
   fr: jsonb("fr").$type<LocalizedJob>().notNull(),
   en: jsonb("en").$type<LocalizedJob>().notNull(),
   createdAt: text("created_at").notNull(),

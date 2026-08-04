@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Newspaper, Briefcase, FileText, Eye, GraduationCap, Users, Award, SatelliteDish } from "lucide-react";
 import { getArticles, topArticlesByViews, topArticlesByShares } from "@/lib/db/articles";
-import { getJobs } from "@/lib/db/jobs";
+import { getJobs, getEffectiveJobStatus } from "@/lib/db/jobs";
 import { getInquiriesStats } from "@/lib/db/inquiries";
 import { getApplications, getApplicationsStats } from "@/lib/db/applications";
 import { getStarlinkClientById, getStarlinkStats } from "@/lib/db/starlink";
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
   const topByViews = topArticlesByViews(articles, 5);
   const topByShares = topArticlesByShares(articles, 5);
 
-  const openJobs = jobs.filter((j) => j.status === "open").length;
+  const openJobs = jobs.filter((j) => getEffectiveJobStatus(j) === "open").length;
   const totalViews = articles.reduce((sum, a) => sum + (a.viewCount ?? 0), 0);
 
   const allCards = [

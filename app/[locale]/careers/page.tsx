@@ -55,6 +55,11 @@ export default async function CareersPage({
                 <p className="mt-1 flex items-center gap-1 text-sm text-brand-gray">
                   <MapPin size={14} /> {job[locale].location} · {job[locale].type}
                 </p>
+                {job.closeAt && (
+                  <p className="mt-1 text-xs text-brand-gray">
+                    {t("closesOn", { date: new Date(job.closeAt).toLocaleDateString(locale) })}
+                  </p>
+                )}
               </div>
               <span className="text-sm font-semibold text-brand-red">
                 {locale === "fr" ? "Voir l'offre →" : "View role →"}

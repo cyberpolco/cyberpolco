@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { saveJob, deleteJob, type Job } from "@/lib/db/jobs";
+import { saveJob, deleteJob, fromDatetimeLocalValue, type Job, type JobStatus } from "@/lib/db/jobs";
 import { requireRole } from "@/lib/auth/rbac";
 import { isTextAlign, type TextAlign } from "@/lib/types/text-align";
 
@@ -31,7 +31,9 @@ export async function upsertJobAction(formData: FormData) {
   const job: Job = {
     id,
     slug: existingSlug || slugify(title_en || title_fr),
-    status: (formData.get("status") as "open" | "closed") || "open",
+    status: (formData.get("status") as JobStatus) || "open",
+    openAt: fromDatetimeLocalValue(String(formData.get("openAt") || "")),
+    closeAt: fromDatetimeLocalValue(String(formData.get("closeAt") || "")),
     createdAt: String(formData.get("createdAt") || new Date().toISOString()),
     fr: {
       title: title_fr,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { applicationSchema } from "@/lib/validation/schemas";
 import { addApplication } from "@/lib/db/applications";
+import { getJobBySlug, getEffectiveJobStatus } from "@/lib/db/jobs";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
@@ -41,6 +42,11 @@ export async function POST(req: NextRequest) {
 
   if (parsed.data.website) {
     return NextResponse.json({ ok: true });
+  }
+
+  const job = await getJobBySlug(parsed.data.jobSlug);
+  if (!job || getEffectiveJobStatus(job) !== "open") {
+    return NextResponse.json({ error: "This position is no longer accepting applications." }, { status: 400 });
   }
 
   const captchaOk = await verifyTurnstileToken(parsed.data.turnstileToken, ip);

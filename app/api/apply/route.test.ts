@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/db/applications", () => ({ addApplication: vi.fn() }));
+vi.mock("@/lib/db/jobs", () => ({ getJobBySlug: vi.fn(), getEffectiveJobStatus: vi.fn() }));
 vi.mock("@/lib/email", () => ({ sendEmail: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({
   checkRateLimit: vi.fn(),
@@ -10,6 +11,7 @@ vi.mock("@/lib/rate-limit", () => ({
 vi.mock("@/lib/turnstile", () => ({ verifyTurnstileToken: vi.fn() }));
 
 const { addApplication } = await import("@/lib/db/applications");
+const { getJobBySlug, getEffectiveJobStatus } = await import("@/lib/db/jobs");
 const { sendEmail } = await import("@/lib/email");
 const { checkRateLimit } = await import("@/lib/rate-limit");
 const { verifyTurnstileToken } = await import("@/lib/turnstile");
@@ -41,6 +43,10 @@ describe("POST /api/apply", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(checkRateLimit).mockResolvedValue({ success: true, remaining: 4 });
+    vi.mocked(getJobBySlug).mockResolvedValue({ id: "job-1", slug: "soc-analyst" } as Awaited<
+      ReturnType<typeof getJobBySlug>
+    >);
+    vi.mocked(getEffectiveJobStatus).mockReturnValue("open");
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
     vi.mocked(addApplication).mockResolvedValue({
       id: "application-1",
@@ -119,6 +125,27 @@ describe("POST /api/apply", () => {
     expect(res.status).toBe(400);
     expect(json.error).toBe("Invalid input");
     expect(json.details.fieldErrors.phone).toBeDefined();
+    expect(addApplication).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 and never touches the DB/email when the job isn't open", async () => {
+    vi.mocked(getEffectiveJobStatus).mockReturnValue("closed");
+
+    const res = await POST(makeRequest(validFields));
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toBe("This position is no longer accepting applications.");
+    expect(addApplication).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when the job slug doesn't exist", async () => {
+    vi.mocked(getJobBySlug).mockResolvedValue(undefined);
+
+    const res = await POST(makeRequest(validFields));
+
+    expect(res.status).toBe(400);
     expect(addApplication).not.toHaveBeenCalled();
   });
 

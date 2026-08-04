@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
-import { getJobs } from "@/lib/db/jobs";
+import { getJobs, getEffectiveJobStatus, type EffectiveJobStatus } from "@/lib/db/jobs";
 import { deleteJobAction } from "@/lib/actions/jobs";
 import { requireRole } from "@/lib/auth/rbac";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
@@ -38,15 +38,7 @@ export default async function AdminJobsPage() {
               <tr key={j.id} className="border-t border-black/5 dark:border-white/10">
                 <td className="px-5 py-3 font-medium text-brand-dark dark:text-white">{j.en.title}</td>
                 <td className="px-5 py-3">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      j.status === "open"
-                        ? "bg-brand-blue/10 text-brand-blue"
-                        : "bg-black/5 dark:bg-white/10 text-brand-gray dark:text-white/60"
-                    }`}
-                  >
-                    {j.status}
-                  </span>
+                  <StatusBadge status={getEffectiveJobStatus(j)} />
                 </td>
                 <td className="px-5 py-3 text-brand-gray dark:text-white/60">{j.slug}</td>
                 <td className="px-5 py-3">
@@ -76,5 +68,18 @@ export default async function AdminJobsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+const STATUS_STYLES: Record<EffectiveJobStatus, string> = {
+  open: "bg-brand-blue/10 text-brand-blue",
+  scheduled: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  closed: "bg-black/5 dark:bg-white/10 text-brand-gray dark:text-white/60",
+  draft: "bg-black/5 dark:bg-white/10 text-brand-gray dark:text-white/60",
+};
+
+function StatusBadge({ status }: { status: EffectiveJobStatus }) {
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[status]}`}>{status}</span>
   );
 }

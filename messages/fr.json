@@ -83,7 +83,10 @@
     "back": "Retour aux carrières",
     "applyTitle": "Postuler à cette offre",
     "location": "Lieu",
-    "type": "Type de contrat"
+    "type": "Type de contrat",
+    "closedBadge": "Fermé",
+    "closedBody": "Ce poste n'accepte plus de candidatures.",
+    "closesOn": "Candidatures ouvertes jusqu'au {date}"
   },
   "contact": {
     "title": "Contactez-nous",

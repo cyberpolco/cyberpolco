@@ -83,7 +83,10 @@
     "back": "Back to careers",
     "applyTitle": "Apply for this role",
     "location": "Location",
-    "type": "Contract type"
+    "type": "Contract type",
+    "closedBadge": "Closed",
+    "closedBody": "This position is no longer accepting applications.",
+    "closesOn": "Applications close on {date}"
   },
   "contact": {
     "title": "Get in touch",
