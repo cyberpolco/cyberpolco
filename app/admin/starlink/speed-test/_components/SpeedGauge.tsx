@@ -4,12 +4,14 @@ export default function SpeedGauge({
   label,
   unit,
   active,
+  decimals = 1,
 }: {
   value: number;
   max: number;
   label: string;
   unit: string;
   active: boolean;
+  decimals?: number;
 }) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
@@ -38,7 +40,7 @@ export default function SpeedGauge({
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-bold tabular-nums text-brand-dark dark:text-white">
-            {value > 0 ? value.toFixed(1) : "—"}
+            {value > 0 ? value.toFixed(decimals) : "—"}
           </span>
           <span className="text-xs text-brand-gray dark:text-white/60">{unit}</span>
         </div>

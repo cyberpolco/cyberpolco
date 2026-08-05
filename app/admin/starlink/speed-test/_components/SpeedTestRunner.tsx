@@ -24,14 +24,20 @@ type Phase = "idle" | "ping" | "download" | "upload" | "done" | "error";
 // latency, not throughput.
 const TEST_RUNS = 3;
 const MIN_GAUGE_MAX = 50;
+const MIN_PING_GAUGE_MAX = 200;
 
-async function measurePing(): Promise<number> {
+// Reports each round-trip as it lands (onSample) so the ping dial can move
+// three times during the phase instead of jumping straight from "—" to the
+// final average once all three round-trips are done.
+async function measurePing(onSample: (ms: number) => void): Promise<number> {
   const samples: number[] = [];
   for (let i = 0; i < 3; i++) {
     const start = performance.now();
     const res = await fetch(`/api/speedtest/ping?_=${Date.now()}-${i}`, { cache: "no-store" });
     if (!res.ok) throw new Error("ping failed");
-    samples.push(performance.now() - start);
+    const sample = performance.now() - start;
+    samples.push(sample);
+    onSample(Math.round(sample));
   }
   return Math.round(samples.reduce((a, b) => a + b, 0) / samples.length);
 }
@@ -48,12 +54,15 @@ async function measureDownloadOnce(
   onProgress: (bytes: number) => void,
   signal: AbortSignal
 ): Promise<number> {
-  const res = await fetch(`/api/speedtest/download?_=${Date.now()}-${runIndex}`, { cache: "no-store", signal });
-  if (!res.ok || !res.body) throw new Error("download failed");
-
-  const reader = res.body.getReader();
   let bytesReceived = 0;
   try {
+    // The whole thing — including the initial fetch — has to be inside this
+    // try, not just the read loop: on a slow/high-latency link the abort can
+    // fire before fetch() even resolves a response, and that throws too.
+    const res = await fetch(`/api/speedtest/download?_=${Date.now()}-${runIndex}`, { cache: "no-store", signal });
+    if (!res.ok || !res.body) throw new Error("download failed");
+
+    const reader = res.body.getReader();
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -138,6 +147,8 @@ function makeAggregateProgress(streamCount: number, onCombined: (mbps: number) =
 export default function SpeedTestRunner() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [ping, setPing] = useState<number | null>(null);
+  const [pingLive, setPingLive] = useState(0);
+  const [pingMax, setPingMax] = useState(MIN_PING_GAUGE_MAX);
   const [download, setDownload] = useState<number | null>(null);
   const [downloadLive, setDownloadLive] = useState(0);
   const [downloadMax, setDownloadMax] = useState(MIN_GAUGE_MAX);
@@ -189,12 +200,19 @@ export default function SpeedTestRunner() {
   async function runTest() {
     setPhase("ping");
     setPing(null);
+    setPingLive(0);
+    setPingMax(MIN_PING_GAUGE_MAX);
     setDownload(null);
     setDownloadLive(0);
     setUpload(null);
     setUploadLive(0);
     try {
-      setPing(await measurePing());
+      setPing(
+        await measurePing((ms) => {
+          setPingLive(ms);
+          setPingMax((m) => Math.max(m, ms * 1.25));
+        })
+      );
       setPhase("download");
       setDownload(await measureDownload());
       setPhase("upload");
@@ -208,19 +226,14 @@ export default function SpeedTestRunner() {
   return (
     <div className="flex flex-col items-center text-center">
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-        <div className="flex flex-col items-center">
-          <div
-            className={`flex h-24 w-24 items-center justify-center rounded-full border-4 border-black/5 dark:border-white/10 ${
-              phase === "ping" ? "animate-pulse" : ""
-            }`}
-          >
-            <div>
-              <p className="text-xl font-bold text-brand-dark dark:text-white">{ping !== null ? ping : "—"}</p>
-              <p className="text-xs text-brand-gray dark:text-white/60">ms</p>
-            </div>
-          </div>
-          <p className="mt-3 text-sm font-medium text-brand-gray dark:text-white/60">Ping</p>
-        </div>
+        <SpeedGauge
+          value={ping !== null ? ping : pingLive}
+          max={pingMax}
+          label="Ping"
+          unit="ms"
+          active={phase === "ping"}
+          decimals={0}
+        />
 
         <SpeedGauge
           value={download !== null ? download : downloadLive}
