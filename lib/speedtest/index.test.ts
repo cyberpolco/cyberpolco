@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  computeMbps,
-  clampDownloadSize,
-  generateRandomPayload,
-  MIN_DOWNLOAD_BYTES,
-  MAX_DOWNLOAD_BYTES,
-  DEFAULT_DOWNLOAD_BYTES,
-} from "./index";
+import { computeMbps, createRollingThroughput, generateRandomPayload } from "./index";
 
 describe("computeMbps", () => {
   it("computes megabits per second from bytes and seconds", () => {
@@ -28,29 +21,34 @@ describe("computeMbps", () => {
   });
 });
 
-describe("clampDownloadSize", () => {
-  it("defaults when null", () => {
-    expect(clampDownloadSize(null)).toBe(DEFAULT_DOWNLOAD_BYTES);
+describe("createRollingThroughput", () => {
+  it("returns 0 on the first sample (no elapsed time yet)", () => {
+    const rolling = createRollingThroughput(1000);
+    expect(rolling.record(0, 1_000_000)).toBe(0);
   });
 
-  it("defaults when not finite (NaN)", () => {
-    expect(clampDownloadSize(Number.NaN)).toBe(DEFAULT_DOWNLOAD_BYTES);
+  it("measures throughput over the full span while still inside the window", () => {
+    const rolling = createRollingThroughput(1000);
+    rolling.record(0, 0);
+    // 1,000,000 bytes in 0.5s = 16 Mbps.
+    expect(rolling.record(500, 1_000_000)).toBe(16);
   });
 
-  it("clamps below the minimum", () => {
-    expect(clampDownloadSize(1000)).toBe(MIN_DOWNLOAD_BYTES);
+  it("drops samples older than the window, reflecting only recent bytes", () => {
+    const rolling = createRollingThroughput(1000);
+    rolling.record(0, 0);
+    rolling.record(500, 1_000_000);
+    // By t=2000, the t=0 sample has fallen out of the trailing 1000ms
+    // window — only bytes since the oldest in-window sample (t=500,
+    // 1,000,000 bytes) count: 1,000,000 bytes in 1.5s ≈ 5.3 Mbps, not the
+    // ~13.3 Mbps a since-start average over 2s would report.
+    expect(rolling.record(2000, 2_000_000)).toBe(5.3);
   });
 
-  it("clamps above the maximum", () => {
-    expect(clampDownloadSize(999_000_000)).toBe(MAX_DOWNLOAD_BYTES);
-  });
-
-  it("passes through an in-range value", () => {
-    expect(clampDownloadSize(1_000_000)).toBe(1_000_000);
-  });
-
-  it("floors a fractional value", () => {
-    expect(clampDownloadSize(1_000_000.7)).toBe(1_000_000);
+  it("reports 0 when throughput stalls (no new bytes within the window)", () => {
+    const rolling = createRollingThroughput(1000);
+    rolling.record(0, 1_000_000);
+    expect(rolling.record(1500, 1_000_000)).toBe(0);
   });
 });
 

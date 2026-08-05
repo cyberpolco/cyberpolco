@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { Gauge } from "lucide-react";
-import { computeMbps, generateRandomPayload, DEFAULT_DOWNLOAD_BYTES, UPLOAD_BYTES } from "@/lib/speedtest";
+import {
+  computeMbps,
+  createRollingThroughput,
+  generateRandomPayload,
+  MAX_UPLOAD_CHUNK_BYTES,
+  MIN_UPLOAD_CHUNK_BYTES,
+  TEST_DURATION_MS,
+} from "@/lib/speedtest";
 import SpeedGauge from "./SpeedGauge";
 
 type Phase = "idle" | "ping" | "download" | "upload" | "done" | "error";
@@ -10,9 +17,11 @@ type Phase = "idle" | "ping" | "download" | "upload" | "done" | "error";
 // Each of download/upload runs 3 concurrent streams and sums their
 // throughput, the same technique fast.com/speedtest.net use — it measures
 // true available bandwidth (a single stream under-fills the pipe on
-// high-latency links like Starlink) without tripling wall-clock time the
-// way running the streams one after another would. Ping still averages 3
-// sequential round-trips since it measures latency, not throughput.
+// high-latency links like Starlink). Each stream runs for a fixed duration
+// rather than a fixed byte count (see TEST_DURATION_MS) so total test time
+// stays predictable instead of scaling inversely with how slow the link
+// is. Ping still averages 3 sequential round-trips since it measures
+// latency, not throughput.
 const TEST_RUNS = 3;
 const MIN_GAUGE_MAX = 50;
 
@@ -30,31 +39,36 @@ async function measurePing(): Promise<number> {
 // Reads the response body as it streams in (rather than awaiting the whole
 // thing at once) so onProgress can report live byte counts instead of only
 // a single number at the very end. Reports raw bytes (not Mbps) so the
-// caller can sum bytes across concurrent streams before computing Mbps.
-async function measureDownloadOnce(runIndex: number, onProgress: (bytes: number) => void): Promise<number> {
-  const res = await fetch(`/api/speedtest/download?size=${DEFAULT_DOWNLOAD_BYTES}&_=${Date.now()}-${runIndex}`, {
-    cache: "no-store",
-  });
+// caller can sum bytes across concurrent streams before computing Mbps. The
+// server streams indefinitely (see the download route), so `signal` is what
+// actually bounds this to TEST_DURATION_MS — an abort is the normal, expected
+// way this loop ends, not a failure.
+async function measureDownloadOnce(
+  runIndex: number,
+  onProgress: (bytes: number) => void,
+  signal: AbortSignal
+): Promise<number> {
+  const res = await fetch(`/api/speedtest/download?_=${Date.now()}-${runIndex}`, { cache: "no-store", signal });
   if (!res.ok || !res.body) throw new Error("download failed");
 
   const reader = res.body.getReader();
   let bytesReceived = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    bytesReceived += value?.byteLength ?? 0;
-    onProgress(bytesReceived);
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytesReceived += value?.byteLength ?? 0;
+      onProgress(bytesReceived);
+    }
+  } catch (err) {
+    if (!signal.aborted) throw err;
   }
   return bytesReceived;
 }
 
-// fetch() has no upload-progress event, so this uses XMLHttpRequest instead
-// (via xhr.upload.onprogress) purely to get a live reading while the
-// payload is still being sent. Reports raw bytes (not Mbps) — see
-// measureDownloadOnce.
-function measureUploadOnce(onProgress: (bytes: number) => void): Promise<number> {
+function uploadChunk(bytes: number, onProgress: (loaded: number) => void): Promise<number> {
   return new Promise((resolve, reject) => {
-    const payload = generateRandomPayload(UPLOAD_BYTES);
+    const payload = generateRandomPayload(bytes);
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/speedtest/upload");
     xhr.upload.onprogress = (e) => {
@@ -62,7 +76,6 @@ function measureUploadOnce(onProgress: (bytes: number) => void): Promise<number>
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress(payload.byteLength);
         resolve(payload.byteLength);
       } else {
         reject(new Error("upload failed"));
@@ -73,19 +86,51 @@ function measureUploadOnce(onProgress: (bytes: number) => void): Promise<number>
   });
 }
 
+// fetch() has no cross-browser way to stream a request body progressively,
+// so this sends repeated chunks instead, one after another, until
+// `deadline` passes — the sequence stands in for one "stream" the same way
+// a single long-lived download connection does. Each chunk is sized from
+// the previous chunk's measured rate and the time remaining, starting at
+// MIN_UPLOAD_CHUNK_BYTES: a fixed chunk size would either overshoot the
+// deadline badly on a slow/degraded link (the Starlink case this test is
+// for) or, sized small enough to avoid that, waste the budget on per-request
+// overhead on a fast one.
+async function measureUploadOnce(deadline: number, onProgress: (bytes: number) => void): Promise<number> {
+  let totalSent = 0;
+  let chunkBytes = MIN_UPLOAD_CHUNK_BYTES;
+  while (performance.now() < deadline) {
+    const chunkStart = performance.now();
+    const sentInChunk = await uploadChunk(chunkBytes, (loaded) => onProgress(totalSent + loaded));
+    totalSent += sentInChunk;
+    onProgress(totalSent);
+
+    const chunkSeconds = (performance.now() - chunkStart) / 1000;
+    const bytesPerSecond = chunkSeconds > 0 ? sentInChunk / chunkSeconds : sentInChunk;
+    const remainingSeconds = (deadline - performance.now()) / 1000;
+    chunkBytes = Math.min(
+      MAX_UPLOAD_CHUNK_BYTES,
+      Math.max(MIN_UPLOAD_CHUNK_BYTES, Math.round(bytesPerSecond * remainingSeconds))
+    );
+  }
+  return totalSent;
+}
+
 // Sums live byte counts across N concurrent streams and reports the
-// combined Mbps so far, so the gauge reflects aggregate throughput instead
-// of any single stream's (necessarily lower) share of it. Also exposes
-// elapsedSeconds so the caller can compute the final Mbps once every
-// stream has finished, from the same clock used for the live readings.
+// combined Mbps measured over just the trailing LIVE_WINDOW_MS (see
+// createRollingThroughput), so the gauge tracks real fluctuation — Starlink
+// bufferbloat, weather fade, contention — instead of a since-start average
+// that gets flatter the longer the test runs. Also exposes elapsedSeconds so
+// the caller can compute a stable final Mbps across the whole run, from the
+// same clock used for the live readings.
 function makeAggregateProgress(streamCount: number, onCombined: (mbps: number) => void) {
   const start = performance.now();
   const bytesByStream = new Array(streamCount).fill(0);
+  const rolling = createRollingThroughput();
   const elapsedSeconds = () => (performance.now() - start) / 1000;
   const report = (streamIndex: number, bytes: number) => {
     bytesByStream[streamIndex] = bytes;
     const totalBytes = bytesByStream.reduce((a, b) => a + b, 0);
-    onCombined(computeMbps(totalBytes, elapsedSeconds()));
+    onCombined(rolling.record(performance.now(), totalBytes));
   };
   return { report, elapsedSeconds };
 }
@@ -108,13 +153,21 @@ export default function SpeedTestRunner() {
       setDownloadLive(mbps);
       setDownloadMax((m) => Math.max(m, mbps * 1.25));
     });
-    const totals = await Promise.all(
-      Array.from({ length: TEST_RUNS }, (_, i) => measureDownloadOnce(i, (bytes) => report(i, bytes)))
-    );
-    return computeMbps(
-      totals.reduce((a, b) => a + b, 0),
-      elapsedSeconds()
-    );
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TEST_DURATION_MS);
+    try {
+      const totals = await Promise.all(
+        Array.from({ length: TEST_RUNS }, (_, i) =>
+          measureDownloadOnce(i, (bytes) => report(i, bytes), controller.signal)
+        )
+      );
+      return computeMbps(
+        totals.reduce((a, b) => a + b, 0),
+        elapsedSeconds()
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   async function measureUpload(): Promise<number> {
@@ -123,8 +176,9 @@ export default function SpeedTestRunner() {
       setUploadLive(mbps);
       setUploadMax((m) => Math.max(m, mbps * 1.25));
     });
+    const deadline = performance.now() + TEST_DURATION_MS;
     const totals = await Promise.all(
-      Array.from({ length: TEST_RUNS }, (_, i) => measureUploadOnce((bytes) => report(i, bytes)))
+      Array.from({ length: TEST_RUNS }, (_, i) => measureUploadOnce(deadline, (bytes) => report(i, bytes)))
     );
     return computeMbps(
       totals.reduce((a, b) => a + b, 0),
