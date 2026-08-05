@@ -285,7 +285,12 @@ export async function refreshStarlinkDepositStatusAction(pawapayId: string): Pro
   if (!result.found) return { status: tx.status };
 
   if (result.deposit.status === "COMPLETED" || result.deposit.status === "FAILED") {
-    await markPawaPayTransactionStatus(pawapayId, result.deposit.status, result.deposit);
+    await markPawaPayTransactionStatus(
+      pawapayId,
+      result.deposit.status,
+      result.deposit,
+      result.deposit.payer?.accountDetails?.phoneNumber ?? null
+    );
     await applyDepositOutcome(tx.referenceType, tx.referenceId, result.deposit.status);
     revalidatePath("/admin/starlink/my-info");
   }

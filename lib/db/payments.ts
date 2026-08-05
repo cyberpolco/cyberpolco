@@ -113,14 +113,24 @@ export async function getPawaPayTransactionByPawaPayId(
 // initiateDeposit (PawaPay never sends a callback for those, see
 // lib/pawapay/client.ts) and by the status-poll fallback (for when the
 // webhook is delayed or can't reach a local dev server at all).
+// payerMsisdn is optional (undefined) rather than defaulting to null so
+// callers without fresh payer data — e.g. the synchronous REJECTED/FAILED
+// paths in lib/actions/{starlink,academy}.ts — don't clobber a value set
+// earlier by the webhook callback.
 export async function markPawaPayTransactionStatus(
   pawapayId: string,
   status: string,
-  rawPayload: unknown = {}
+  rawPayload: unknown = {},
+  payerMsisdn?: string | null
 ): Promise<void> {
   await db
     .update(pawapayTransactionsTable)
-    .set({ status, rawPayload, updatedAt: new Date().toISOString() })
+    .set({
+      status,
+      rawPayload,
+      updatedAt: new Date().toISOString(),
+      ...(payerMsisdn !== undefined ? { payerMsisdn } : {}),
+    })
     .where(eq(pawapayTransactionsTable.pawapayId, pawapayId));
 }
 
