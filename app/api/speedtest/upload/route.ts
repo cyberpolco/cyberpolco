@@ -9,8 +9,9 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // A full test runs this 3x (see SpeedTestRunner) — 12/min allows 2 full
-  // runs per minute rather than exhausting the budget on a single one.
+  // A full test hits this 3x concurrently (see SpeedTestRunner) — 12/min
+  // allows 2 full runs per minute rather than exhausting the budget on a
+  // single one.
   const rate = await checkRateLimit(`speedtest:upload:${session.userId}`, 12, 60_000);
   if (!rate.success) {
     return NextResponse.json({ error: "Too many requests. Please wait a minute." }, { status: 429 });
