@@ -229,6 +229,7 @@ export async function initiateStarlinkDepositAction(
     type: "deposit",
     amount,
     currency: "USD",
+    payerMsisdn: prediction.phoneNumber,
     referenceType: "starlink_subscription",
     referenceId: site.id,
   });

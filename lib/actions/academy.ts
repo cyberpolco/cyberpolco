@@ -358,6 +358,7 @@ export async function initiateAcademyDepositAction(
     type: "deposit",
     amount,
     currency: "USD",
+    payerMsisdn: prediction.phoneNumber,
     referenceType: "academy_fee",
     referenceId: enrollment.id,
   });

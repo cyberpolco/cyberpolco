@@ -29,6 +29,7 @@ export async function createPendingPawaPayTransaction(input: {
   type: PawaPayTransactionType;
   amount: string;
   currency: string;
+  payerMsisdn?: string | null;
   referenceType?: PaymentReferenceType | null;
   referenceId?: string | null;
 }): Promise<void> {
@@ -42,7 +43,7 @@ export async function createPendingPawaPayTransaction(input: {
       status: "PENDING",
       amount: input.amount,
       currency: input.currency,
-      payerMsisdn: null,
+      payerMsisdn: input.payerMsisdn ?? null,
       referenceType: input.referenceType ?? null,
       referenceId: input.referenceId ?? null,
       rawPayload: {},
