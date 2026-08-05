@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { APP_VERSION } from "@/lib/version";
 
 const binaryDigits = [
   { top: "10%", left: "8%", char: "1", duration: "6s", twinkle: "3.2s", delay: "0s" },
@@ -64,6 +65,8 @@ export default function AuthPageBackground({
       <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/10 bg-white p-8 shadow-xl">
         {children}
       </div>
+
+      <p className="fixed bottom-3 right-4 z-10 text-xs text-white/30">v{APP_VERSION}</p>
     </div>
   );
 }

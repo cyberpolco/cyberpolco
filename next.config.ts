@@ -1,7 +1,27 @@
+import { execSync } from "node:child_process";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import pkg from "./package.json";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+
+// Appends the total commit count as semver build metadata (the "+N" suffix)
+// so the displayed version (see lib/version.ts) changes on every deploy
+// with no manual bump — package.json's version stays the meaningful part,
+// this just proves which build is live. Requires "Deep Clone" enabled in
+// Vercel's Project Settings → Git; otherwise Vercel's default shallow clone
+// truncates `git rev-list --count` to the same fixed depth on every build,
+// so the count would stop changing.
+function computeAppVersion(): string {
+  try {
+    const commitCount = execSync("git rev-list --count HEAD").toString().trim();
+    return `${pkg.version}+${commitCount}`;
+  } catch {
+    return pkg.version;
+  }
+}
+
+process.env.NEXT_PUBLIC_APP_VERSION = computeAppVersion();
 
 // Content-Security-Policy assembled as an array so each source list stays
 // readable; joined into one header value below.

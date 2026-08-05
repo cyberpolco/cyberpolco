@@ -6,6 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 import AdminNavLink from "./AdminNavLink";
 import LogoutButton from "./LogoutButton";
 import { logoutAction } from "@/lib/actions/auth";
+import { APP_VERSION } from "@/lib/version";
 
 type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number };
 
@@ -71,6 +72,7 @@ export default function MobileNav({
                 </AdminNavLink>
               ))}
             </nav>
+            <p className="mb-1 text-center text-[11px] text-brand-gray/60 dark:text-white/30">v{APP_VERSION}</p>
             <ThemeToggle initialTheme={isDark ? "dark" : "light"} />
             <form action={logoutAction}>
               <LogoutButton />

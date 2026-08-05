@@ -37,6 +37,7 @@ import LogoutButton from "@/app/admin/_components/LogoutButton";
 import { NavProgressProvider } from "@/app/admin/_components/NavProgressContext";
 import AdminProgressBar from "@/app/admin/_components/AdminProgressBar";
 import { ToastProvider } from "@/components/ui/toast";
+import { APP_VERSION } from "@/lib/version";
 import "../globals.css";
 
 const THEME_COOKIE_NAME = "cp_admin_theme";
@@ -277,6 +278,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                       );
                     })}
                   </nav>
+                  <p className="mb-1 text-center text-[11px] text-brand-gray/60 dark:text-white/30">v{APP_VERSION}</p>
                   <ThemeToggle initialTheme={isDark ? "dark" : "light"} />
                   <form action={logoutAction}>
                     <LogoutButton />
