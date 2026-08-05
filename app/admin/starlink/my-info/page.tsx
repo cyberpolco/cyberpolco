@@ -9,7 +9,7 @@ import { formatUsdCents } from "@/lib/content/money";
 import { isSubscriptionPayable } from "@/lib/starlink/subscription";
 import { initiateStarlinkDepositAction, refreshStarlinkDepositStatusAction } from "@/lib/actions/starlink";
 import RevealText from "@/app/admin/_components/RevealText";
-import PayStarlinkButton from "./_components/PayStarlinkButton";
+import PayWithMobileMoneyButton from "@/app/admin/_components/PayWithMobileMoneyButton";
 
 export default async function MyInfoPage() {
   const session = await getSession();
@@ -87,8 +87,9 @@ export default async function MyInfoPage() {
                   </dl>
 
                   {payable ? (
-                    <PayStarlinkButton
-                      siteId={site.id}
+                    <PayWithMobileMoneyButton
+                      fieldName="siteId"
+                      fieldValue={site.id}
                       priceLabel={formatUsdCents(priceCents)}
                       defaultPhone={client.phone}
                       pendingDeposit={pendingDepositsBySiteId.get(site.id) ?? null}

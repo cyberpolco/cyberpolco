@@ -4,10 +4,11 @@ import { Lock, BookOpen, FileDown } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmissionsForEnrollment } from "@/lib/db/academy";
+import { getLatestPawaPayTransactionForReference } from "@/lib/db/payments";
 import { progressPercent } from "@/lib/academy/progress";
 import { formatUsdCents } from "@/lib/content/money";
-import { payEnrollmentFeeAction } from "@/lib/actions/academy";
-import SubmitButton from "@/app/admin/_components/SubmitButton";
+import { initiateAcademyDepositAction, refreshAcademyDepositStatusAction } from "@/lib/actions/academy";
+import PayWithMobileMoneyButton from "@/app/admin/_components/PayWithMobileMoneyButton";
 import BackLink from "@/app/admin/_components/BackLink";
 import QuizStatusCard from "@/app/admin/academy/_components/QuizStatusCard";
 import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
@@ -30,6 +31,13 @@ export default async function CourseDetailPage({
   const submissionByQuizId = new Map(submissions.map((s) => [s.quizId, s]));
   const percent = progressPercent(enrollment, course);
   const locked = !!course.enrollmentFeeCents && !enrollment.feePaid;
+
+  const pendingDepositTx = locked
+    ? await getLatestPawaPayTransactionForReference("academy_fee", enrollment.id)
+    : undefined;
+  const pendingDeposit = pendingDepositTx
+    ? { pawapayId: pendingDepositTx.pawapayId, status: pendingDepositTx.status }
+    : null;
 
   return (
     <div className="max-w-2xl">
@@ -54,12 +62,16 @@ export default async function CourseDetailPage({
               This course requires a one-time enrollment fee of {formatUsdCents(course.enrollmentFeeCents!)} before
               you can open its modules.
             </p>
-            <form action={payEnrollmentFeeAction}>
-              <input type="hidden" name="enrollmentId" value={enrollment.id} />
-              <SubmitButton pendingLabel="Processing...">
-                Pay {formatUsdCents(course.enrollmentFeeCents!)}
-              </SubmitButton>
-            </form>
+            <PayWithMobileMoneyButton
+              fieldName="enrollmentId"
+              fieldValue={enrollment.id}
+              priceLabel={formatUsdCents(course.enrollmentFeeCents!)}
+              defaultPhone={enrollment.phone}
+              pendingDeposit={pendingDeposit}
+              action={initiateAcademyDepositAction}
+              refreshAction={refreshAcademyDepositStatusAction}
+              triggerClassName="flex items-center justify-center gap-2 rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
+            />
           </div>
         )}
       </div>

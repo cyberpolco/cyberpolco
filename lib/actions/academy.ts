@@ -16,7 +16,6 @@ import {
   getEnrollmentByStudentId,
   getEnrollmentsByStudentId,
   getNextStudentId,
-  markEnrollmentFeePaid,
   getQuizSubmission,
   saveQuizSubmission,
   type AcademyCourse,
@@ -30,6 +29,14 @@ import { isValidCourseIdPrefix } from "@/lib/content/academy-options";
 import { parseUsdToCents } from "@/lib/content/money";
 import { progressPercent } from "@/lib/academy/progress";
 import { isQuizAvailable, scoreQuiz, findQuizById, fromDatetimeLocalValue } from "@/lib/academy/quiz";
+import { PHONE_REGEX } from "@/lib/validation/phone";
+import { initiateDeposit, predictProvider, checkDepositStatus } from "@/lib/pawapay/client";
+import {
+  createPendingPawaPayTransaction,
+  getPawaPayTransactionByPawaPayId,
+  markPawaPayTransactionStatus,
+} from "@/lib/db/payments";
+import { applyDepositOutcome } from "@/lib/pawapay/reconcile";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -298,20 +305,110 @@ async function requireOwnEnrollment(session: {
   return linkedEnrollment;
 }
 
-// Self-service, honor-system payment: the student clicks "Pay" and their own
-// enrollment (verified via requireOwnEnrollment, never trusted from the form
-// alone) is immediately marked paid.
-export async function payEnrollmentFeeAction(formData: FormData) {
+// Self-service payment: the student clicks "Pay", confirms/edits their
+// mobile money number, and we push a real PawaPay deposit request to their
+// phone. The enrollment is verified via requireOwnEnrollment + a studentId
+// match, never trusted from the form alone. Unlike the old honor-system
+// version, this does NOT mark the fee paid itself — that only happens once
+// the deposit reaches COMPLETED, via lib/pawapay/reconcile.ts (called from
+// the callback route or refreshAcademyDepositStatusAction below). See the
+// identical comment on initiateStarlinkDepositAction in
+// lib/actions/starlink.ts for why this is restricted to Congolese (+243)
+// numbers charged in USD.
+export async function initiateAcademyDepositAction(formData: FormData) {
   const session = await requireRole(["viewer"]);
   const { studentId } = await requireOwnEnrollment(session);
 
   const enrollment = await getAcademyEnrollmentById(field(formData, "enrollmentId"));
   if (!enrollment || enrollment.studentId !== studentId) redirect("/admin/academy/my-courses");
 
-  await markEnrollmentFeePaid(enrollment.id);
-  revalidatePath("/admin/academy/my-courses");
-  revalidatePath("/admin/dashboard");
-  redirect("/admin/academy/my-courses");
+  const course = await getAcademyCourseById(enrollment.courseId);
+  if (!course?.enrollmentFeeCents) redirect(`/admin/academy/my-courses/${enrollment.id}`);
+  if (enrollment.feePaid) redirect(`/admin/academy/my-courses/${enrollment.id}`);
+
+  const phoneNumber = field(formData, "phoneNumber").trim();
+  if (!PHONE_REGEX.test(phoneNumber)) {
+    throw new Error("Enter a valid phone number with country code, e.g. +243991234567.");
+  }
+
+  let prediction;
+  try {
+    prediction = await predictProvider(phoneNumber);
+  } catch (err) {
+    console.error("PawaPay predict-provider failed:", err);
+    throw new Error("Couldn't verify that phone number. Double-check it and try again.");
+  }
+  if (prediction.country !== "COD") {
+    throw new Error("Mobile money payment is currently only available for Congolese (+243) numbers.");
+  }
+
+  const amount = (course.enrollmentFeeCents / 100).toFixed(2);
+  const depositId = crypto.randomUUID();
+
+  await createPendingPawaPayTransaction({
+    pawapayId: depositId,
+    type: "deposit",
+    amount,
+    currency: "USD",
+    referenceType: "academy_fee",
+    referenceId: enrollment.id,
+  });
+
+  let result;
+  try {
+    result = await initiateDeposit({
+      depositId,
+      phoneNumber: prediction.phoneNumber,
+      provider: prediction.provider,
+      amount,
+      currency: "USD",
+      customerMessage: "Academy course fee",
+    });
+  } catch (err) {
+    await markPawaPayTransactionStatus(depositId, "FAILED", {});
+    console.error("PawaPay initiate deposit failed:", err);
+    throw new Error("Couldn't reach the mobile money provider. Please try again in a moment.");
+  }
+
+  if (result.status === "REJECTED") {
+    await markPawaPayTransactionStatus(depositId, "REJECTED", result.failureReason ?? {});
+    throw new Error(
+      result.failureReason?.failureMessage || "Your mobile money provider rejected this payment request."
+    );
+  }
+
+  revalidatePath(`/admin/academy/my-courses/${enrollment.id}`);
+}
+
+// Fallback for when PawaPay's webhook callback is delayed or can't reach
+// this server at all (no public HTTPS URL in local dev) — same reasoning as
+// refreshStarlinkDepositStatusAction. Scoped to the caller's own enrollment
+// via requireOwnEnrollment + a studentId match, so a viewer can't probe
+// another student's payment status by guessing a depositId.
+export async function refreshAcademyDepositStatusAction(pawapayId: string): Promise<{ status: string }> {
+  const session = await requireRole(["viewer"]);
+  const { studentId } = await requireOwnEnrollment(session);
+
+  const tx = await getPawaPayTransactionByPawaPayId(pawapayId);
+  if (!tx || tx.type !== "deposit" || tx.referenceType !== "academy_fee" || !tx.referenceId) {
+    return { status: "UNKNOWN" };
+  }
+
+  const enrollment = await getAcademyEnrollmentById(tx.referenceId);
+  if (!enrollment || enrollment.studentId !== studentId) return { status: "UNKNOWN" };
+
+  if (tx.status === "COMPLETED" || tx.status === "FAILED") return { status: tx.status };
+
+  const result = await checkDepositStatus(pawapayId);
+  if (!result.found) return { status: tx.status };
+
+  if (result.deposit.status === "COMPLETED" || result.deposit.status === "FAILED") {
+    await markPawaPayTransactionStatus(pawapayId, result.deposit.status, result.deposit);
+    await applyDepositOutcome(tx.referenceType, tx.referenceId, result.deposit.status);
+    revalidatePath(`/admin/academy/my-courses/${enrollment.id}`);
+  }
+
+  return { status: result.deposit.status };
 }
 
 // Lesson completion is entirely self-reported — no admin approval, no

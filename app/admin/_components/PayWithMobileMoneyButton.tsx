@@ -5,30 +5,43 @@ import { useRouter } from "next/navigation";
 import { unstable_rethrow } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
-import ConfirmDialog from "@/app/admin/_components/ConfirmDialog";
+import ConfirmDialog from "./ConfirmDialog";
 
 // Deposits that haven't reached a final state yet — see lib/pawapay/client.ts.
 const IN_FLIGHT_STATUSES = new Set(["PENDING", "ACCEPTED", "PROCESSING", "IN_RECONCILIATION"]);
 
-// Polling interval for the status-poll fallback (see
-// refreshStarlinkDepositStatusAction) — only matters when PawaPay's webhook
-// can't reach this server (e.g. local dev with no public HTTPS URL).
+// Polling interval for the status-poll fallback (see e.g.
+// refreshStarlinkDepositStatusAction/refreshAcademyDepositStatusAction) —
+// only matters when PawaPay's webhook can't reach this server (e.g. local
+// dev with no public HTTPS URL).
 const POLL_INTERVAL_MS = 4000;
 
-export default function PayStarlinkButton({
-  siteId,
+const DEFAULT_TRIGGER_CLASS =
+  "mt-4 w-full rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-brand-dark hover:bg-black/5 dark:border-white/15 dark:text-white dark:hover:bg-white/10";
+
+// Shared by the Starlink subscription renewal and Academy enrollment fee
+// flows — both are "self-service, click Pay, confirm a mobile money number"
+// with the same PawaPay deposit + poll/webhook reconciliation shape (see
+// lib/pawapay/reconcile.ts). fieldName/fieldValue is the one thing that
+// differs (siteId vs enrollmentId).
+export default function PayWithMobileMoneyButton({
+  fieldName,
+  fieldValue,
   priceLabel,
   defaultPhone,
   pendingDeposit,
   action,
   refreshAction,
+  triggerClassName = DEFAULT_TRIGGER_CLASS,
 }: {
-  siteId: string;
+  fieldName: string;
+  fieldValue: string;
   priceLabel: string;
   defaultPhone: string;
   pendingDeposit: { pawapayId: string; status: string } | null;
   action: (formData: FormData) => Promise<void>;
   refreshAction: (pawapayId: string) => Promise<{ status: string }>;
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState(defaultPhone);
@@ -39,10 +52,9 @@ export default function PayStarlinkButton({
   const showPending = !!pendingDeposit && IN_FLIGHT_STATUSES.has(pendingDeposit.status);
 
   // Polls the fallback status check on an interval rather than relying only
-  // on the webhook (see refreshStarlinkDepositStatusAction) — clearInterval
-  // stops it as soon as this closure sees a final status, independently of
-  // whether/when the resulting router.refresh() delivers a fresh
-  // pendingDeposit prop back down.
+  // on the webhook — clearInterval stops it as soon as this closure sees a
+  // final status, independently of whether/when the resulting
+  // router.refresh() delivers a fresh pendingDeposit prop back down.
   useEffect(() => {
     if (!showPending || !pendingDeposit) return;
     const interval = setInterval(async () => {
@@ -61,7 +73,7 @@ export default function PayStarlinkButton({
   function handleConfirm() {
     startTransition(async () => {
       const formData = new FormData();
-      formData.set("siteId", siteId);
+      formData.set(fieldName, fieldValue);
       formData.set("phoneNumber", phone);
       try {
         await action(formData);
@@ -86,11 +98,7 @@ export default function PayStarlinkButton({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="mt-4 w-full rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-brand-dark hover:bg-black/5 dark:border-white/15 dark:text-white dark:hover:bg-white/10"
-      >
+      <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
         {`Pay ${priceLabel}`}
       </button>
       {open && (

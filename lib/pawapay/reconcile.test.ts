@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/db/starlink", () => ({ markStarlinkSiteSubscriptionPaid: vi.fn() }));
+vi.mock("@/lib/db/academy", () => ({ markEnrollmentFeePaid: vi.fn() }));
 
 const { markStarlinkSiteSubscriptionPaid } = await import("@/lib/db/starlink");
+const { markEnrollmentFeePaid } = await import("@/lib/db/academy");
 const { applyDepositOutcome } = await import("./reconcile");
 
 describe("applyDepositOutcome", () => {
@@ -30,8 +32,14 @@ describe("applyDepositOutcome", () => {
     expect(markStarlinkSiteSubscriptionPaid).not.toHaveBeenCalled();
   });
 
-  it("does nothing for an academy_fee reference (not wired up yet)", async () => {
+  it("marks the enrollment fee as paid on a COMPLETED academy_fee deposit", async () => {
     await applyDepositOutcome("academy_fee", "enrollment-1", "COMPLETED");
+    expect(markEnrollmentFeePaid).toHaveBeenCalledWith("enrollment-1");
     expect(markStarlinkSiteSubscriptionPaid).not.toHaveBeenCalled();
+  });
+
+  it("does not mark the enrollment fee paid for a FAILED academy_fee deposit", async () => {
+    await applyDepositOutcome("academy_fee", "enrollment-1", "FAILED");
+    expect(markEnrollmentFeePaid).not.toHaveBeenCalled();
   });
 });
