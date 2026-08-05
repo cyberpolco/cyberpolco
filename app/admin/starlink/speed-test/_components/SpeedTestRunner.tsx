@@ -75,13 +75,29 @@ async function measureDownloadOnce(
   return bytesReceived;
 }
 
-function uploadChunk(bytes: number, onProgress: (loaded: number) => void): Promise<number> {
+// `deadline` hard-caps this request the same way download's AbortController
+// caps each read loop: the chunk-sizing estimate below is only ever a guess
+// from the previous chunk's rate, and a link that suddenly degrades
+// mid-chunk (the Starlink case this test is for) can otherwise blow well
+// past TEST_DURATION_MS waiting for one oversized chunk to finish. On
+// timeout, whatever bytes made it through before the deadline still count
+// as this chunk's contribution rather than failing the whole run.
+function uploadChunk(bytes: number, deadline: number, onProgress: (loaded: number) => void): Promise<number> {
   return new Promise((resolve, reject) => {
     const payload = generateRandomPayload(bytes);
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/speedtest/upload");
+    let loaded = 0;
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress(e.loaded);
+      if (e.lengthComputable) {
+        loaded = e.loaded;
+        onProgress(loaded);
+      }
+    };
+    xhr.timeout = Math.max(1, deadline - performance.now());
+    xhr.ontimeout = () => {
+      xhr.abort();
+      resolve(loaded);
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
@@ -109,7 +125,7 @@ async function measureUploadOnce(deadline: number, onProgress: (bytes: number) =
   let chunkBytes = MIN_UPLOAD_CHUNK_BYTES;
   while (performance.now() < deadline) {
     const chunkStart = performance.now();
-    const sentInChunk = await uploadChunk(chunkBytes, (loaded) => onProgress(totalSent + loaded));
+    const sentInChunk = await uploadChunk(chunkBytes, deadline, (loaded) => onProgress(totalSent + loaded));
     totalSent += sentInChunk;
     onProgress(totalSent);
 
