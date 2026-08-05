@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { upsertJobAction } from "@/lib/actions/jobs";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
-import { toDatetimeLocalValue, type Job } from "@/lib/db/jobs";
+import { toDatetimeLocalValue, type Job } from "@/lib/jobs/jobs";
 import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
 import { CONTRACT_TYPE_OPTIONS } from "@/lib/content/job-options";
 

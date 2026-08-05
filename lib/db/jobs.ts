@@ -3,6 +3,8 @@ import { db } from "./client";
 import { jobs as jobsTable } from "./schema";
 import type { TextAlign } from "@/lib/types/text-align";
 
+export { toDatetimeLocalValue, fromDatetimeLocalValue } from "@/lib/jobs/jobs";
+
 export type JobStatus = "open" | "closed" | "draft";
 export type EffectiveJobStatus = "draft" | "scheduled" | "open" | "closed";
 
@@ -28,20 +30,6 @@ export function getEffectiveJobStatus(
   if (job.openAt && now < new Date(job.openAt)) return "scheduled";
   if (job.closeAt && now >= new Date(job.closeAt)) return "closed";
   return "open";
-}
-
-// <input type="datetime-local"> round-trips through the server's local
-// timezone, same simplification as lib/academy/quiz.ts's toDatetimeLocalValue.
-export function toDatetimeLocalValue(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-export function fromDatetimeLocalValue(value: string): string | null {
-  if (!value) return null;
-  return new Date(value).toISOString();
 }
 
 export async function getJobs(): Promise<Job[]> {
