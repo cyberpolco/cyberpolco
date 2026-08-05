@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "./client";
 import { pawapayTransactions as pawapayTransactionsTable } from "./schema";
 
@@ -105,5 +105,42 @@ export async function getPawaPayTransactionByPawaPayId(
     .select()
     .from(pawapayTransactionsTable)
     .where(eq(pawapayTransactionsTable.pawapayId, pawapayId));
+  return row as PawaPayTransaction | undefined;
+}
+
+// Called both by the synchronous REJECTED/DUPLICATE_IGNORED response from
+// initiateDeposit (PawaPay never sends a callback for those, see
+// lib/pawapay/client.ts) and by the status-poll fallback (for when the
+// webhook is delayed or can't reach a local dev server at all).
+export async function markPawaPayTransactionStatus(
+  pawapayId: string,
+  status: string,
+  rawPayload: unknown = {}
+): Promise<void> {
+  await db
+    .update(pawapayTransactionsTable)
+    .set({ status, rawPayload, updatedAt: new Date().toISOString() })
+    .where(eq(pawapayTransactionsTable.pawapayId, pawapayId));
+}
+
+// Most recent transaction for a given domain object — lets a page show
+// "payment pending" for a site/enrollment that already has a deposit in
+// flight, without needing a dedicated "pending payment" column on that
+// domain table.
+export async function getLatestPawaPayTransactionForReference(
+  referenceType: PaymentReferenceType,
+  referenceId: string
+): Promise<PawaPayTransaction | undefined> {
+  const [row] = await db
+    .select()
+    .from(pawapayTransactionsTable)
+    .where(
+      and(
+        eq(pawapayTransactionsTable.referenceType, referenceType),
+        eq(pawapayTransactionsTable.referenceId, referenceId)
+      )
+    )
+    .orderBy(desc(pawapayTransactionsTable.createdAt))
+    .limit(1);
   return row as PawaPayTransaction | undefined;
 }

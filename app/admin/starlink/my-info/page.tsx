@@ -3,12 +3,13 @@ import { MapPin, Wifi } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getSettings } from "@/lib/db/settings";
+import { getLatestPawaPayTransactionForReference } from "@/lib/db/payments";
 import { STARLINK_OPTION_LABELS } from "@/lib/content/starlink-options";
 import { formatUsdCents } from "@/lib/content/money";
 import { isSubscriptionPayable } from "@/lib/starlink/subscription";
-import { payStarlinkSubscriptionAction } from "@/lib/actions/starlink";
+import { initiateStarlinkDepositAction, refreshStarlinkDepositStatusAction } from "@/lib/actions/starlink";
 import RevealText from "@/app/admin/_components/RevealText";
-import SubmitButton from "@/app/admin/_components/SubmitButton";
+import PayStarlinkButton from "./_components/PayStarlinkButton";
 
 export default async function MyInfoPage() {
   const session = await getSession();
@@ -18,6 +19,17 @@ export default async function MyInfoPage() {
     session.linkedId ? getStarlinkClientById(session.linkedId) : Promise.resolve(undefined),
     getSettings(),
   ]);
+
+  const pendingDepositsBySiteId = new Map<string, { pawapayId: string; status: string }>();
+  if (client) {
+    const transactions = await Promise.all(
+      client.sites.map((site) => getLatestPawaPayTransactionForReference("starlink_subscription", site.id))
+    );
+    client.sites.forEach((site, i) => {
+      const tx = transactions[i];
+      if (tx) pendingDepositsBySiteId.set(site.id, { pawapayId: tx.pawapayId, status: tx.status });
+    });
+  }
 
   return (
     <div>
@@ -74,12 +86,24 @@ export default async function MyInfoPage() {
                     </div>
                   </dl>
 
-                  <form action={payStarlinkSubscriptionAction} className="mt-4">
-                    <input type="hidden" name="siteId" value={site.id} />
-                    <SubmitButton variant="subtle" disabled={!payable} pendingLabel="Processing..." className="w-full">
-                      {payable ? `Pay ${formatUsdCents(priceCents)}` : "Not due for renewal yet"}
-                    </SubmitButton>
-                  </form>
+                  {payable ? (
+                    <PayStarlinkButton
+                      siteId={site.id}
+                      priceLabel={formatUsdCents(priceCents)}
+                      defaultPhone={client.phone}
+                      pendingDeposit={pendingDepositsBySiteId.get(site.id) ?? null}
+                      action={initiateStarlinkDepositAction}
+                      refreshAction={refreshStarlinkDepositStatusAction}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="mt-4 w-full cursor-not-allowed rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-brand-dark opacity-50 dark:border-white/15 dark:text-white"
+                    >
+                      Not due for renewal yet
+                    </button>
+                  )}
                 </div>
               );
             })}

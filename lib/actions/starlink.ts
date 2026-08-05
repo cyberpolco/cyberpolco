@@ -20,6 +20,14 @@ import { parseUsdToCents } from "@/lib/content/money";
 import { getSettings, saveSettings } from "@/lib/db/settings";
 import { isSubscriptionPayable } from "@/lib/starlink/subscription";
 import { notifyTechniciansOfHelpRequest } from "@/lib/notifications/notify-technicians";
+import { PHONE_REGEX } from "@/lib/validation/phone";
+import { initiateDeposit, predictProvider, checkDepositStatus } from "@/lib/pawapay/client";
+import {
+  createPendingPawaPayTransaction,
+  getPawaPayTransactionByPawaPayId,
+  markPawaPayTransactionStatus,
+} from "@/lib/db/payments";
+import { applyDepositOutcome } from "@/lib/pawapay/reconcile";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
@@ -156,12 +164,23 @@ export async function updateStarlinkPricingAction(formData: FormData) {
   redirect("/admin/starlink");
 }
 
-// Self-service, honor-system renewal: the client clicks "Pay" and their own
-// site's cycle (identified from the session + a site id they don't control
-// the outcome of, never a targetId that lets them touch another client's
-// record) renews immediately. The disabled button is just UX — this
-// re-checks the payable window server-side since forms can be resubmitted.
-export async function payStarlinkSubscriptionAction(formData: FormData) {
+// Self-service renewal: the client clicks "Pay", confirms/edits their
+// mobile money number (identified from the session + a site id they don't
+// control the outcome of, never a targetId that lets them touch another
+// client's record), and we push a real PawaPay deposit request to their
+// phone. The disabled button is just UX — this re-checks the payable
+// window server-side since forms can be resubmitted. Unlike the old
+// honor-system version, this does NOT flip paymentStatus/
+// subscriptionStartDate itself — that only happens once the deposit
+// reaches COMPLETED, via lib/pawapay/reconcile.ts (called from the
+// callback route or refreshStarlinkDepositStatusAction below).
+//
+// Only Congolese (+243) numbers are supported for now: DRC is the only
+// market this app has phone-format/business context for, and PawaPay's
+// DRC mobile money providers (Airtel/Orange/Vodacom) all support USD
+// deposits directly — so no currency conversion is needed against the
+// existing USD-cents pricing (see lib/content/money.ts).
+export async function initiateStarlinkDepositAction(formData: FormData) {
   const session = await requireRole(["viewer"]);
   if (session.viewerType !== "starlink_client" || !session.linkedId) redirect("/admin/starlink/my-info");
 
@@ -173,13 +192,92 @@ export async function payStarlinkSubscriptionAction(formData: FormData) {
   if (!site || !isSubscriptionPayable(site.subscriptionStartDate, new Date()))
     redirect("/admin/starlink/my-info");
 
-  const sites = client.sites.map((s) =>
-    s.id === siteId ? { ...s, subscriptionStartDate: new Date().toISOString() } : s
-  );
-  await saveStarlinkClient({ ...client, sites });
+  const phoneNumber = field(formData, "phoneNumber").trim();
+  if (!PHONE_REGEX.test(phoneNumber)) {
+    throw new Error("Enter a valid phone number with country code, e.g. +243991234567.");
+  }
+
+  let prediction;
+  try {
+    prediction = await predictProvider(phoneNumber);
+  } catch (err) {
+    console.error("PawaPay predict-provider failed:", err);
+    throw new Error("Couldn't verify that phone number. Double-check it and try again.");
+  }
+  if (prediction.country !== "COD") {
+    throw new Error("Mobile money payment is currently only available for Congolese (+243) numbers.");
+  }
+
+  const settings = await getSettings();
+  const priceCents = settings.starlinkPricing[site.subscriptionType];
+  const amount = (priceCents / 100).toFixed(2);
+  const depositId = crypto.randomUUID();
+
+  await createPendingPawaPayTransaction({
+    pawapayId: depositId,
+    type: "deposit",
+    amount,
+    currency: "USD",
+    referenceType: "starlink_subscription",
+    referenceId: site.id,
+  });
+
+  let result;
+  try {
+    result = await initiateDeposit({
+      depositId,
+      phoneNumber: prediction.phoneNumber,
+      provider: prediction.provider,
+      amount,
+      currency: "USD",
+      customerMessage: "Starlink renewal",
+    });
+  } catch (err) {
+    await markPawaPayTransactionStatus(depositId, "FAILED", {});
+    console.error("PawaPay initiate deposit failed:", err);
+    throw new Error("Couldn't reach the mobile money provider. Please try again in a moment.");
+  }
+
+  if (result.status === "REJECTED") {
+    await markPawaPayTransactionStatus(depositId, "REJECTED", result.failureReason ?? {});
+    throw new Error(
+      result.failureReason?.failureMessage || "Your mobile money provider rejected this payment request."
+    );
+  }
+
   revalidatePath("/admin/starlink/my-info");
-  revalidatePath("/admin/dashboard");
-  redirect("/admin/starlink/my-info");
+}
+
+// Fallback for when PawaPay's webhook callback is delayed or — as in local
+// development — can't reach this server at all (no public HTTPS URL to
+// configure in the PawaPay dashboard). Scoped to the caller's own linked
+// client/site, same as the rest of this file's self-service actions, so a
+// viewer can't probe another client's payment status by guessing a
+// depositId.
+export async function refreshStarlinkDepositStatusAction(pawapayId: string): Promise<{ status: string }> {
+  const session = await requireRole(["viewer"]);
+  if (session.viewerType !== "starlink_client" || !session.linkedId) return { status: "UNKNOWN" };
+
+  const tx = await getPawaPayTransactionByPawaPayId(pawapayId);
+  if (!tx || tx.type !== "deposit" || tx.referenceType !== "starlink_subscription" || !tx.referenceId) {
+    return { status: "UNKNOWN" };
+  }
+
+  const client = await getStarlinkClientById(session.linkedId);
+  if (!client || !client.sites.some((s) => s.id === tx.referenceId)) return { status: "UNKNOWN" };
+
+  if (tx.status === "COMPLETED" || tx.status === "FAILED") return { status: tx.status };
+
+  const result = await checkDepositStatus(pawapayId);
+  if (!result.found) return { status: tx.status };
+
+  if (result.deposit.status === "COMPLETED" || result.deposit.status === "FAILED") {
+    await markPawaPayTransactionStatus(pawapayId, result.deposit.status, result.deposit);
+    await applyDepositOutcome(tx.referenceType, tx.referenceId, result.deposit.status);
+    revalidatePath("/admin/starlink/my-info");
+  }
+
+  return { status: result.deposit.status };
 }
 
 // Self-service — the client raises a flag on one of their own sites

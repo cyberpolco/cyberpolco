@@ -2,15 +2,26 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/pawapay/verify", () => ({ verifyPawaPayCallback: vi.fn() }));
-vi.mock("@/lib/db/payments", () => ({ upsertPawaPayTransaction: vi.fn() }));
+vi.mock("@/lib/db/payments", () => ({
+  upsertPawaPayTransaction: vi.fn(),
+  getPawaPayTransactionByPawaPayId: vi.fn(),
+}));
+vi.mock("@/lib/pawapay/reconcile", () => ({ applyDepositOutcome: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn(), getClientIp: vi.fn(() => "1.2.3.4") }));
 
 const { verifyPawaPayCallback } = await import("@/lib/pawapay/verify");
-const { upsertPawaPayTransaction } = await import("@/lib/db/payments");
+const { upsertPawaPayTransaction, getPawaPayTransactionByPawaPayId } = await import("@/lib/db/payments");
+const { applyDepositOutcome } = await import("@/lib/pawapay/reconcile");
 const { checkRateLimit } = await import("@/lib/rate-limit");
 const { POST } = await import("./route");
 
-const validPayload = { depositId: "dep-123", status: "COMPLETED", amount: "10.00", currency: "ZMW" };
+const validPayload = {
+  depositId: "dep-123",
+  status: "COMPLETED",
+  amount: "10.00",
+  currency: "ZMW",
+  payer: { type: "MMO", accountDetails: { phoneNumber: "260763456789", provider: "MTN_MOMO_ZMB" } },
+};
 
 function makeRequest(body: unknown) {
   return new NextRequest("http://localhost/api/pawapay/deposits/callback", {
@@ -25,6 +36,8 @@ describe("POST /api/pawapay/deposits/callback", () => {
     vi.clearAllMocks();
     vi.mocked(verifyPawaPayCallback).mockReturnValue(true);
     vi.mocked(upsertPawaPayTransaction).mockResolvedValue(undefined);
+    vi.mocked(getPawaPayTransactionByPawaPayId).mockResolvedValue(undefined);
+    vi.mocked(applyDepositOutcome).mockResolvedValue(undefined);
     vi.mocked(checkRateLimit).mockResolvedValue({ success: true, remaining: 29 });
   });
 
@@ -49,8 +62,42 @@ describe("POST /api/pawapay/deposits/callback", () => {
     expect(res.status).toBe(200);
     expect(json).toEqual({ ok: true });
     expect(upsertPawaPayTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ pawapayId: "dep-123", type: "deposit", status: "COMPLETED" })
+      expect.objectContaining({
+        pawapayId: "dep-123",
+        type: "deposit",
+        status: "COMPLETED",
+        payerMsisdn: "260763456789",
+      })
     );
+  });
+
+  it("applies the domain effect using the referenceType/referenceId set at pending-creation time", async () => {
+    vi.mocked(getPawaPayTransactionByPawaPayId).mockResolvedValue({
+      id: "tx-1",
+      pawapayId: "dep-123",
+      type: "deposit",
+      status: "COMPLETED",
+      amount: "10.00",
+      currency: "ZMW",
+      payerMsisdn: "260763456789",
+      referenceType: "starlink_subscription",
+      referenceId: "site-1",
+      rawPayload: {},
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    const res = await POST(makeRequest(validPayload));
+
+    expect(res.status).toBe(200);
+    expect(applyDepositOutcome).toHaveBeenCalledWith("starlink_subscription", "site-1", "COMPLETED");
+  });
+
+  it("skips the domain effect when no pending transaction row exists for this id", async () => {
+    vi.mocked(getPawaPayTransactionByPawaPayId).mockResolvedValue(undefined);
+    const res = await POST(makeRequest(validPayload));
+    expect(res.status).toBe(200);
+    expect(applyDepositOutcome).not.toHaveBeenCalled();
   });
 
   it("is idempotent for a duplicate delivery: calling twice still returns 200 each time", async () => {

@@ -78,6 +78,28 @@ export async function deleteStarlinkClient(id: string): Promise<void> {
   await db.delete(starlinkClientsTable).where(eq(starlinkClientsTable.id, id));
 }
 
+// Sites live inside each client's `sites` jsonb array, not their own table,
+// so finding "the client that owns this site" means scanning clients in
+// application code rather than a WHERE clause — same tradeoff the rest of
+// this file already makes (saveStarlinkClient rewrites the whole row).
+export async function getStarlinkClientBySiteId(siteId: string): Promise<StarlinkClient | undefined> {
+  const clients = await getStarlinkClients();
+  return clients.find((c) => c.sites.some((s) => s.id === siteId));
+}
+
+// Called once a PawaPay deposit for this site's subscription renewal
+// reaches COMPLETED — see lib/pawapay/reconcile.ts. Idempotent: re-applying
+// the same outcome (e.g. the webhook and a status poll both resolving it)
+// just re-sets the same fields.
+export async function markStarlinkSiteSubscriptionPaid(siteId: string): Promise<void> {
+  const client = await getStarlinkClientBySiteId(siteId);
+  if (!client) return;
+  const sites = client.sites.map((s) =>
+    s.id === siteId ? { ...s, paymentStatus: "paid" as const, subscriptionStartDate: new Date().toISOString() } : s
+  );
+  await saveStarlinkClient({ ...client, sites });
+}
+
 export async function getNextClientId(): Promise<string> {
   const rows = await db.select({ id: starlinkClientsTable.id }).from(starlinkClientsTable);
   return `STK-${String(rows.length + 1).padStart(4, "0")}`;

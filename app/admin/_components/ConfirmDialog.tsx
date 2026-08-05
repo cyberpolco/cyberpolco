@@ -12,6 +12,7 @@ export default function ConfirmDialog({
   pending,
   onConfirm,
   onCancel,
+  children,
 }: {
   title: string;
   body?: string;
@@ -19,6 +20,7 @@ export default function ConfirmDialog({
   pending: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  children?: React.ReactNode;
 }) {
   const mounted = useHasMounted();
 
@@ -49,6 +51,7 @@ export default function ConfirmDialog({
           {title}
         </h2>
         {body && <p className="mt-2 text-sm text-brand-gray dark:text-white/60">{body}</p>}
+        {children}
         <div className="mt-5 flex justify-end gap-3">
           <button
             type="button"

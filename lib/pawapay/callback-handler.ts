@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ZodType } from "zod";
 import { verifyPawaPayCallback } from "./verify";
-import { upsertPawaPayTransaction, type PawaPayTransactionType } from "@/lib/db/payments";
+import {
+  upsertPawaPayTransaction,
+  getPawaPayTransactionByPawaPayId,
+  type PawaPayTransactionType,
+} from "@/lib/db/payments";
+import { applyDepositOutcome } from "./reconcile";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Extracts the type-specific id field (checkoutId/depositId/payoutId/
-// refundId) into a common shape. Field names are placeholders — see
-// lib/pawapay/schemas.ts.
+// refundId) into a common shape. Only "deposit" is confirmed against real
+// PawaPay docs — the others are still placeholders, see lib/pawapay/schemas.ts.
 const ID_FIELD: Record<PawaPayTransactionType, string> = {
   checkout: "checkoutId",
   deposit: "depositId",
   payout: "payoutId",
   refund: "refundId",
 };
+
+// Only the confirmed deposit payload shape (payer.accountDetails.phoneNumber)
+// is extracted here — checkout/payout/refund keep returning null until their
+// real field names are confirmed too.
+function extractPayerMsisdn(type: PawaPayTransactionType, data: Record<string, unknown>): string | null {
+  if (type !== "deposit") return null;
+  const payer = data.payer as { accountDetails?: { phoneNumber?: string } } | undefined;
+  return payer?.accountDetails?.phoneNumber ?? null;
+}
 
 // Generous relative to the contact/apply forms' 5/min — this is a
 // server-to-server webhook, not a human filling out a form, so a burst of
@@ -55,16 +69,25 @@ export async function handlePawaPayCallback(
   const pawapayId = data[ID_FIELD[type]] as string;
 
   try {
+    const status = data.status as string;
     await upsertPawaPayTransaction({
       pawapayId,
       type,
-      status: data.status as string,
+      status,
       amount: (data.amount as string) ?? "0",
       currency: (data.currency as string) ?? "",
-      // TODO: pull from data.payer/data.recipient once field shape is confirmed.
-      payerMsisdn: null,
+      payerMsisdn: extractPayerMsisdn(type, data),
       rawPayload: body,
     });
+
+    // Only "deposit" has a confirmed domain effect so far (Starlink
+    // subscription renewals) — referenceType/referenceId were set at
+    // pending-creation time (see lib/actions/starlink.ts), never guessed at
+    // from the callback itself.
+    if (type === "deposit") {
+      const tx = await getPawaPayTransactionByPawaPayId(pawapayId);
+      if (tx) await applyDepositOutcome(tx.referenceType, tx.referenceId, status);
+    }
   } catch (err) {
     console.error(`Failed to persist PawaPay ${type} callback:`, err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
