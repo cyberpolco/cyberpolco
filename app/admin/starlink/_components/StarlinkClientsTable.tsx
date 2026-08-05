@@ -84,24 +84,23 @@ export default function StarlinkClientsTable({
                       </span>
                     )}
                     {sitesNeedingHelp.length > 0 && (
-                      <div className="ml-2 inline-flex items-center gap-1 rounded-full bg-status-critical/15 pl-2 pr-1 py-0.5 align-middle">
+                      <div className="ml-2 inline-flex items-center gap-2 rounded-full bg-status-critical/15 pl-2.5 pr-1.5 py-1 align-middle">
                         <span
                           title={helpTooltip}
                           aria-label={helpTooltip}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-status-critical"
+                          className="inline-flex items-center gap-1.5 text-sm font-bold text-status-critical"
                         >
-                          <AlertTriangle size={12} />
+                          <AlertTriangle size={20} />
                           {sitesNeedingHelp.length}
                         </span>
                         <form action={resolveTechnicianHelpAction}>
                           <input type="hidden" name="id" value={c.id} />
                           <button
                             type="submit"
-                            title="Mark resolved"
-                            aria-label="Mark resolved"
-                            className="text-status-critical hover:text-brand-red"
+                            title="Mark this help request resolved"
+                            className="flex items-center gap-1 rounded-full bg-status-critical px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-red"
                           >
-                            <X size={12} />
+                            <X size={14} /> Resolve
                           </button>
                         </form>
                       </div>

@@ -1,4 +1,4 @@
-import { getTechnicianEmails } from "@/lib/db/users";
+import { getTechnicianEmails, getSuperAdminEmails } from "@/lib/db/users";
 import { sendTemplatedEmail } from "@/lib/email/templates";
 import { escapeHtml } from "@/lib/email/escape-html";
 
@@ -7,7 +7,9 @@ export async function notifyTechniciansOfHelpRequest(vars: {
   clientId: string;
   siteName: string;
 }): Promise<void> {
-  const emails = await getTechnicianEmails();
+  const [technicianEmails, superAdminEmails] = await Promise.all([getTechnicianEmails(), getSuperAdminEmails()]);
+  // Deduplicated in case the same address somehow holds both roles.
+  const emails = Array.from(new Set([...technicianEmails, ...superAdminEmails]));
   const safeVars = {
     clientName: escapeHtml(vars.clientName),
     clientId: escapeHtml(vars.clientId),

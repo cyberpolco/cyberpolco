@@ -112,6 +112,14 @@ export async function getTechnicianEmails(): Promise<string[]> {
   return rows.map((r) => r.email);
 }
 
+export async function getSuperAdminEmails(): Promise<string[]> {
+  const rows = await db
+    .select({ email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.role, "super_admin"));
+  return rows.map((r) => r.email);
+}
+
 export type UsersStats = {
   byRole: { label: string; value: number }[];
 };

@@ -100,7 +100,7 @@ export const TEMPLATE_REGISTRY: Record<TemplateKey, TemplateDefinition> = {
   },
   starlink_help_notify_technician: {
     label: "Technician alert — client requested help",
-    description: "Sent to every technician when a Starlink client requests on-site assistance.",
+    description: "Sent to every technician and super admin when a Starlink client requests on-site assistance.",
     variables: ["clientName", "clientId", "siteName"],
     defaultFr: {
       subject: "Nouvelle demande d'assistance Starlink",
