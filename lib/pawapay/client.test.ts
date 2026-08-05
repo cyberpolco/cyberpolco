@@ -96,6 +96,37 @@ describe("pawapay client", () => {
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ unexpected: true })));
       await expect(initiateDeposit(input)).rejects.toThrow(/unexpected response shape/);
     });
+
+    it("omits Signature headers when signing keys aren't configured", async () => {
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ depositId: input.depositId, status: "ACCEPTED" }));
+      vi.stubGlobal("fetch", fetchMock);
+
+      await initiateDeposit(input);
+
+      const [, options] = fetchMock.mock.calls[0];
+      expect(options.headers.Signature).toBeUndefined();
+      expect(options.headers["Signature-Input"]).toBeUndefined();
+      expect(options.headers["Content-Digest"]).toMatch(/^sha-512=:.+:$/);
+    });
+
+    it("adds RFC-9421 Signature headers when signing keys are configured", async () => {
+      process.env.PAWAPAY_SIGNING_KEY_ID = "test-signing-key";
+      process.env.PAWAPAY_SIGNING_PRIVATE_KEY =
+        "-----BEGIN EC PRIVATE KEY-----\n" +
+        "MHcCAQEEIJgYjijbeBpAk5YxxeDiU/Cn40y+TUGrI6WUFlvsVSHqoAoGCCqGSM49\n" +
+        "AwEHoUQDQgAEACPTgeqMouN1XXO0eIFUsE34QD7xpnmP88x4LNwxEw1Dj4j4VmUl\n" +
+        "Z4Sryn7p4n4V0A0ZDiCIAkyKbJXh5b0Mfg==\n" +
+        "-----END EC PRIVATE KEY-----\n";
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ depositId: input.depositId, status: "ACCEPTED" }));
+      vi.stubGlobal("fetch", fetchMock);
+
+      await initiateDeposit(input);
+
+      const [, options] = fetchMock.mock.calls[0];
+      expect(options.headers.Signature).toMatch(/^sig-pp=:.+:$/);
+      expect(options.headers["Signature-Input"]).toContain('keyid="test-signing-key"');
+      expect(options.headers["Signature-Input"]).toContain('alg="ecdsa-p256-sha256"');
+    });
   });
 
   describe("checkDepositStatus", () => {

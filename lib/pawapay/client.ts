@@ -1,12 +1,16 @@
 import { z } from "zod";
+import { createHash, createPrivateKey, createSign } from "crypto";
+import { httpbis, type SigningKey } from "http-message-signatures";
 
 /**
  * Outbound PawaPay client — initiates deposits and polls their status.
  *
  * Confirmed against https://docs.pawapay.io/v2/api-reference/deposits
  * (initiate-deposit, check-deposit-status). Request signing (RFC-9421,
- * PAWAPAY_SIGNING_KEY_ID/PAWAPAY_SIGNING_PRIVATE_KEY) is optional in
- * sandbox and not implemented here yet — add it before going to production.
+ * per https://docs.pawapay.io/v2/docs/signatures) is only applied when
+ * PAWAPAY_SIGNING_KEY_ID/PAWAPAY_SIGNING_PRIVATE_KEY are set — PawaPay
+ * enforces it per-account via a dashboard toggle, so unsigned requests
+ * are rejected with HTTP 401 HTTP_SIGNATURE_ERROR once that's turned on.
  */
 
 const SANDBOX_BASE_URL = "https://api.sandbox.pawapay.io";
@@ -30,6 +34,45 @@ function authHeaders(): Record<string, string> {
   };
 }
 
+function getSigningKey(): SigningKey | null {
+  const keyId = process.env.PAWAPAY_SIGNING_KEY_ID;
+  const privateKeyPem = process.env.PAWAPAY_SIGNING_PRIVATE_KEY;
+  if (!keyId || !privateKeyPem) {
+    return null;
+  }
+  const privateKey = createPrivateKey(privateKeyPem);
+  return {
+    id: keyId,
+    alg: "ecdsa-p256-sha256",
+    async sign(data: Buffer) {
+      return createSign("SHA256").update(data).sign(privateKey);
+    },
+  };
+}
+
+// Adds RFC-9421 Signature/Signature-Input headers when signing is
+// configured; otherwise returns just the digest/date headers PawaPay's
+// signature base would have covered, matching pre-signing behavior.
+async function signedRequestHeaders(url: string, method: string, body?: string): Promise<Record<string, string>> {
+  const signatureDate = new Date().toISOString();
+  const headers: Record<string, string> = { "Signature-Date": signatureDate };
+  const fields = ["@method", "@authority", "@path", "signature-date"];
+
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    headers["Content-Digest"] = `sha-512=:${createHash("sha512").update(body).digest("base64")}:`;
+    headers["Content-Length"] = String(Buffer.byteLength(body));
+    fields.push("content-digest", "content-type", "content-length");
+  }
+
+  const key = getSigningKey();
+  if (!key) {
+    return headers;
+  }
+  const signed = await httpbis.signMessage({ key, name: "sig-pp", fields }, { method, url, headers });
+  return signed.headers as Record<string, string>;
+}
+
 const predictProviderResponseSchema = z.object({
   country: z.string(),
   provider: z.string(),
@@ -42,11 +85,13 @@ export type PredictProviderResult = z.infer<typeof predictProviderResponseSchema
 // provider it belongs to, so callers don't need their own country/provider
 // picker UI. https://docs.pawapay.io/v2/api-reference/toolkit/predict-provider
 export async function predictProvider(phoneNumber: string): Promise<PredictProviderResult> {
-  const res = await fetch(`${getBaseUrl()}/v2/predict-provider`, {
+  const url = `${getBaseUrl()}/v2/predict-provider`;
+  const body = JSON.stringify({ phoneNumber });
+  const res = await fetch(url, {
     method: "POST",
-    headers: authHeaders(),
+    headers: { ...authHeaders(), ...(await signedRequestHeaders(url, "POST", body)) },
     cache: "no-store",
-    body: JSON.stringify({ phoneNumber }),
+    body,
   });
 
   if (!res.ok) {
@@ -102,21 +147,23 @@ const initiateDepositResponseSchema = z.object({
 // FAILED) arrives later via the /api/pawapay/deposits/callback webhook, or
 // checkDepositStatus() below as a fallback.
 export async function initiateDeposit(input: InitiateDepositInput): Promise<InitiateDepositResult> {
-  const res = await fetch(`${getBaseUrl()}/v2/deposits`, {
+  const url = `${getBaseUrl()}/v2/deposits`;
+  const body = JSON.stringify({
+    depositId: input.depositId,
+    payer: {
+      type: "MMO",
+      accountDetails: { phoneNumber: input.phoneNumber, provider: input.provider },
+    },
+    amount: input.amount,
+    currency: input.currency,
+    ...(input.clientReferenceId ? { clientReferenceId: input.clientReferenceId } : {}),
+    ...(input.customerMessage ? { customerMessage: input.customerMessage } : {}),
+  });
+  const res = await fetch(url, {
     method: "POST",
-    headers: authHeaders(),
+    headers: { ...authHeaders(), ...(await signedRequestHeaders(url, "POST", body)) },
     cache: "no-store",
-    body: JSON.stringify({
-      depositId: input.depositId,
-      payer: {
-        type: "MMO",
-        accountDetails: { phoneNumber: input.phoneNumber, provider: input.provider },
-      },
-      amount: input.amount,
-      currency: input.currency,
-      ...(input.clientReferenceId ? { clientReferenceId: input.clientReferenceId } : {}),
-      ...(input.customerMessage ? { customerMessage: input.customerMessage } : {}),
-    }),
+    body,
   });
 
   if (!res.ok) {
@@ -161,9 +208,10 @@ const checkDepositStatusResponseSchema = z.discriminatedUnion("status", [
 // Fallback for when the webhook callback is delayed or lost — PawaPay's own
 // guidance is to confirm final status via callback OR by polling this.
 export async function checkDepositStatus(depositId: string): Promise<CheckDepositStatusResult> {
-  const res = await fetch(`${getBaseUrl()}/v2/deposits/${depositId}`, {
+  const url = `${getBaseUrl()}/v2/deposits/${depositId}`;
+  const res = await fetch(url, {
     method: "GET",
-    headers: authHeaders(),
+    headers: { ...authHeaders(), ...(await signedRequestHeaders(url, "GET")) },
     cache: "no-store",
   });
 
