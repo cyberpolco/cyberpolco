@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { unstable_rethrow } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import ConfirmDialog from "./ConfirmDialog";
@@ -39,7 +38,7 @@ export default function PayWithMobileMoneyButton({
   priceLabel: string;
   defaultPhone: string;
   pendingDeposit: { pawapayId: string; status: string } | null;
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<{ ok: true } | { ok: false; message: string }>;
   refreshAction: (pawapayId: string) => Promise<{ status: string }>;
   triggerClassName?: string;
 }) {
@@ -75,15 +74,17 @@ export default function PayWithMobileMoneyButton({
       const formData = new FormData();
       formData.set(fieldName, fieldValue);
       formData.set("phoneNumber", phone);
-      try {
-        await action(formData);
-        setOpen(false);
-        router.refresh();
-        push("Payment request sent — check your phone to approve.", { variant: "success" });
-      } catch (err) {
-        unstable_rethrow(err);
-        push(err instanceof Error ? err.message : "Something went wrong. Please try again.", { variant: "error" });
+      // The action returns a result rather than throwing for expected
+      // failures — see the comment on initiateStarlinkDepositAction for why
+      // (Next.js scrubs thrown Server Action error messages in production).
+      const result = await action(formData);
+      if (!result.ok) {
+        push(result.message, { variant: "error" });
+        return;
       }
+      setOpen(false);
+      router.refresh();
+      push("Payment request sent — check your phone to approve.", { variant: "success" });
     });
   }
 

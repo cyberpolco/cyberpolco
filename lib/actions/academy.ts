@@ -315,7 +315,15 @@ async function requireOwnEnrollment(session: {
 // identical comment on initiateStarlinkDepositAction in
 // lib/actions/starlink.ts for why this is restricted to Congolese (+243)
 // numbers charged in USD.
-export async function initiateAcademyDepositAction(formData: FormData) {
+//
+// Returns a result object rather than throwing for expected/validation
+// failures — see the identical comment on initiateStarlinkDepositAction for
+// why: Next.js replaces a Server Action's thrown error message with a
+// generic string in production builds, which would swallow the actual
+// reason. Only genuinely unexpected bugs should still throw.
+export async function initiateAcademyDepositAction(
+  formData: FormData
+): Promise<{ ok: true } | { ok: false; message: string }> {
   const session = await requireRole(["viewer"]);
   const { studentId } = await requireOwnEnrollment(session);
 
@@ -328,7 +336,7 @@ export async function initiateAcademyDepositAction(formData: FormData) {
 
   const phoneNumber = field(formData, "phoneNumber").trim();
   if (!PHONE_REGEX.test(phoneNumber)) {
-    throw new Error("Enter a valid phone number with country code, e.g. +243991234567.");
+    return { ok: false, message: "Enter a valid phone number with country code, e.g. +243991234567." };
   }
 
   let prediction;
@@ -336,10 +344,10 @@ export async function initiateAcademyDepositAction(formData: FormData) {
     prediction = await predictProvider(phoneNumber);
   } catch (err) {
     console.error("PawaPay predict-provider failed:", err);
-    throw new Error("Couldn't verify that phone number. Double-check it and try again.");
+    return { ok: false, message: "Couldn't verify that phone number. Double-check it and try again." };
   }
   if (prediction.country !== "COD") {
-    throw new Error("Mobile money payment is currently only available for Congolese (+243) numbers.");
+    return { ok: false, message: "Mobile money payment is currently only available for Congolese (+243) numbers." };
   }
 
   const amount = (course.enrollmentFeeCents / 100).toFixed(2);
@@ -367,17 +375,19 @@ export async function initiateAcademyDepositAction(formData: FormData) {
   } catch (err) {
     await markPawaPayTransactionStatus(depositId, "FAILED", {});
     console.error("PawaPay initiate deposit failed:", err);
-    throw new Error("Couldn't reach the mobile money provider. Please try again in a moment.");
+    return { ok: false, message: "Couldn't reach the mobile money provider. Please try again in a moment." };
   }
 
   if (result.status === "REJECTED") {
     await markPawaPayTransactionStatus(depositId, "REJECTED", result.failureReason ?? {});
-    throw new Error(
-      result.failureReason?.failureMessage || "Your mobile money provider rejected this payment request."
-    );
+    return {
+      ok: false,
+      message: result.failureReason?.failureMessage || "Your mobile money provider rejected this payment request.",
+    };
   }
 
   revalidatePath(`/admin/academy/my-courses/${enrollment.id}`);
+  return { ok: true };
 }
 
 // Fallback for when PawaPay's webhook callback is delayed or can't reach
