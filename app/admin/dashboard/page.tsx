@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Newspaper, Briefcase, FileText, Eye, GraduationCap, Users, Award, SatelliteDish } from "lucide-react";
+import { Newspaper, Briefcase, FileText, Eye, GraduationCap, Users, Award, SatelliteDish, Wallet } from "lucide-react";
 import { getArticles, topArticlesByViews, topArticlesByShares } from "@/lib/db/articles";
 import { getJobs, getEffectiveJobStatus } from "@/lib/db/jobs";
 import { getInquiriesStats } from "@/lib/db/inquiries";
@@ -7,6 +7,7 @@ import { getApplications, getApplicationsStats } from "@/lib/db/applications";
 import { getStarlinkClientById, getStarlinkStats } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById, getEnrollmentsByStudentId, getAcademyCourses, getAcademyStats } from "@/lib/db/academy";
 import { getUsersStats } from "@/lib/db/users";
+import { getPaymentsStats } from "@/lib/db/payments";
 import { getSession } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/auth/roles";
 import RankedBarList from "./_components/RankedBarList";
@@ -100,6 +101,15 @@ export default async function DashboardPage() {
     role === "super_admin" || role === "teacher" ? await getAcademyStats() : undefined;
   const starlinkStats =
     role === "super_admin" || role === "technician" ? await getStarlinkStats() : undefined;
+
+  // Same domain-scoping as the Financial Transactions tab (app/admin/financial-transactions/page.tsx):
+  // technician sees Starlink money only, teacher sees Academy money only.
+  const paymentsScope =
+    role === "technician" ? "starlink_subscription" : role === "teacher" ? "academy_fee" : undefined;
+  const paymentsStats =
+    role === "super_admin" || role === "technician" || role === "teacher"
+      ? await getPaymentsStats(paymentsScope)
+      : undefined;
 
   return (
     <div>
@@ -247,9 +257,11 @@ export default async function DashboardPage() {
               Payment status
             </p>
             <PaymentStatusTiles
-              paid={starlinkStats.paymentBreakdown.paid}
-              pending={starlinkStats.paymentBreakdown.pending}
-              overdue={starlinkStats.paymentBreakdown.overdue}
+              tiles={[
+                { label: "Paid", value: starlinkStats.paymentBreakdown.paid, tone: "good" },
+                { label: "Pending", value: starlinkStats.paymentBreakdown.pending, tone: "warning" },
+                { label: "Overdue", value: starlinkStats.paymentBreakdown.overdue, tone: "critical" },
+              ]}
             />
           </div>
 
@@ -270,6 +282,37 @@ export default async function DashboardPage() {
               items={starlinkStats.subscriptionByType}
             />
           </div>
+        </div>
+      )}
+
+      {paymentsStats && (
+        <div className="mt-10">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-brand-dark dark:text-white">
+            <Wallet size={20} className="text-brand-blue" /> Financial
+          </h2>
+
+          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <Link
+              href="/admin/financial-transactions"
+              className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6 transition-shadow hover:shadow-md"
+            >
+              <Wallet className="text-brand-blue" size={22} />
+              <p className="mt-4 text-3xl font-bold text-brand-dark dark:text-white">{paymentsStats.totalCollectedLabel}</p>
+              <p className="mt-1 text-sm text-brand-gray dark:text-white/60">Total collected</p>
+            </Link>
+            <div className="sm:col-span-1 lg:col-span-2">
+              <PaymentStatusTiles tiles={paymentsStats.byStatus} />
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+            <RankedBarList title="Revenue by product ($)" colorClassName="bg-brand-blue" items={paymentsStats.byProduct} />
+            <TrendChart title="Revenue per month ($)" data={paymentsStats.perMonth} />
+          </div>
+
+          <Link href="/admin/financial-transactions" className="mt-4 inline-block text-sm font-medium text-brand-blue">
+            View all transactions →
+          </Link>
         </div>
       )}
     </div>

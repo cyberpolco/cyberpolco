@@ -19,6 +19,7 @@ import {
   LifeBuoy,
   Phone,
   Mail,
+  Wallet,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
@@ -77,6 +78,12 @@ const navItems: {
     roles: ["super_admin", "hr_recruiter"],
   },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["super_admin"] },
+  {
+    href: "/admin/financial-transactions",
+    label: "Financial Transactions",
+    icon: Wallet,
+    roles: ["super_admin", "technician", "teacher"],
+  },
   {
     href: "/admin/starlink",
     label: "Starlink Management",

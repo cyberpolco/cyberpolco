@@ -3,13 +3,14 @@ import { MapPin, Wifi } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getSettings } from "@/lib/db/settings";
-import { getLatestPawaPayTransactionForReference } from "@/lib/db/payments";
+import { getPawaPayTransactionsForReference } from "@/lib/db/payments";
 import { STARLINK_OPTION_LABELS } from "@/lib/content/starlink-options";
 import { formatUsdCents } from "@/lib/content/money";
 import { isSubscriptionPayable } from "@/lib/starlink/subscription";
 import { initiateStarlinkDepositAction, refreshStarlinkDepositStatusAction } from "@/lib/actions/starlink";
 import RevealText from "@/app/admin/_components/RevealText";
 import PayWithMobileMoneyButton from "@/app/admin/_components/PayWithMobileMoneyButton";
+import PaymentHistoryList from "@/app/admin/_components/PaymentHistoryList";
 
 export default async function MyInfoPage() {
   const session = await getSession();
@@ -21,13 +22,16 @@ export default async function MyInfoPage() {
   ]);
 
   const pendingDepositsBySiteId = new Map<string, { pawapayId: string; status: string }>();
+  const historyBySiteId = new Map<string, Awaited<ReturnType<typeof getPawaPayTransactionsForReference>>>();
   if (client) {
-    const transactions = await Promise.all(
-      client.sites.map((site) => getLatestPawaPayTransactionForReference("starlink_subscription", site.id))
+    const histories = await Promise.all(
+      client.sites.map((site) => getPawaPayTransactionsForReference("starlink_subscription", site.id))
     );
     client.sites.forEach((site, i) => {
-      const tx = transactions[i];
-      if (tx) pendingDepositsBySiteId.set(site.id, { pawapayId: tx.pawapayId, status: tx.status });
+      const history = histories[i];
+      historyBySiteId.set(site.id, history);
+      // history is ordered newest-first, so the latest transaction is history[0].
+      if (history[0]) pendingDepositsBySiteId.set(site.id, { pawapayId: history[0].pawapayId, status: history[0].status });
     });
   }
 
@@ -105,6 +109,8 @@ export default async function MyInfoPage() {
                       Not due for renewal yet
                     </button>
                   )}
+
+                  <PaymentHistoryList transactions={historyBySiteId.get(site.id) ?? []} />
                 </div>
               );
             })}

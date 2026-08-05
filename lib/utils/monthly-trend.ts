@@ -3,11 +3,14 @@
  * back `months` months from `now` (inclusive), zero-filling months with no
  * rows so a chart's x-axis stays continuous. `now` is a parameter (not
  * read internally) so this stays a pure, deterministically testable function.
+ * `valueOf` lets a bucket sum something other than a plain count (e.g.
+ * dollars collected that month) — defaults to counting each item as 1.
  */
-export function monthlyTrend(
-  items: { createdAt: string }[],
+export function monthlyTrend<T extends { createdAt: string }>(
+  items: T[],
   months: number = 12,
-  now: Date = new Date()
+  now: Date = new Date(),
+  valueOf: (item: T) => number = () => 1
 ): { label: string; value: number }[] {
   const buckets: { key: string; label: string }[] = [];
   for (let i = months - 1; i >= 0; i--) {
@@ -18,12 +21,12 @@ export function monthlyTrend(
     });
   }
 
-  const counts = new Map(buckets.map((b) => [b.key, 0]));
+  const totals = new Map(buckets.map((b) => [b.key, 0]));
   for (const item of items) {
     const d = new Date(item.createdAt);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
+    if (totals.has(key)) totals.set(key, (totals.get(key) ?? 0) + valueOf(item));
   }
 
-  return buckets.map((b) => ({ label: b.label, value: counts.get(b.key) ?? 0 }));
+  return buckets.map((b) => ({ label: b.label, value: totals.get(b.key) ?? 0 }));
 }

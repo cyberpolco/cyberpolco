@@ -4,11 +4,12 @@ import { Lock, BookOpen, FileDown } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmissionsForEnrollment } from "@/lib/db/academy";
-import { getLatestPawaPayTransactionForReference } from "@/lib/db/payments";
+import { getPawaPayTransactionsForReference } from "@/lib/db/payments";
 import { progressPercent } from "@/lib/academy/progress";
 import { formatUsdCents } from "@/lib/content/money";
 import { initiateAcademyDepositAction, refreshAcademyDepositStatusAction } from "@/lib/actions/academy";
 import PayWithMobileMoneyButton from "@/app/admin/_components/PayWithMobileMoneyButton";
+import PaymentHistoryList from "@/app/admin/_components/PaymentHistoryList";
 import BackLink from "@/app/admin/_components/BackLink";
 import QuizStatusCard from "@/app/admin/academy/_components/QuizStatusCard";
 import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
@@ -32,11 +33,14 @@ export default async function CourseDetailPage({
   const percent = progressPercent(enrollment, course);
   const locked = !!course.enrollmentFeeCents && !enrollment.feePaid;
 
-  const pendingDepositTx = locked
-    ? await getLatestPawaPayTransactionForReference("academy_fee", enrollment.id)
-    : undefined;
-  const pendingDeposit = pendingDepositTx
-    ? { pawapayId: pendingDepositTx.pawapayId, status: pendingDepositTx.status }
+  // Fetched whenever this course has a fee at all (not just while locked),
+  // so a student can still see past payments after unlocking.
+  const paymentHistory = course.enrollmentFeeCents
+    ? await getPawaPayTransactionsForReference("academy_fee", enrollment.id)
+    : [];
+  // paymentHistory is ordered newest-first, so the latest transaction is paymentHistory[0].
+  const pendingDeposit = paymentHistory[0]
+    ? { pawapayId: paymentHistory[0].pawapayId, status: paymentHistory[0].status }
     : null;
 
   return (
@@ -74,6 +78,8 @@ export default async function CourseDetailPage({
             />
           </div>
         )}
+
+        {!!course.enrollmentFeeCents && <PaymentHistoryList transactions={paymentHistory} />}
       </div>
 
       {!locked && (

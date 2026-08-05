@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "./client";
 import { pawapayTransactions as pawapayTransactionsTable } from "./schema";
+import { monthlyTrend } from "@/lib/utils/monthly-trend";
 
 export type PawaPayTransactionType = "checkout" | "deposit" | "payout" | "refund";
 export type PaymentReferenceType = "starlink_subscription" | "academy_fee";
@@ -143,4 +144,91 @@ export async function getLatestPawaPayTransactionForReference(
     .orderBy(desc(pawapayTransactionsTable.createdAt))
     .limit(1);
   return row as PawaPayTransaction | undefined;
+}
+
+// Full history (not just the latest) for one client/enrollment's "my
+// payment history" section.
+export async function getPawaPayTransactionsForReference(
+  referenceType: PaymentReferenceType,
+  referenceId: string
+): Promise<PawaPayTransaction[]> {
+  const rows = await db
+    .select()
+    .from(pawapayTransactionsTable)
+    .where(
+      and(
+        eq(pawapayTransactionsTable.referenceType, referenceType),
+        eq(pawapayTransactionsTable.referenceId, referenceId)
+      )
+    )
+    .orderBy(desc(pawapayTransactionsTable.createdAt));
+  return rows as PawaPayTransaction[];
+}
+
+// No pagination, matching every other admin list page in this app (fetch
+// everything, filter client-side) — see app/admin/users/_components/UsersTable.tsx.
+export async function getAllPawaPayTransactions(): Promise<PawaPayTransaction[]> {
+  const rows = await db
+    .select()
+    .from(pawapayTransactionsTable)
+    .orderBy(desc(pawapayTransactionsTable.createdAt));
+  return rows as PawaPayTransaction[];
+}
+
+const COMPLETED_STATUSES = new Set(["COMPLETED"]);
+const IN_PROGRESS_STATUSES = new Set(["PENDING", "ACCEPTED", "PROCESSING", "IN_RECONCILIATION"]);
+const FAILED_STATUSES = new Set(["FAILED", "REJECTED"]);
+
+export type PaymentsStats = {
+  totalCount: number;
+  totalCollectedLabel: string;
+  byStatus: { label: string; value: number; tone: "good" | "warning" | "critical" }[];
+  /** Dollars collected (COMPLETED only) per product, not a transaction count. */
+  byProduct: { label: string; value: number }[];
+  perMonth: { label: string; value: number }[];
+};
+
+function referenceProductLabel(referenceType: PaymentReferenceType | null): string {
+  if (referenceType === "starlink_subscription") return "Starlink";
+  if (referenceType === "academy_fee") return "Academy";
+  return "Unlinked";
+}
+
+// Rounds away float-accumulation noise (e.g. repeated 0.1 + 0.2 additions)
+// before a dollar sum ever reaches the UI.
+function roundCents(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+export function computePaymentsStats(transactions: PawaPayTransaction[]): PaymentsStats {
+  const completed = transactions.filter((t) => COMPLETED_STATUSES.has(t.status));
+  const totalCollected = roundCents(completed.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0));
+
+  const products: (PaymentReferenceType | null)[] = ["starlink_subscription", "academy_fee", null];
+
+  return {
+    totalCount: transactions.length,
+    totalCollectedLabel: `$${totalCollected.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    byStatus: [
+      { label: "Completed", value: completed.length, tone: "good" },
+      { label: "In progress", value: transactions.filter((t) => IN_PROGRESS_STATUSES.has(t.status)).length, tone: "warning" },
+      { label: "Failed", value: transactions.filter((t) => FAILED_STATUSES.has(t.status)).length, tone: "critical" },
+    ],
+    byProduct: products.map((p) => ({
+      label: referenceProductLabel(p),
+      value: roundCents(
+        completed.filter((t) => t.referenceType === p).reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0)
+      ),
+    })),
+    perMonth: monthlyTrend(completed, 12, undefined, (t) => parseFloat(t.amount) || 0).map((m) => ({
+      ...m,
+      value: roundCents(m.value),
+    })),
+  };
+}
+
+export async function getPaymentsStats(scope?: PaymentReferenceType): Promise<PaymentsStats> {
+  const all = await getAllPawaPayTransactions();
+  const scoped = scope ? all.filter((t) => t.referenceType === scope) : all;
+  return computePaymentsStats(scoped);
 }

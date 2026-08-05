@@ -66,9 +66,11 @@ export default function StarlinkViewerDashboard({ client }: { client: StarlinkCl
           Payment status
         </p>
         <PaymentStatusTiles
-          paid={stats.paymentBreakdown.paid}
-          pending={stats.paymentBreakdown.pending}
-          overdue={stats.paymentBreakdown.overdue}
+          tiles={[
+            { label: "Paid", value: stats.paymentBreakdown.paid, tone: "good" },
+            { label: "Pending", value: stats.paymentBreakdown.pending, tone: "warning" },
+            { label: "Overdue", value: stats.paymentBreakdown.overdue, tone: "critical" },
+          ]}
         />
       </div>
 

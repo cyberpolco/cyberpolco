@@ -1,6 +1,10 @@
 import { markStarlinkSiteSubscriptionPaid } from "@/lib/db/starlink";
 import { markEnrollmentFeePaid } from "@/lib/db/academy";
-import type { PaymentReferenceType } from "@/lib/db/payments";
+import {
+  getPawaPayTransactionByPawaPayId,
+  markPawaPayTransactionStatus,
+  type PaymentReferenceType,
+} from "@/lib/db/payments";
 
 // Applies the domain-level effect of a deposit reaching a final status.
 // Called from both the webhook callback handler and each feature's
@@ -18,5 +22,30 @@ export async function applyDepositOutcome(
     await markStarlinkSiteSubscriptionPaid(referenceId);
   } else if (referenceType === "academy_fee") {
     await markEnrollmentFeePaid(referenceId);
+  }
+}
+
+// Super-admin-only escape hatch for a transaction that's stuck (webhook lost
+// and the status-poll fallback also never resolved it) — forces the same
+// outcome a real webhook/poll would have applied, via applyDepositOutcome,
+// so a manual override behaves identically to the automatic path. The
+// override is recorded in rawPayload for audit purposes; it never overwrites
+// whatever PawaPay itself last reported there.
+export async function manuallyReconcileDeposit(
+  pawapayId: string,
+  outcome: "COMPLETED" | "FAILED",
+  actor: { userId: string }
+): Promise<void> {
+  const transaction = await getPawaPayTransactionByPawaPayId(pawapayId);
+  if (!transaction) return;
+
+  const rawPayload = {
+    ...(typeof transaction.rawPayload === "object" && transaction.rawPayload ? transaction.rawPayload : {}),
+    manualReconciliation: { by: actor.userId, at: new Date().toISOString(), outcome },
+  };
+  await markPawaPayTransactionStatus(pawapayId, outcome, rawPayload);
+
+  if (outcome === "COMPLETED") {
+    await applyDepositOutcome(transaction.referenceType, transaction.referenceId, "COMPLETED");
   }
 }
