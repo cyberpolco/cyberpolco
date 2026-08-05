@@ -1,19 +1,29 @@
+"use client";
+
+import { useState } from "react";
 import { upsertJobAction } from "@/lib/actions/jobs";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 import { toDatetimeLocalValue, type Job } from "@/lib/db/jobs";
 import AlignedTextarea from "@/app/admin/_components/AlignedTextarea";
-import { CONTRACT_TYPE_OPTIONS_FR, CONTRACT_TYPE_OPTIONS_EN } from "@/lib/content/job-options";
+import { CONTRACT_TYPE_OPTIONS } from "@/lib/content/job-options";
 
-// Keeps a legacy free-text value (from before this was a dropdown) selectable
-// and visible instead of the <select> silently falling back to the first
-// option and quietly rewriting it on next save.
-function optionsWithCurrent(options: readonly string[], current?: string): string[] {
-  return current && !options.includes(current) ? [current, ...options] : [...options];
+// Keeps a legacy or previously-mismatched fr/en pair (from before the two
+// dropdowns were linked) selectable and visible instead of silently
+// overwriting it with the first canonical pair on next save.
+function pairsWithCurrent(currentFr?: string, currentEn?: string) {
+  const matchesCanonicalPair = CONTRACT_TYPE_OPTIONS.some((p) => p.fr === currentFr && p.en === currentEn);
+  if (matchesCanonicalPair || !currentFr || !currentEn) return CONTRACT_TYPE_OPTIONS;
+  return [{ fr: currentFr, en: currentEn }, ...CONTRACT_TYPE_OPTIONS];
 }
 
 export default function JobForm({ job }: { job?: Job }) {
-  const typeOptionsFr = optionsWithCurrent(CONTRACT_TYPE_OPTIONS_FR, job?.fr.type);
-  const typeOptionsEn = optionsWithCurrent(CONTRACT_TYPE_OPTIONS_EN, job?.en.type);
+  const typePairs = pairsWithCurrent(job?.fr.type, job?.en.type);
+  const initialTypeIndex = Math.max(
+    0,
+    typePairs.findIndex((p) => p.fr === job?.fr.type && p.en === job?.en.type)
+  );
+  const [typeIndex, setTypeIndex] = useState(initialTypeIndex);
+  const selectedType = typePairs[typeIndex];
   return (
     <form action={upsertJobAction} className="space-y-6">
       <input type="hidden" name="id" value={job?.id || ""} />
@@ -68,12 +78,13 @@ export default function JobForm({ job }: { job?: Job }) {
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Type de contrat</label>
             <select
               name="type_fr"
-              defaultValue={job?.fr.type || CONTRACT_TYPE_OPTIONS_FR[0]}
+              value={selectedType.fr}
+              onChange={(e) => setTypeIndex(typePairs.findIndex((p) => p.fr === e.target.value))}
               className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             >
-              {typeOptionsFr.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {typePairs.map((p, i) => (
+                <option key={i} value={p.fr}>
+                  {p.fr}
                 </option>
               ))}
             </select>
@@ -99,12 +110,13 @@ export default function JobForm({ job }: { job?: Job }) {
             <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Contract type</label>
             <select
               name="type_en"
-              defaultValue={job?.en.type || CONTRACT_TYPE_OPTIONS_EN[0]}
+              value={selectedType.en}
+              onChange={(e) => setTypeIndex(typePairs.findIndex((p) => p.en === e.target.value))}
               className="w-full rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
             >
-              {typeOptionsEn.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {typePairs.map((p, i) => (
+                <option key={i} value={p.en}>
+                  {p.en}
                 </option>
               ))}
             </select>

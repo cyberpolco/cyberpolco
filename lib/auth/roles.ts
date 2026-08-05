@@ -43,6 +43,8 @@ const ROUTE_RULES: RouteRule[] = [
   // enforced in lib/actions/inquiries.ts, same pattern as Starlink/Academy below.
   { prefix: "/admin/inquiries", roles: ["super_admin", "hr_recruiter", "technician", "teacher"] },
   { prefix: "/admin/users", roles: ["super_admin"] },
+  // Matches the page-level requireRole in app/admin/financial-transactions/page.tsx.
+  { prefix: "/admin/financial-transactions", roles: ["super_admin", "technician", "teacher"] },
   // Technician/teacher can create and edit here, but not delete or approve —
   // that finer-grained distinction is enforced in the Server Actions
   // themselves (lib/actions/starlink.ts, lib/actions/academy.ts), not here.

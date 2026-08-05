@@ -223,6 +223,24 @@ export const starlinkClients = pgTable("starlink_clients", {
   createdBy: text("created_by"),
 });
 
+// One row per resolved help request, written when resolveTechnicianHelpAction
+// clears a site's helpRequestedAt — the timestamp itself carries no history
+// once cleared, so this is the only record of "who resolved what, when" for
+// a client's profile.
+export const starlinkHelpHistory = pgTable("starlink_help_history", {
+  id: text("id").primaryKey(),
+  clientId: text("client_id").notNull(),
+  siteId: text("site_id").notNull(),
+  // Denormalized snapshot of the site name at resolution time, since a site
+  // can be renamed/removed later and this row should still read sensibly.
+  siteName: text("site_name").notNull(),
+  requestedAt: text("requested_at").notNull(),
+  resolvedAt: text("resolved_at").notNull(),
+  // Nullable: resolved by a technician/super_admin whose account was later
+  // deleted, or (in principle) by a system process with no session.
+  resolvedBy: text("resolved_by"),
+});
+
 type AcademyLesson = {
   id: string;
   title: string;

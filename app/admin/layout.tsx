@@ -62,6 +62,12 @@ const navItems: {
     icon: LayoutDashboard,
     roles: ["super_admin", "content_editor", "hr_recruiter", "technician", "teacher", "viewer"],
   },
+  {
+    href: "/admin/financial-transactions",
+    label: "Financial Transactions",
+    icon: Wallet,
+    roles: ["super_admin", "technician", "teacher"],
+  },
   { href: "/admin/articles", label: "Articles", icon: Newspaper, roles: ["super_admin", "content_editor"] },
   { href: "/admin/cms", label: "CMS", icon: FileStack, roles: ["super_admin", "content_editor"] },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase, roles: ["super_admin", "hr_recruiter"] },
@@ -78,12 +84,6 @@ const navItems: {
     roles: ["super_admin", "hr_recruiter"],
   },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["super_admin"] },
-  {
-    href: "/admin/financial-transactions",
-    label: "Financial Transactions",
-    icon: Wallet,
-    roles: ["super_admin", "technician", "teacher"],
-  },
   {
     href: "/admin/starlink",
     label: "Starlink Management",

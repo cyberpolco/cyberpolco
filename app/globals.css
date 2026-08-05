@@ -357,6 +357,16 @@
   animation: fb-progress 1s ease-in-out infinite;
 }
 
+.fb-lesson-slide-in {
+  animation: fb-lesson-slide-in 320ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fb-lesson-slide-in {
+    animation: none;
+  }
+}
+
 .skeleton {
   background: linear-gradient(
     90deg,
@@ -427,6 +437,17 @@
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@keyframes fb-lesson-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

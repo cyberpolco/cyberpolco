@@ -36,10 +36,8 @@ export default async function LessonDetailPage({
   const lessonPath = `${modulePath}/lessons/${lesson.id}`;
 
   return (
-    <div className="max-w-2xl">
-      <BackLink href={modulePath} label={`Back to ${courseModule.title}`} />
-
-      <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">{lesson.title}</h1>
+    <div key={lesson.id} className="fb-lesson-slide-in max-w-2xl">
+      <h1 className="text-2xl font-bold text-brand-dark dark:text-white">{lesson.title}</h1>
       {lesson.description && <p className="mt-2 text-brand-gray dark:text-white/60">{lesson.description}</p>}
 
       {lesson.materialUrl && (
@@ -56,11 +54,10 @@ export default async function LessonDetailPage({
         <SubmitButton pendingLabel="Saving...">{isDone ? "Mark incomplete" : "Mark complete"}</SubmitButton>
       </form>
 
-      {isDone && (
-        <div>
-          <NextStepLink step={nextStepAfterLesson(course, moduleId, lesson.id)} enrollmentId={enrollment.id} />
-        </div>
-      )}
+      <div className="mt-8 flex items-center justify-between">
+        <BackLink href={modulePath} label={`Back to ${courseModule.title}`} />
+        {isDone && <NextStepLink step={nextStepAfterLesson(course, moduleId, lesson.id)} enrollmentId={enrollment.id} />}
+      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   deleteStarlinkClient,
   getNextClientId,
   getNextKitClientIds,
+  recordHelpResolution,
   type StarlinkClient,
   type StarlinkSite,
 } from "@/lib/db/starlink";
@@ -333,15 +334,33 @@ export async function requestTechnicianHelpAction(formData: FormData) {
 
 // Resolves every open help request for this client in one action (a
 // technician visit typically addresses all of a client's open issues at
-// once) rather than requiring one click per site.
+// once) rather than requiring one click per site. Each resolved site gets
+// its own history row before helpRequestedAt is cleared, since that's the
+// only place "who resolved it, when" ever gets recorded.
 export async function resolveTechnicianHelpAction(formData: FormData) {
-  await requireRole(["super_admin", "technician"]);
+  const session = await requireRole(["super_admin", "technician"]);
 
   const id = field(formData, "id");
   const client = await getStarlinkClientById(id);
   if (!client) return;
 
+  const resolvedAt = new Date().toISOString();
+  const sitesNeedingHelp = client.sites.filter((s) => s.helpRequestedAt);
+  await Promise.all(
+    sitesNeedingHelp.map((s) =>
+      recordHelpResolution({
+        clientId: client.id,
+        siteId: s.id,
+        siteName: s.siteName,
+        requestedAt: s.helpRequestedAt!,
+        resolvedAt,
+        resolvedBy: session.userId,
+      })
+    )
+  );
+
   const sites = client.sites.map((s) => (s.helpRequestedAt ? { ...s, helpRequestedAt: null } : s));
   await saveStarlinkClient({ ...client, sites });
   revalidatePath("/admin/starlink");
+  revalidatePath(`/admin/starlink/${id}/edit`);
 }

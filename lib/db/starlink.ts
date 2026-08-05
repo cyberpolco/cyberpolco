@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "./client";
-import { starlinkClients as starlinkClientsTable } from "./schema";
+import { starlinkClients as starlinkClientsTable, starlinkHelpHistory as starlinkHelpHistoryTable } from "./schema";
 import {
   INSTALLATION_STATUS_OPTIONS,
   DEPLOYMENT_STATUS_OPTIONS,
@@ -76,6 +76,29 @@ export async function saveStarlinkClient(client: StarlinkClient): Promise<void> 
 
 export async function deleteStarlinkClient(id: string): Promise<void> {
   await db.delete(starlinkClientsTable).where(eq(starlinkClientsTable.id, id));
+}
+
+export type StarlinkHelpHistoryEntry = {
+  id: string;
+  clientId: string;
+  siteId: string;
+  siteName: string;
+  requestedAt: string;
+  resolvedAt: string;
+  resolvedBy: string | null;
+};
+
+export async function recordHelpResolution(entry: Omit<StarlinkHelpHistoryEntry, "id">): Promise<void> {
+  await db.insert(starlinkHelpHistoryTable).values({ id: crypto.randomUUID(), ...entry });
+}
+
+export async function getHelpHistoryForClient(clientId: string): Promise<StarlinkHelpHistoryEntry[]> {
+  const rows = await db
+    .select()
+    .from(starlinkHelpHistoryTable)
+    .where(eq(starlinkHelpHistoryTable.clientId, clientId))
+    .orderBy(desc(starlinkHelpHistoryTable.resolvedAt));
+  return rows as StarlinkHelpHistoryEntry[];
 }
 
 // Sites live inside each client's `sites` jsonb array, not their own table,

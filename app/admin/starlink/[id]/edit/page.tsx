@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
-import { getStarlinkClientById } from "@/lib/db/starlink";
+import { getStarlinkClientById, getHelpHistoryForClient } from "@/lib/db/starlink";
 import { getUsers } from "@/lib/db/users";
 import { requireRole } from "@/lib/auth/rbac";
 import StarlinkClientForm from "@/app/admin/starlink/_components/StarlinkClientForm";
+import HelpRequestHistoryList from "@/app/admin/starlink/_components/HelpRequestHistoryList";
 import BackLink from "@/app/admin/_components/BackLink";
 import ResetLinkedPasswordButton from "@/app/admin/_components/ResetLinkedPasswordButton";
 
@@ -17,8 +18,9 @@ export default async function EditStarlinkClientPage({
   const client = await getStarlinkClientById(id);
   if (!client) notFound();
 
-  const users = await getUsers();
+  const [users, helpHistory] = await Promise.all([getUsers(), getHelpHistoryForClient(client.id)]);
   const hasLinkedAccount = users.some((u) => u.linkedId === client.id);
+  const resolvedByName = Object.fromEntries(users.map((u) => [u.id, u.name || u.email]));
 
   return (
     <div>
@@ -38,6 +40,8 @@ export default async function EditStarlinkClientPage({
       <div className="mt-6">
         <StarlinkClientForm client={client} />
       </div>
+
+      <HelpRequestHistoryList entries={helpHistory} resolvedByName={resolvedByName} />
     </div>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, Search, AlertTriangle, X } from "lucide-react";
+import { Pencil, Search } from "lucide-react";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
-import { deleteStarlinkClientAction, resolveTechnicianHelpAction } from "@/lib/actions/starlink";
+import HelpRequestBadge from "@/app/admin/starlink/_components/HelpRequestBadge";
+import { deleteStarlinkClientAction } from "@/lib/actions/starlink";
 import { isValidClientId, isValidKitClientId } from "@/lib/content/starlink-options";
 import type { StarlinkClient } from "@/lib/db/starlink";
 
@@ -69,10 +70,6 @@ export default function StarlinkClientsTable({
             <tbody>
               {filtered.map((c) => {
                 const sitesNeedingHelp = c.sites.filter((s) => s.helpRequestedAt);
-                const helpTooltip =
-                  sitesNeedingHelp.length > 0
-                    ? `Urgent help needed by the customer: ${sitesNeedingHelp.map((s) => s.siteName).join(", ")}`
-                    : "";
 
                 return (
                 <tr key={c.id} className="border-t border-black/5 dark:border-white/10">
@@ -83,28 +80,7 @@ export default function StarlinkClientsTable({
                         Pending review
                       </span>
                     )}
-                    {sitesNeedingHelp.length > 0 && (
-                      <div className="ml-2 inline-flex items-center gap-2 rounded-full bg-status-critical/15 pl-2.5 pr-1.5 py-1 align-middle">
-                        <span
-                          title={helpTooltip}
-                          aria-label={helpTooltip}
-                          className="inline-flex items-center gap-1.5 text-sm font-bold text-status-critical"
-                        >
-                          <AlertTriangle size={20} />
-                          {sitesNeedingHelp.length}
-                        </span>
-                        <form action={resolveTechnicianHelpAction}>
-                          <input type="hidden" name="id" value={c.id} />
-                          <button
-                            type="submit"
-                            title="Mark this help request resolved"
-                            className="flex items-center gap-1 rounded-full bg-status-critical px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-red"
-                          >
-                            <X size={14} /> Resolve
-                          </button>
-                        </form>
-                      </div>
-                    )}
+                    <HelpRequestBadge clientId={c.id} sitesNeedingHelp={sitesNeedingHelp} />
                   </td>
                   <td className="px-5 py-3 text-brand-gray dark:text-white/60">{c.clientId}</td>
                   <td className="px-5 py-3 text-brand-gray dark:text-white/60">{c.sites.length}</td>
