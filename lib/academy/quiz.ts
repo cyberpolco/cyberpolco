@@ -1,4 +1,10 @@
-import type { AcademyCourse, Quiz } from "@/lib/db/academy";
+import type {
+  AcademyCourse,
+  MultipleChoiceQuestion,
+  MultipleSelectQuestion,
+  Quiz,
+  QuizAnswer,
+} from "@/lib/db/academy";
 
 // Type-only import above — see the identical note in lib/academy/progress.ts
 // about not pulling lib/db/academy's runtime DB client into client bundles.
@@ -11,10 +17,38 @@ export function isQuizAvailable(quiz: Quiz | null | undefined, now: Date): boole
   return new Date(quiz.availableAt).getTime() <= now.getTime();
 }
 
-export function scoreQuiz(quiz: Quiz, answers: Record<string, number>): number {
-  if (quiz.questions.length === 0) return 0;
-  const correct = quiz.questions.filter((q) => answers[q.id] === q.correctOptionIndex).length;
-  return Math.round((correct / quiz.questions.length) * 100);
+export function scoreMultipleChoice(question: MultipleChoiceQuestion, selectedOptionIndex: number | null): number {
+  return selectedOptionIndex === question.correctOptionIndex ? 100 : 0;
+}
+
+// Exact-set match — full credit only if the student picked every correct
+// option and no incorrect ones, otherwise 0. No partial credit.
+export function scoreMultipleSelect(
+  question: MultipleSelectQuestion,
+  selectedOptionIndexes: number[] | null
+): number {
+  const selected = new Set(selectedOptionIndexes ?? []);
+  const correct = new Set(question.correctOptionIndexes);
+  if (selected.size !== correct.size) return 0;
+  for (const i of selected) if (!correct.has(i)) return 0;
+  return 100;
+}
+
+// free_text has no synchronous scorer — see lib/academy/ai-grading.ts. Its
+// answer row starts at scorePercent: 0 with aiGradingStatus/reviewStatus
+// "pending" and is folded into computeSubmissionScore like any other answer
+// once graded.
+
+export function computeSubmissionScore(answers: { scorePercent: number }[]): number {
+  if (answers.length === 0) return 0;
+  return Math.round(answers.reduce((sum, a) => sum + a.scorePercent, 0) / answers.length);
+}
+
+// A submission is fully graded once no answer is still awaiting AI grading
+// or teacher review — the choke point recomputeSubmissionScore uses to
+// decide whether gradingStatus flips to "graded".
+export function isSubmissionFullyGraded(answers: Pick<QuizAnswer, "aiGradingStatus" | "reviewStatus">[]): boolean {
+  return answers.every((a) => a.aiGradingStatus !== "pending" && a.reviewStatus !== "pending");
 }
 
 // Searches every module's test plus the course's final exam for a matching

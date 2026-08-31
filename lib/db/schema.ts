@@ -248,23 +248,18 @@ type AcademyLesson = {
   materialUrl: string | null;
   materialFileName: string | null;
 };
-type AcademyQuizQuestion = {
-  id: string;
-  text: string;
-  options: string[];
-  correctOptionIndex: number;
-};
 // Shared shape for a module's test and the course's final exam.
 // availableAt is a datetime set by super_admin/teacher — null (never
 // scheduled) or in the future both mean students can't access it yet. This
 // is the opposite default of lessons, which are open unless explicitly
 // gated — see AGENTS.md-adjacent comment on the enrollment fee lock for the
-// lesson-side rule.
+// lesson-side rule. Questions are NOT stored here — they live in the
+// academyQuizQuestions table, keyed by this quiz's id, so a course row's
+// jsonb only carries the quiz's identity/scheduling.
 type AcademyQuiz = {
   id: string;
   title: string;
   availableAt: string | null;
-  questions: AcademyQuizQuestion[];
 };
 type AcademyModule = { id: string; title: string; lessons: AcademyLesson[]; test: AcademyQuiz | null };
 type LocalizedCourseText = { title: string; description: string };
@@ -290,17 +285,76 @@ export const academyCourses = pgTable("academy_courses", {
   createdBy: text("created_by"),
 });
 
-// One row per student attempt at a module test or the final exam — insert
-// only, never updated, so a submitted score can't be silently overwritten
-// (lib/actions/academy.ts submitQuizAction rejects a second attempt outright
-// rather than allowing a retake).
+// A quiz's questions, keyed by quizId (a module test's or the final exam's
+// id — not the course id). Per-variant scalar fields are flat nullable
+// columns rather than one polymorphic jsonb blob, so rows stay queryable
+// per-question (e.g. `WHERE type = 'free_text'`); the two array-valued
+// fields stay jsonb, matching this schema's existing convention for small
+// arrays (e.g. academyEnrollments.completedLessonIds) rather than
+// introducing Postgres native arrays, which have no precedent here.
+export const academyQuizQuestions = pgTable("academy_quiz_questions", {
+  id: text("id").primaryKey(),
+  quizId: text("quiz_id").notNull(),
+  // Display/authoring order within the quiz — questions have no other sort key.
+  order: integer("order").notNull(),
+  type: text("type", { enum: ["multiple_choice", "multiple_select", "free_text"] }).notNull(),
+  text: text("text").notNull(),
+  options: jsonb("options").$type<string[] | null>(), // multiple_choice / multiple_select only
+  correctOptionIndex: integer("correct_option_index"), // multiple_choice only
+  correctOptionIndexes: jsonb("correct_option_indexes").$type<number[] | null>(), // multiple_select only, all-or-nothing set
+  rubric: text("rubric"), // free_text only — sent to the AI grader
+  modelAnswer: text("model_answer"), // free_text only — sent to the AI grader
+});
+
+// One row per student attempt at a module test or the final exam. Identity
+// fields (id, enrollmentId, quizId, submittedAt) are immutable — a second
+// attempt is rejected outright, no retakes (lib/actions/academy.ts
+// submitQuizAction). scorePercent/gradingStatus/finalizedAt ARE updated in
+// place as grading resolves (AI grading, then teacher review of any
+// free-text answers), always by recomputing from academyQuizAnswers rows —
+// never a freeform overwrite.
 export const academyQuizSubmissions = pgTable("academy_quiz_submissions", {
   id: text("id").primaryKey(),
   enrollmentId: text("enrollment_id").notNull(),
   quizId: text("quiz_id").notNull(),
-  answers: jsonb("answers").$type<Record<string, number>>().notNull(),
   scorePercent: integer("score_percent").notNull(),
+  gradingStatus: text("grading_status", { enum: ["graded", "pending_review"] }).notNull().default("graded"),
   submittedAt: text("submitted_at").notNull(),
+  // Set once every free_text answer has been teacher-reviewed. Null while
+  // pending_review.
+  finalizedAt: text("finalized_at"),
+});
+
+// One row per question per submission — replaces the old jsonb `answers`
+// column on academyQuizSubmissions. questionType is a denormalized snapshot
+// of the question at submit time, so a later edit to the question bank
+// (e.g. a teacher changing a question's type) can't retroactively
+// reinterpret an already-submitted answer.
+export const academyQuizAnswers = pgTable("academy_quiz_answers", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id").notNull(),
+  questionId: text("question_id").notNull(),
+  questionType: text("question_type", { enum: ["multiple_choice", "multiple_select", "free_text"] }).notNull(),
+  selectedOptionIndex: integer("selected_option_index"),
+  selectedOptionIndexes: jsonb("selected_option_indexes").$type<number[] | null>(),
+  freeTextResponse: text("free_text_response"),
+  // 0-100, this question's contribution to the submission's overall score.
+  scorePercent: integer("score_percent").notNull(),
+
+  // --- free_text / AI grading only; "not_applicable" for other types ---
+  aiGradingStatus: text("ai_grading_status", { enum: ["not_applicable", "pending", "graded", "failed"] })
+    .notNull()
+    .default("not_applicable"),
+  aiScorePercent: integer("ai_score_percent"),
+  aiRationale: text("ai_rationale"),
+  aiGradedAt: text("ai_graded_at"),
+  aiError: text("ai_error"), // last failure message, shown to the teacher when aiGradingStatus is "failed"
+  reviewStatus: text("review_status", { enum: ["not_applicable", "pending", "approved", "adjusted"] })
+    .notNull()
+    .default("not_applicable"),
+  reviewedBy: text("reviewed_by"),
+  reviewedAt: text("reviewed_at"),
+  reviewNote: text("review_note"),
 });
 
 export const academyEnrollments = pgTable("academy_enrollments", {

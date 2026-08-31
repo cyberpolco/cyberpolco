@@ -26,7 +26,11 @@ export default function QuizStatusCard({
           <FileQuestion size={16} className="text-brand-blue" />
           {label}: {quiz.title}
         </div>
-        {submission ? (
+        {submission?.gradingStatus === "pending_review" ? (
+          <span className="rounded-full bg-status-warning/15 px-2.5 py-0.5 text-xs font-semibold text-status-warning">
+            Pending review
+          </span>
+        ) : submission ? (
           <span className="rounded-full bg-status-good/15 px-2.5 py-0.5 text-xs font-semibold text-status-good">
             Completed — {submission.scorePercent}%
           </span>

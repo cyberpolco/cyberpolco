@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmission } from "@/lib/db/academy";
+import type { QuizAnswer, QuizQuestion } from "@/lib/db/academy";
 import { findQuizById, isQuizAvailable } from "@/lib/academy/quiz";
 import { nextStepAfterQuiz } from "@/lib/academy/sequence";
 import { submitQuizAction } from "@/lib/actions/academy";
@@ -9,6 +10,29 @@ import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BackLink from "@/app/admin/_components/BackLink";
 import NextStepLink from "@/app/admin/academy/_components/NextStepLink";
 import { formatDateTime } from "@/lib/utils/date-format";
+
+// Border/background for a submitted question's review card: green/red for
+// instantly-graded types, a neutral amber for a free_text answer still
+// awaiting AI grading or teacher review (its correctness isn't known yet).
+function cardClass(question: QuizQuestion, answer: QuizAnswer | undefined): string {
+  if (question.type === "free_text") {
+    if (!answer || answer.reviewStatus === "pending") {
+      return "border-status-warning/30 bg-status-warning/5";
+    }
+    return answer.scorePercent === 100
+      ? "border-status-good/30 bg-status-good/5"
+      : "border-status-critical/30 bg-status-critical/5";
+  }
+  if (question.type === "multiple_choice") {
+    return answer?.selectedOptionIndex === question.correctOptionIndex
+      ? "border-status-good/30 bg-status-good/5"
+      : "border-status-critical/30 bg-status-critical/5";
+  }
+  // multiple_select
+  return answer?.scorePercent === 100
+    ? "border-status-good/30 bg-status-good/5"
+    : "border-status-critical/30 bg-status-critical/5";
+}
 
 export default async function QuizPage({
   params,
@@ -41,52 +65,106 @@ export default async function QuizPage({
   }
 
   if (submission) {
+    const answersByQuestion = new Map(submission.answers.map((a) => [a.questionId, a]));
+    const isGraded = submission.gradingStatus === "graded";
+
     return (
       <div className="max-w-2xl">
         <BackLink href={backHref} label={`Back to ${course.en.title}`} />
         <h1 className="mt-4 text-2xl font-bold text-brand-dark dark:text-white">{quiz.title}</h1>
         <p className="mt-1 text-brand-gray dark:text-white/60">
-          Submitted {formatDateTime(submission.submittedAt)} — Score: {submission.scorePercent}%
+          Submitted {formatDateTime(submission.submittedAt)}
+          {isGraded ? ` — Score: ${submission.scorePercent}%` : " — pending review"}
         </p>
+        {!isGraded && (
+          <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
+            One or more answers here are graded by an instructor. Your score and the next step unlock once every
+            answer has been reviewed.
+          </p>
+        )}
 
         <div className="mt-6 space-y-4">
           {quiz.questions.map((q, i) => {
-            const selected = submission.answers[q.id];
-            const isCorrect = selected === q.correctOptionIndex;
+            const answer = answersByQuestion.get(q.id);
             return (
-              <div
-                key={q.id}
-                className={`rounded-xl border p-4 ${
-                  isCorrect ? "border-status-good/30 bg-status-good/5" : "border-status-critical/30 bg-status-critical/5"
-                }`}
-              >
+              <div key={q.id} className={`rounded-xl border p-4 ${cardClass(q, answer)}`}>
                 <p className="text-sm font-medium text-brand-dark dark:text-white">
                   {i + 1}. {q.text}
                 </p>
-                <div className="mt-2 space-y-1 text-sm">
-                  {q.options.map((opt, oi) => (
-                    <p
-                      key={oi}
-                      className={
-                        oi === q.correctOptionIndex
-                          ? "font-semibold text-status-good"
-                          : oi === selected
-                            ? "font-semibold text-status-critical"
-                            : "text-brand-gray dark:text-white/60"
-                      }
-                    >
-                      {opt}
-                      {oi === q.correctOptionIndex && " (correct)"}
-                      {oi === selected && oi !== q.correctOptionIndex && " (your answer)"}
+
+                {q.type === "multiple_choice" && (
+                  <div className="mt-2 space-y-1 text-sm">
+                    {q.options.map((opt, oi) => (
+                      <p
+                        key={oi}
+                        className={
+                          oi === q.correctOptionIndex
+                            ? "font-semibold text-status-good"
+                            : oi === answer?.selectedOptionIndex
+                              ? "font-semibold text-status-critical"
+                              : "text-brand-gray dark:text-white/60"
+                        }
+                      >
+                        {opt}
+                        {oi === q.correctOptionIndex && " (correct)"}
+                        {oi === answer?.selectedOptionIndex && oi !== q.correctOptionIndex && " (your answer)"}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                {q.type === "multiple_select" && (
+                  <div className="mt-2 space-y-1 text-sm">
+                    {q.options.map((opt, oi) => {
+                      const isCorrectOption = q.correctOptionIndexes.includes(oi);
+                      const wasSelected = answer?.selectedOptionIndexes?.includes(oi) ?? false;
+                      return (
+                        <p
+                          key={oi}
+                          className={
+                            isCorrectOption
+                              ? "font-semibold text-status-good"
+                              : wasSelected
+                                ? "font-semibold text-status-critical"
+                                : "text-brand-gray dark:text-white/60"
+                          }
+                        >
+                          {opt}
+                          {isCorrectOption && " (correct)"}
+                          {wasSelected && !isCorrectOption && " (your answer)"}
+                        </p>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {q.type === "free_text" && (
+                  <div className="mt-2 space-y-2 text-sm">
+                    <p className="whitespace-pre-wrap text-brand-gray dark:text-white/60">
+                      {answer?.freeTextResponse}
                     </p>
-                  ))}
-                </div>
+                    {!answer || answer.reviewStatus === "pending" ? (
+                      <span className="inline-block rounded-full bg-status-warning/15 px-2.5 py-0.5 text-xs font-semibold text-status-warning">
+                        Pending review
+                      </span>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-brand-dark dark:text-white">
+                          Score: {answer.scorePercent}%
+                        </p>
+                        {answer.reviewNote && (
+                          <p className="text-xs text-brand-gray dark:text-white/60">{answer.reviewNote}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
 
-        <NextStepLink step={nextStepAfterQuiz(course, quizId)} enrollmentId={enrollment.id} />
+        {isGraded && <NextStepLink step={nextStepAfterQuiz(course, quizId)} enrollmentId={enrollment.id} />}
       </div>
     );
   }
@@ -108,14 +186,43 @@ export default async function QuizPage({
             <p className="text-sm font-medium text-brand-dark dark:text-white">
               {i + 1}. {q.text}
             </p>
-            <div className="mt-2 space-y-1.5">
-              {q.options.map((opt, oi) => (
-                <label key={oi} className="flex items-center gap-2 text-sm text-brand-gray dark:text-white/60">
-                  <input type="radio" name={`question_${q.id}`} value={oi} required className="h-4 w-4" />
-                  {opt}
-                </label>
-              ))}
-            </div>
+
+            {q.type === "multiple_choice" && (
+              <div className="mt-2 space-y-1.5">
+                {q.options.map((opt, oi) => (
+                  <label key={oi} className="flex items-center gap-2 text-sm text-brand-gray dark:text-white/60">
+                    <input type="radio" name={`question_${q.id}`} value={oi} required className="h-4 w-4" />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {q.type === "multiple_select" && (
+              <div className="mt-2 space-y-1.5">
+                <p className="text-xs text-brand-gray dark:text-white/60">Select all that apply.</p>
+                {q.options.map((opt, oi) => (
+                  <label key={oi} className="flex items-center gap-2 text-sm text-brand-gray dark:text-white/60">
+                    <input type="checkbox" name={`question_${q.id}`} value={oi} className="h-4 w-4" />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {q.type === "free_text" && (
+              <div className="mt-2 space-y-1">
+                <textarea
+                  name={`question_${q.id}`}
+                  required
+                  rows={6}
+                  className="w-full rounded-lg border border-black/10 dark:border-white/15 px-3 py-2 text-sm dark:bg-white/5 dark:text-white"
+                />
+                <p className="text-xs text-brand-gray dark:text-white/60">
+                  This answer is graded by AI and reviewed by an instructor before it counts toward your score.
+                </p>
+              </div>
+            )}
           </div>
         ))}
         {quiz.questions.length === 0 && (

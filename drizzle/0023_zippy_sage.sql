@@ -1,0 +1,1 @@
+ALTER TABLE "academy_quiz_submissions" DROP COLUMN "answers";

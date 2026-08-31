@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx --env-file=.env.local lib/db/seed.ts"
+    "db:seed": "tsx --env-file=.env.local lib/db/seed.ts",
+    "db:backfill-quiz-normalization": "tsx --env-file=.env.local lib/db/migrations/backfill-quiz-normalization.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

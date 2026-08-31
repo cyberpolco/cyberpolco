@@ -1,12 +1,26 @@
 import { describe, expect, it } from "vitest";
 import {
   isQuizAvailable,
-  scoreQuiz,
+  scoreMultipleChoice,
+  scoreMultipleSelect,
+  computeSubmissionScore,
+  isSubmissionFullyGraded,
   findQuizById,
   toDatetimeLocalValue,
   fromDatetimeLocalValue,
 } from "./quiz";
-import type { AcademyCourse, Quiz } from "@/lib/db/academy";
+import type { AcademyCourse, MultipleChoiceQuestion, MultipleSelectQuestion, Quiz, QuizAnswer } from "@/lib/db/academy";
+
+function makeMultipleChoiceQuestion(overrides: Partial<MultipleChoiceQuestion> = {}): MultipleChoiceQuestion {
+  return {
+    id: "q1",
+    type: "multiple_choice",
+    text: "2 + 2?",
+    options: ["3", "4"],
+    correctOptionIndex: 1,
+    ...overrides,
+  };
+}
 
 function makeQuiz(overrides: Partial<Quiz> = {}): Quiz {
   return {
@@ -14,9 +28,26 @@ function makeQuiz(overrides: Partial<Quiz> = {}): Quiz {
     title: "Module 1 Test",
     availableAt: null,
     questions: [
-      { id: "q1", text: "2 + 2?", options: ["3", "4"], correctOptionIndex: 1 },
-      { id: "q2", text: "Capital of France?", options: ["Paris", "London"], correctOptionIndex: 0 },
+      { id: "q1", type: "multiple_choice", text: "2 + 2?", options: ["3", "4"], correctOptionIndex: 1 },
+      {
+        id: "q2",
+        type: "multiple_choice",
+        text: "Capital of France?",
+        options: ["Paris", "London"],
+        correctOptionIndex: 0,
+      },
     ],
+    ...overrides,
+  };
+}
+
+function makeMultipleSelectQuestion(overrides: Partial<MultipleSelectQuestion> = {}): MultipleSelectQuestion {
+  return {
+    id: "q1",
+    type: "multiple_select",
+    text: "Which are prime?",
+    options: ["2", "3", "4", "6"],
+    correctOptionIndexes: [0, 1],
     ...overrides,
   };
 }
@@ -45,25 +76,93 @@ describe("isQuizAvailable", () => {
   });
 });
 
-describe("scoreQuiz", () => {
-  it("scores 100% when every answer is correct", () => {
-    expect(scoreQuiz(makeQuiz(), { q1: 1, q2: 0 })).toBe(100);
+describe("scoreMultipleChoice", () => {
+  const question = makeMultipleChoiceQuestion();
+
+  it("scores 100 when the selected option matches", () => {
+    expect(scoreMultipleChoice(question, 1)).toBe(100);
   });
 
-  it("scores 0% when every answer is wrong", () => {
-    expect(scoreQuiz(makeQuiz(), { q1: 0, q2: 1 })).toBe(0);
-  });
-
-  it("scores partial credit", () => {
-    expect(scoreQuiz(makeQuiz(), { q1: 1, q2: 1 })).toBe(50);
+  it("scores 0 when the selected option is wrong", () => {
+    expect(scoreMultipleChoice(question, 0)).toBe(0);
   });
 
   it("treats a missing answer as wrong", () => {
-    expect(scoreQuiz(makeQuiz(), { q1: 1 })).toBe(50);
+    expect(scoreMultipleChoice(question, null)).toBe(0);
+  });
+});
+
+describe("scoreMultipleSelect", () => {
+  const question = makeMultipleSelectQuestion();
+
+  it("scores 100 for an exact match", () => {
+    expect(scoreMultipleSelect(question, [0, 1])).toBe(100);
   });
 
-  it("scores 0% for a quiz with no questions rather than dividing by zero", () => {
-    expect(scoreQuiz(makeQuiz({ questions: [] }), {})).toBe(0);
+  it("scores 100 for an exact match regardless of order", () => {
+    expect(scoreMultipleSelect(question, [1, 0])).toBe(100);
+  });
+
+  it("scores 0 for a subset of the correct answers", () => {
+    expect(scoreMultipleSelect(question, [0])).toBe(0);
+  });
+
+  it("scores 0 for a superset that includes a wrong option", () => {
+    expect(scoreMultipleSelect(question, [0, 1, 2])).toBe(0);
+  });
+
+  it("scores 0 for an entirely wrong selection", () => {
+    expect(scoreMultipleSelect(question, [2, 3])).toBe(0);
+  });
+
+  it("scores 0 for an empty selection", () => {
+    expect(scoreMultipleSelect(question, [])).toBe(0);
+  });
+
+  it("scores 0 for a null selection", () => {
+    expect(scoreMultipleSelect(question, null)).toBe(0);
+  });
+});
+
+describe("computeSubmissionScore", () => {
+  it("averages each answer's scorePercent", () => {
+    expect(computeSubmissionScore([{ scorePercent: 100 }, { scorePercent: 0 }])).toBe(50);
+  });
+
+  it("rounds to the nearest whole percent", () => {
+    expect(computeSubmissionScore([{ scorePercent: 100 }, { scorePercent: 100 }, { scorePercent: 0 }])).toBe(67);
+  });
+
+  it("scores 0 for a submission with no answers rather than dividing by zero", () => {
+    expect(computeSubmissionScore([])).toBe(0);
+  });
+});
+
+describe("isSubmissionFullyGraded", () => {
+  function makeAnswer(overrides: Partial<Pick<QuizAnswer, "aiGradingStatus" | "reviewStatus">> = {}) {
+    return { aiGradingStatus: "not_applicable" as const, reviewStatus: "not_applicable" as const, ...overrides };
+  }
+
+  it("is true when every answer is resolved", () => {
+    expect(
+      isSubmissionFullyGraded([makeAnswer(), makeAnswer({ aiGradingStatus: "graded", reviewStatus: "approved" })])
+    ).toBe(true);
+  });
+
+  it("is false while any answer is awaiting AI grading", () => {
+    expect(isSubmissionFullyGraded([makeAnswer(), makeAnswer({ aiGradingStatus: "pending", reviewStatus: "pending" })])).toBe(
+      false
+    );
+  });
+
+  it("is false while any answer is awaiting teacher review", () => {
+    expect(
+      isSubmissionFullyGraded([makeAnswer(), makeAnswer({ aiGradingStatus: "graded", reviewStatus: "pending" })])
+    ).toBe(false);
+  });
+
+  it("is false while any answer's AI grading failed (still needs manual review)", () => {
+    expect(isSubmissionFullyGraded([makeAnswer({ aiGradingStatus: "failed", reviewStatus: "pending" })])).toBe(false);
   });
 });
 

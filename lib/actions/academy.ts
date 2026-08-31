@@ -1,6 +1,7 @@
 "use server";
 
 import crypto from "crypto";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/rbac";
@@ -17,18 +18,30 @@ import {
   getEnrollmentsByStudentId,
   getNextStudentId,
   getQuizSubmission,
-  saveQuizSubmission,
+  createQuizSubmission,
+  updateQuizAnswerReview,
+  recomputeSubmissionScore,
+  getQuizAnswerById,
   type AcademyCourse,
   type AcademyEnrollment,
   type Module,
   type Lesson,
   type Quiz,
   type QuizQuestion,
+  type QuizAnswer,
 } from "@/lib/db/academy";
 import { isValidCourseIdPrefix } from "@/lib/content/academy-options";
 import { parseUsdToCents } from "@/lib/content/money";
 import { progressPercent } from "@/lib/academy/progress";
-import { isQuizAvailable, scoreQuiz, findQuizById, fromDatetimeLocalValue } from "@/lib/academy/quiz";
+import {
+  isQuizAvailable,
+  scoreMultipleChoice,
+  scoreMultipleSelect,
+  computeSubmissionScore,
+  findQuizById,
+  fromDatetimeLocalValue,
+} from "@/lib/academy/quiz";
+import { gradeSubmissionFreeTextAnswers, retryAiGradingForAnswer } from "@/lib/academy/ai-grading";
 import { PHONE_REGEX } from "@/lib/validation/phone";
 import { initiateDeposit, predictProvider, checkDepositStatus } from "@/lib/pawapay/client";
 import {
@@ -63,17 +76,41 @@ function parseQuiz(formData: FormData, prefix: string): Quiz | null {
 
   const questions: QuizQuestion[] = [];
   for (let j = 0; j < questionCount; j++) {
+    const id = field(formData, `${prefix}_question_${j}_id`) || crypto.randomUUID();
+    const text = field(formData, `${prefix}_question_${j}_text`);
+    const type = field(formData, `${prefix}_question_${j}_type`) || "multiple_choice";
+
+    if (type === "free_text") {
+      questions.push({
+        id,
+        type: "free_text",
+        text,
+        rubric: field(formData, `${prefix}_question_${j}_rubric`),
+        modelAnswer: field(formData, `${prefix}_question_${j}_modelAnswer`),
+      });
+      continue;
+    }
+
     const optionCount = Number(formData.get(`${prefix}_question_${j}_optionCount`) || 0);
     const options: string[] = [];
     for (let k = 0; k < optionCount; k++) {
       options.push(field(formData, `${prefix}_question_${j}_option_${k}`));
     }
-    questions.push({
-      id: field(formData, `${prefix}_question_${j}_id`) || crypto.randomUUID(),
-      text: field(formData, `${prefix}_question_${j}_text`),
-      options,
-      correctOptionIndex: Number(formData.get(`${prefix}_question_${j}_correctOption`) || 0),
-    });
+
+    if (type === "multiple_select") {
+      const correctOptionIndexes = formData
+        .getAll(`${prefix}_question_${j}_correctOptionIndexes`)
+        .map((v) => Number(v));
+      questions.push({ id, type: "multiple_select", text, options, correctOptionIndexes });
+    } else {
+      questions.push({
+        id,
+        type: "multiple_choice",
+        text,
+        options,
+        correctOptionIndex: Number(formData.get(`${prefix}_question_${j}_correctOption`) || 0),
+      });
+    }
   }
 
   return {
@@ -496,7 +533,8 @@ export async function selfEnrollAction(formData: FormData) {
   redirect("/admin/academy/my-courses");
 }
 
-// One attempt per quiz, ever — a submission is never overwritten (see the
+// One attempt per quiz, ever — identity fields on the submission (id,
+// enrollmentId, quizId, submittedAt) are never overwritten (see the
 // schema.ts comment on academyQuizSubmissions). Re-checks availability
 // server-side since the "Take test" link being hidden is just UX.
 export async function submitQuizAction(formData: FormData) {
@@ -515,21 +553,145 @@ export async function submitQuizAction(formData: FormData) {
   const alreadySubmitted = await getQuizSubmission(enrollment.id, quizId);
   if (alreadySubmitted) redirect(resultPath);
 
-  const answers: Record<string, number> = {};
-  for (const q of quiz.questions) {
-    const selected = formData.get(`question_${q.id}`);
-    if (selected !== null) answers[q.id] = Number(selected);
-  }
+  const submissionId = crypto.randomUUID();
+  const answers: QuizAnswer[] = quiz.questions.map((q) => {
+    const base = {
+      id: crypto.randomUUID(),
+      submissionId,
+      questionId: q.id,
+      questionType: q.type,
+      selectedOptionIndex: null,
+      selectedOptionIndexes: null,
+      freeTextResponse: null,
+      aiScorePercent: null,
+      aiRationale: null,
+      aiGradedAt: null,
+      aiError: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      reviewNote: null,
+    };
 
-  await saveQuizSubmission({
-    id: crypto.randomUUID(),
-    enrollmentId: enrollment.id,
-    quizId,
-    answers,
-    scorePercent: scoreQuiz(quiz, answers),
-    submittedAt: new Date().toISOString(),
+    if (q.type === "multiple_choice") {
+      const selected = formData.get(`question_${q.id}`);
+      const selectedOptionIndex = selected === null ? null : Number(selected);
+      return {
+        ...base,
+        selectedOptionIndex,
+        scorePercent: scoreMultipleChoice(q, selectedOptionIndex),
+        aiGradingStatus: "not_applicable" as const,
+        reviewStatus: "not_applicable" as const,
+      };
+    }
+
+    if (q.type === "multiple_select") {
+      const selectedOptionIndexes = formData.getAll(`question_${q.id}`).map((v) => Number(v));
+      return {
+        ...base,
+        selectedOptionIndexes,
+        scorePercent: scoreMultipleSelect(q, selectedOptionIndexes),
+        aiGradingStatus: "not_applicable" as const,
+        reviewStatus: "not_applicable" as const,
+      };
+    }
+
+    // free_text — graded asynchronously (see the after() call below), and
+    // not finalized until a teacher approves/adjusts it.
+    return {
+      ...base,
+      freeTextResponse: field(formData, `question_${q.id}`),
+      scorePercent: 0,
+      aiGradingStatus: "pending" as const,
+      reviewStatus: "pending" as const,
+    };
   });
+
+  const hasFreeText = quiz.questions.some((q) => q.type === "free_text");
+  const gradingStatus = hasFreeText ? "pending_review" : "graded";
+  const submittedAt = new Date().toISOString();
+
+  await createQuizSubmission(
+    {
+      id: submissionId,
+      enrollmentId: enrollment.id,
+      quizId,
+      scorePercent: computeSubmissionScore(answers),
+      gradingStatus,
+      submittedAt,
+      finalizedAt: gradingStatus === "graded" ? submittedAt : null,
+    },
+    answers
+  );
+
+  // Runs after the response is sent — doesn't block the student's redirect.
+  // If it fails (or ANTHROPIC/GEMINI credentials aren't configured), the
+  // free_text rows stay aiGradingStatus:"failed"/"pending" and surface in
+  // the teacher review queue for manual grading instead.
+  if (hasFreeText) {
+    after(() => gradeSubmissionFreeTextAnswers(submissionId));
+  }
 
   revalidatePath(resultPath);
   redirect(resultPath);
+}
+
+// Teacher review of an AI-graded free_text answer — modeled on
+// approvePendingChangeAction/rejectPendingChangeAction in
+// lib/actions/pending-changes.ts, but scoped to one answer row (a numeric
+// score adjustment, not a whole-record replace) since many rows can belong
+// to one submission and review is a teacher action, not super_admin-only.
+export async function approveAiGradingAction(formData: FormData) {
+  const session = await requireRole(["super_admin", "teacher"]);
+
+  const answerId = field(formData, "answerId");
+  const submissionId = field(formData, "submissionId");
+  const answer = await getQuizAnswerById(answerId);
+  if (!answer || answer.aiScorePercent === null) {
+    revalidatePath(`/admin/academy/grading/${submissionId}`);
+    return;
+  }
+
+  await updateQuizAnswerReview(answerId, {
+    status: "approved",
+    reviewedBy: session.userId,
+    scorePercent: answer.aiScorePercent,
+  });
+  await recomputeSubmissionScore(submissionId);
+
+  revalidatePath(`/admin/academy/grading/${submissionId}`);
+  revalidatePath("/admin/academy/grading");
+}
+
+export async function adjustGradingAction(formData: FormData) {
+  const session = await requireRole(["super_admin", "teacher"]);
+
+  const answerId = field(formData, "answerId");
+  const submissionId = field(formData, "submissionId");
+  const scorePercent = Math.max(0, Math.min(100, Number(field(formData, "scorePercent")) || 0));
+  const reviewNote = field(formData, "reviewNote") || undefined;
+
+  await updateQuizAnswerReview(answerId, {
+    status: "adjusted",
+    reviewedBy: session.userId,
+    scorePercent,
+    reviewNote,
+  });
+  await recomputeSubmissionScore(submissionId);
+
+  revalidatePath(`/admin/academy/grading/${submissionId}`);
+  revalidatePath("/admin/academy/grading");
+}
+
+// Re-runs AI grading for one answer whose aiGradingStatus is "failed" —
+// invoked from the (already-authenticated) admin review page, so it's safe
+// to call gradeFreeTextAnswer synchronously here (unlike the untrusted
+// submission path, which defers via after()).
+export async function retryAiGradingAction(formData: FormData) {
+  await requireRole(["super_admin", "teacher"]);
+
+  const answerId = field(formData, "answerId");
+  const submissionId = field(formData, "submissionId");
+  await retryAiGradingForAnswer(answerId);
+
+  revalidatePath(`/admin/academy/grading/${submissionId}`);
 }
