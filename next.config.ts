@@ -34,7 +34,10 @@ const csp = [
   "connect-src 'self' https://api.resend.com https://cdn.jsdelivr.net https://vercel.com https://*.public.blob.vercel-storage.com https://challenges.cloudflare.com",
   // Blob storage is also in frame-src so lesson-material PDFs can render
   // inline (see LessonMaterialViewer) instead of opening in a new tab.
-  "frame-src https://challenges.cloudflare.com https://*.public.blob.vercel-storage.com",
+  // Office Online is there too, since it's how PPTX slides get a paged
+  // preview (there's no viable client-side PPTX renderer) — it fetches the
+  // public Blob URL itself and embeds a slide viewer in the iframe.
+  "frame-src https://challenges.cloudflare.com https://*.public.blob.vercel-storage.com https://view.officeapps.live.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
