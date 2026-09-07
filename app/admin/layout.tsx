@@ -20,14 +20,13 @@ import {
   Phone,
   Mail,
   Wallet,
-  ClipboardList,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { logoutAction } from "@/lib/actions/auth";
 import type { Role } from "@/lib/auth/roles";
 import type { ViewerType } from "@/lib/db/users";
 import { getStarlinkClientById, getOpenHelpRequestsCount } from "@/lib/db/starlink";
-import { getAcademyEnrollmentById, getPendingReviewAnswersCount } from "@/lib/db/academy";
+import { getAcademyEnrollmentById } from "@/lib/db/academy";
 import { getUnreadInquiriesCount } from "@/lib/db/inquiries";
 import { getPendingChangesCount } from "@/lib/db/pending-changes";
 import { getUserById } from "@/lib/db/users";
@@ -117,12 +116,6 @@ const navItems: {
     href: "/admin/academy",
     label: "Cyber PolCo Academy",
     icon: GraduationCap,
-    roles: ["super_admin", "teacher"],
-  },
-  {
-    href: "/admin/academy/grading",
-    label: "Quiz Grading",
-    icon: ClipboardList,
     roles: ["super_admin", "teacher"],
   },
   {
@@ -226,10 +219,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const pendingChangesCount =
     session?.role === "super_admin" ? await getPendingChangesCount("pending") : 0;
 
-  // Only super_admin/teacher see the Quiz Grading nav item.
-  const canSeeQuizGrading = session?.role === "super_admin" || session?.role === "teacher";
-  const pendingQuizReviewCount = canSeeQuizGrading ? await getPendingReviewAnswersCount() : 0;
-
   // Only super_admin/technician manage Starlink clients at all.
   const canSeeStarlink = session?.role === "super_admin" || session?.role === "technician";
   const openHelpRequestCount = canSeeStarlink ? await getOpenHelpRequestsCount() : 0;
@@ -238,7 +227,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     "/admin/inquiries": unreadInquiriesCount,
     "/admin/pending-changes": pendingChangesCount,
     "/admin/starlink": openHelpRequestCount,
-    "/admin/academy/grading": pendingQuizReviewCount,
   };
   const navItemsWithBadges = visibleNavItems.map((item) => {
     const count = BADGE_COUNTS_BY_HREF[item.href];
