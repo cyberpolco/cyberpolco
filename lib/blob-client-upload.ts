@@ -8,7 +8,8 @@ export type UploadKind =
   | "article-thumbnail"
   | "certificate"
   | "lesson-material"
-  | "cv";
+  | "cv"
+  | "receipt";
 
 const PATH_PREFIXES: Record<UploadKind, string> = {
   "team-photo": "team-photos",
@@ -17,6 +18,7 @@ const PATH_PREFIXES: Record<UploadKind, string> = {
   certificate: "certificates",
   "lesson-material": "lesson-materials",
   cv: "cvs",
+  receipt: "receipts",
 };
 
 function safeFileName(name: string): string {

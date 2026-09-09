@@ -457,7 +457,7 @@ export async function refreshAcademyDepositStatusAction(pawapayId: string): Prom
       result.deposit,
       result.deposit.payer?.accountDetails?.phoneNumber ?? null
     );
-    await applyDepositOutcome(tx.referenceType, tx.referenceId, result.deposit.status);
+    await applyDepositOutcome(tx, result.deposit.status);
     revalidatePath(`/admin/academy/my-courses/${enrollment.id}`);
   }
 

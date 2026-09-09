@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import type { PawaPayTransaction } from "@/lib/db/payments";
 
 vi.mock("@/lib/pawapay/verify", () => ({ verifyPawaPayCallback: vi.fn() }));
 vi.mock("@/lib/db/payments", () => ({
@@ -72,7 +73,7 @@ describe("POST /api/pawapay/deposits/callback", () => {
   });
 
   it("applies the domain effect using the referenceType/referenceId set at pending-creation time", async () => {
-    vi.mocked(getPawaPayTransactionByPawaPayId).mockResolvedValue({
+    const tx: PawaPayTransaction = {
       id: "tx-1",
       pawapayId: "dep-123",
       type: "deposit",
@@ -85,12 +86,13 @@ describe("POST /api/pawapay/deposits/callback", () => {
       rawPayload: {},
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
-    });
+    };
+    vi.mocked(getPawaPayTransactionByPawaPayId).mockResolvedValue(tx);
 
     const res = await POST(makeRequest(validPayload));
 
     expect(res.status).toBe(200);
-    expect(applyDepositOutcome).toHaveBeenCalledWith("starlink_subscription", "site-1", "COMPLETED");
+    expect(applyDepositOutcome).toHaveBeenCalledWith(tx, "COMPLETED");
   });
 
   it("skips the domain effect when no pending transaction row exists for this id", async () => {

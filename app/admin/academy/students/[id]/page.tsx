@@ -1,10 +1,13 @@
 import { notFound } from "next/navigation";
 import { getAcademyEnrollmentById, getAcademyCourseById } from "@/lib/db/academy";
+import { getReceiptsForReference } from "@/lib/db/receipts";
 import { progressPercent } from "@/lib/academy/progress";
 import { getUsers } from "@/lib/db/users";
 import { requireRole } from "@/lib/auth/rbac";
 import BackLink from "@/app/admin/_components/BackLink";
 import ResetLinkedPasswordButton from "@/app/admin/_components/ResetLinkedPasswordButton";
+import ReceiptsList from "@/app/admin/_components/ReceiptsList";
+import ReceiptUploadForm from "@/app/admin/_components/ReceiptUploadForm";
 import StudentProgressForm from "./StudentProgressForm";
 
 export default async function StudentDetailPage({
@@ -20,6 +23,7 @@ export default async function StudentDetailPage({
 
   const course = await getAcademyCourseById(enrollment.courseId);
   const percent = progressPercent(enrollment, course);
+  const receipts = await getReceiptsForReference("academy_fee", enrollment.id);
 
   const users = await getUsers();
   const hasLinkedAccount = users.some((u) => u.linkedId === enrollment.id);
@@ -73,6 +77,12 @@ export default async function StudentDetailPage({
           certificateIssued={enrollment.certificateIssued}
           certificateFileUrl={enrollment.certificateFileUrl}
         />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-brand-dark dark:text-white">Receipts</h2>
+        <ReceiptsList receipts={receipts} />
+        <ReceiptUploadForm referenceType="academy_fee" referenceId={enrollment.id} />
       </div>
     </div>
   );

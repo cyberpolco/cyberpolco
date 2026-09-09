@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth/rbac";
 import { getStarlinkClientById } from "@/lib/db/starlink";
 import { getSettings } from "@/lib/db/settings";
 import { getPawaPayTransactionsForReference } from "@/lib/db/payments";
+import { getReceiptsForReference } from "@/lib/db/receipts";
 import { STARLINK_OPTION_LABELS } from "@/lib/content/starlink-options";
 import { formatUsdCents } from "@/lib/content/money";
 import { isSubscriptionPayable } from "@/lib/starlink/subscription";
@@ -11,6 +12,7 @@ import { initiateStarlinkDepositAction, refreshStarlinkDepositStatusAction } fro
 import RevealText from "@/app/admin/_components/RevealText";
 import PayWithMobileMoneyButton from "@/app/admin/_components/PayWithMobileMoneyButton";
 import PaymentHistoryList from "@/app/admin/_components/PaymentHistoryList";
+import ReceiptsList from "@/app/admin/_components/ReceiptsList";
 
 export default async function MyInfoPage() {
   const session = await getSession();
@@ -23,13 +25,16 @@ export default async function MyInfoPage() {
 
   const pendingDepositsBySiteId = new Map<string, { pawapayId: string; status: string }>();
   const historyBySiteId = new Map<string, Awaited<ReturnType<typeof getPawaPayTransactionsForReference>>>();
+  const receiptsBySiteId = new Map<string, Awaited<ReturnType<typeof getReceiptsForReference>>>();
   if (client) {
-    const histories = await Promise.all(
-      client.sites.map((site) => getPawaPayTransactionsForReference("starlink_subscription", site.id))
-    );
+    const [histories, receiptLists] = await Promise.all([
+      Promise.all(client.sites.map((site) => getPawaPayTransactionsForReference("starlink_subscription", site.id))),
+      Promise.all(client.sites.map((site) => getReceiptsForReference("starlink_subscription", site.id))),
+    ]);
     client.sites.forEach((site, i) => {
       const history = histories[i];
       historyBySiteId.set(site.id, history);
+      receiptsBySiteId.set(site.id, receiptLists[i]);
       // history is ordered newest-first, so the latest transaction is history[0].
       if (history[0]) pendingDepositsBySiteId.set(site.id, { pawapayId: history[0].pawapayId, status: history[0].status });
     });
@@ -111,6 +116,7 @@ export default async function MyInfoPage() {
                   )}
 
                   <PaymentHistoryList transactions={historyBySiteId.get(site.id) ?? []} />
+                  <ReceiptsList receipts={receiptsBySiteId.get(site.id) ?? []} />
                 </div>
               );
             })}

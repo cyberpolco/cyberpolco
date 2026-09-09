@@ -169,6 +169,13 @@
       "when": 1788186361342,
       "tag": "0023_zippy_sage",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788942555155,
+      "tag": "0024_conscious_gabe_jones",
+      "breakpoints": true
     }
   ]
 }

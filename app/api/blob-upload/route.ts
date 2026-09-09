@@ -12,6 +12,8 @@ import {
   MAX_LESSON_MATERIAL_SIZE_BYTES,
   ALLOWED_CV_TYPES,
   MAX_CV_SIZE_BYTES,
+  ALLOWED_RECEIPT_TYPES,
+  MAX_RECEIPT_SIZE_BYTES,
 } from "@/lib/validation/schemas";
 
 /**
@@ -58,6 +60,12 @@ const UPLOAD_KINDS = {
     allowedContentTypes: ALLOWED_CV_TYPES,
     maximumSizeInBytes: MAX_CV_SIZE_BYTES,
     allowedRoles: null,
+  },
+  receipt: {
+    prefix: "receipts/",
+    allowedContentTypes: ALLOWED_RECEIPT_TYPES,
+    maximumSizeInBytes: MAX_RECEIPT_SIZE_BYTES,
+    allowedRoles: ["super_admin", "technician", "teacher"] as Role[],
   },
 } as const;
 

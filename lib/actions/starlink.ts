@@ -292,7 +292,7 @@ export async function refreshStarlinkDepositStatusAction(pawapayId: string): Pro
       result.deposit,
       result.deposit.payer?.accountDetails?.phoneNumber ?? null
     );
-    await applyDepositOutcome(tx.referenceType, tx.referenceId, result.deposit.status);
+    await applyDepositOutcome(tx, result.deposit.status);
     revalidatePath("/admin/starlink/my-info");
   }
 

@@ -5,11 +5,13 @@ import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmissionsForEnrollment } from "@/lib/db/academy";
 import { getPawaPayTransactionsForReference } from "@/lib/db/payments";
+import { getReceiptsForReference } from "@/lib/db/receipts";
 import { progressPercent } from "@/lib/academy/progress";
 import { formatUsdCents } from "@/lib/content/money";
 import { initiateAcademyDepositAction, refreshAcademyDepositStatusAction } from "@/lib/actions/academy";
 import PayWithMobileMoneyButton from "@/app/admin/_components/PayWithMobileMoneyButton";
 import PaymentHistoryList from "@/app/admin/_components/PaymentHistoryList";
+import ReceiptsList from "@/app/admin/_components/ReceiptsList";
 import BackLink from "@/app/admin/_components/BackLink";
 import QuizStatusCard from "@/app/admin/academy/_components/QuizStatusCard";
 import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
@@ -38,6 +40,7 @@ export default async function CourseDetailPage({
   const paymentHistory = course.enrollmentFeeCents
     ? await getPawaPayTransactionsForReference("academy_fee", enrollment.id)
     : [];
+  const receipts = await getReceiptsForReference("academy_fee", enrollment.id);
   // paymentHistory is ordered newest-first, so the latest transaction is paymentHistory[0].
   const pendingDeposit = paymentHistory[0]
     ? { pawapayId: paymentHistory[0].pawapayId, status: paymentHistory[0].status }
@@ -80,6 +83,7 @@ export default async function CourseDetailPage({
         )}
 
         {!!course.enrollmentFeeCents && <PaymentHistoryList transactions={paymentHistory} />}
+        <ReceiptsList receipts={receipts} />
       </div>
 
       {!locked && (

@@ -86,7 +86,7 @@ export async function handlePawaPayCallback(
     // from the callback itself.
     if (type === "deposit") {
       const tx = await getPawaPayTransactionByPawaPayId(pawapayId);
-      if (tx) await applyDepositOutcome(tx.referenceType, tx.referenceId, status);
+      if (tx) await applyDepositOutcome(tx, status);
     }
   } catch (err) {
     console.error(`Failed to persist PawaPay ${type} callback:`, err);

@@ -424,6 +424,33 @@ export const pawapayTransactions = pgTable("pawapay_transactions", {
   updatedAt: text("updated_at").notNull(),
 });
 
+// A payment receipt for a Starlink site or Academy enrollment — either
+// generated automatically the moment a deposit reaches COMPLETED (see
+// generateReceiptForDeposit in lib/receipts/generate.ts, called from
+// applyDepositOutcome), or attached by staff/super_admin by hand (e.g. a
+// historical/offline payment with no PawaPay transaction at all). Unlike
+// academyEnrollments.certificateFileUrl (a single column), this is its own
+// table because a site/enrollment can accumulate many receipts over time.
+export const receipts = pgTable("receipts", {
+  id: text("id").primaryKey(),
+  referenceType: text("reference_type", { enum: ["starlink_subscription", "academy_fee"] }).notNull(),
+  referenceId: text("reference_id").notNull(),
+  // Set only for an auto-generated receipt — lets generateReceiptForDeposit
+  // check "have I already made a receipt for this transaction?" idempotently,
+  // since the webhook and the status-poll fallback can both resolve the same
+  // deposit to COMPLETED.
+  pawapayTransactionId: text("pawapay_transaction_id"),
+  source: text("source", { enum: ["auto_generated", "staff_uploaded"] }).notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileName: text("file_name"),
+  // Snapshotted from the transaction at generation time for auto receipts;
+  // null for staff uploads, which may have no linked transaction at all.
+  amount: text("amount"),
+  currency: text("currency"),
+  createdAt: text("created_at").notNull(),
+  createdBy: text("created_by"), // null for system-generated
+});
+
 // A create/edit by "technician"/"teacher" to a record they didn't create
 // waits here for a super_admin to approve or reject — see lib/auth/approval.ts
 // for the rule and lib/actions/pending-changes.ts for the review actions.

@@ -1,27 +1,38 @@
 import { markStarlinkSiteSubscriptionPaid } from "@/lib/db/starlink";
 import { markEnrollmentFeePaid } from "@/lib/db/academy";
-import {
-  getPawaPayTransactionByPawaPayId,
-  markPawaPayTransactionStatus,
-  type PaymentReferenceType,
-} from "@/lib/db/payments";
+import { getPawaPayTransactionByPawaPayId, markPawaPayTransactionStatus, type PawaPayTransaction } from "@/lib/db/payments";
+import { generateReceiptForDeposit } from "@/lib/receipts/generate";
+
+// The fields applyDepositOutcome/generateReceiptForDeposit actually need —
+// narrower than the full PawaPayTransaction row so callers building a
+// partial/mocked transaction (tests) aren't forced to fill in every column.
+export type DepositTransaction = Pick<
+  PawaPayTransaction,
+  "id" | "pawapayId" | "referenceType" | "referenceId" | "amount" | "currency"
+>;
 
 // Applies the domain-level effect of a deposit reaching a final status.
 // Called from both the webhook callback handler and each feature's
 // status-poll fallback (see lib/actions/starlink.ts, lib/actions/academy.ts)
 // — a payment resolves the same way regardless of which one notices first,
-// and both paths are idempotent.
-export async function applyDepositOutcome(
-  referenceType: PaymentReferenceType | null | undefined,
-  referenceId: string | null | undefined,
-  status: string
-): Promise<void> {
-  if (status !== "COMPLETED" || !referenceType || !referenceId) return;
+// and both paths are idempotent. Takes the full transaction (not just
+// referenceType/referenceId) so it can also generate a receipt from the
+// same amount/currency/pawapayId, all in this one choke point.
+export async function applyDepositOutcome(transaction: DepositTransaction, status: string): Promise<void> {
+  if (status !== "COMPLETED" || !transaction.referenceType || !transaction.referenceId) return;
 
-  if (referenceType === "starlink_subscription") {
-    await markStarlinkSiteSubscriptionPaid(referenceId);
-  } else if (referenceType === "academy_fee") {
-    await markEnrollmentFeePaid(referenceId);
+  if (transaction.referenceType === "starlink_subscription") {
+    await markStarlinkSiteSubscriptionPaid(transaction.referenceId);
+  } else if (transaction.referenceType === "academy_fee") {
+    await markEnrollmentFeePaid(transaction.referenceId);
+  }
+
+  // A receipt is a nice-to-have — never allowed to block "the payment was
+  // marked paid" above, which already succeeded.
+  try {
+    await generateReceiptForDeposit(transaction);
+  } catch (err) {
+    console.error("Failed to auto-generate receipt for deposit:", err);
   }
 }
 
@@ -46,6 +57,6 @@ export async function manuallyReconcileDeposit(
   await markPawaPayTransactionStatus(pawapayId, outcome, rawPayload);
 
   if (outcome === "COMPLETED") {
-    await applyDepositOutcome(transaction.referenceType, transaction.referenceId, "COMPLETED");
+    await applyDepositOutcome(transaction, "COMPLETED");
   }
 }
