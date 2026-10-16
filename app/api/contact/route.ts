@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       firstName: escapeHtml(firstName),
       subject: escapeHtml(subject),
     });
-    await sendEmail({ to: email, from: "Cyber PolCo <no-reply@cyberpolco.com>", subject: emailSubject, html });
+    await sendEmail({ to: email, from: "Cyber PolCo <noreply@cyberpolco.com>", subject: emailSubject, html });
   } catch (err) {
     console.error("Failed to send contact acknowledgement email:", err);
   }

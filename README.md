@@ -47,7 +47,7 @@ hits `/api/cron/starlink-subscription-reminders`. For every Starlink site
 with a `subscriptionStartDate` set, it checks whether that site's monthly
 (30-day) subscription renews in exactly 7 days — cycling automatically every
 30 days, no per-cycle state needed — and if so, emails the client (via
-Resend, from `no-reply@cyberpolco.com`) a bilingual reminder with the site
+Resend, from `noreply@cyberpolco.com`) a bilingual reminder with the site
 name, expiry date, and contact info to renew.
 
 The route has no logged-in admin session to check (Vercel's scheduler calls
