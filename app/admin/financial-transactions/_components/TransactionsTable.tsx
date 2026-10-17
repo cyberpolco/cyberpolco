@@ -22,6 +22,8 @@ export type ResolvedTransaction = {
   personName: string;
   personType: "Starlink" | "Academy" | "Unlinked";
   productLabel: string;
+  // Set only for Academy rows that resolve to a course.
+  courseId: string | null;
 };
 
 type ProductFilter = "" | "Starlink" | "Academy" | "Unlinked";
@@ -55,14 +57,17 @@ function downloadCsv(rows: ResolvedTransaction[]) {
 
 export default function TransactionsTable({
   transactions,
+  courseOptions,
   canReconcile,
 }: {
   transactions: ResolvedTransaction[];
+  courseOptions: { id: string; title: string }[];
   canReconcile: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [product, setProduct] = useState<ProductFilter>("");
+  const [course, setCourse] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
@@ -82,17 +87,19 @@ export default function TransactionsTable({
       return false;
     if (status && t.status !== status) return false;
     if (product && t.personType !== product) return false;
+    if (course && t.courseId !== course) return false;
     if (from && t.createdAt < from) return false;
     if (to && t.createdAt > `${to}T23:59:59.999Z`) return false;
     return true;
   });
 
-  const hasActiveFilters = q !== "" || status !== "" || product !== "" || from !== "" || to !== "";
+  const hasActiveFilters = q !== "" || status !== "" || product !== "" || course !== "" || from !== "" || to !== "";
 
   function clearFilters() {
     setQuery("");
     setStatus("");
     setProduct("");
+    setCourse("");
     setFrom("");
     setTo("");
   }
@@ -134,6 +141,21 @@ export default function TransactionsTable({
           <option value="Academy">Academy</option>
           <option value="Unlinked">Unlinked</option>
         </select>
+
+        {courseOptions.length > 0 && (
+          <select
+            value={course}
+            onChange={(e) => setCourse(e.target.value)}
+            className="rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-brand-dark-2 px-3 py-2 text-sm text-brand-dark dark:text-white outline-none focus:border-brand-blue"
+          >
+            <option value="">All courses</option>
+            {courseOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        )}
 
         <label className="flex items-center gap-2 text-sm text-brand-gray dark:text-white/60">
           From

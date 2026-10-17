@@ -2,6 +2,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "./client";
 import { pawapayTransactions as pawapayTransactionsTable } from "./schema";
 import { monthlyTrend } from "@/lib/utils/monthly-trend";
+import { getAcademyCourses, getAcademyEnrollments } from "./academy";
 
 export type PawaPayTransactionType = "checkout" | "deposit" | "payout" | "refund";
 export type PaymentReferenceType = "starlink_subscription" | "academy_fee";
@@ -238,8 +239,31 @@ export function computePaymentsStats(transactions: PawaPayTransaction[]): Paymen
   };
 }
 
-export async function getPaymentsStats(scope?: PaymentReferenceType): Promise<PaymentsStats> {
+// Teachers only see fees paid for courses they created — a null createdBy
+// (pre-ownership course) counts as not theirs, same as lib/auth/approval.ts.
+export function isOwnCourseFee(
+  t: PawaPayTransaction,
+  teacherId: string,
+  enrollmentById: Map<string, { courseId: string }>,
+  courseById: Map<string, { createdBy: string | null }>
+): boolean {
+  if (t.referenceType !== "academy_fee" || !t.referenceId) return false;
+  const enrollment = enrollmentById.get(t.referenceId);
+  const course = enrollment ? courseById.get(enrollment.courseId) : undefined;
+  return course?.createdBy === teacherId;
+}
+
+// Pass teacherId to narrow to that teacher's own courses' fees (see
+// isOwnCourseFee) — the teacher-role view of both the dashboard and the
+// Financial Transactions tab.
+export async function getPaymentsStats(scope?: PaymentReferenceType, teacherId?: string): Promise<PaymentsStats> {
   const all = await getAllPawaPayTransactions();
-  const scoped = scope ? all.filter((t) => t.referenceType === scope) : all;
+  let scoped = scope ? all.filter((t) => t.referenceType === scope) : all;
+  if (teacherId) {
+    const [enrollments, courses] = await Promise.all([getAcademyEnrollments(), getAcademyCourses()]);
+    const enrollmentById = new Map(enrollments.map((e) => [e.id, e]));
+    const courseById = new Map(courses.map((c) => [c.id, c]));
+    scoped = scoped.filter((t) => isOwnCourseFee(t, teacherId, enrollmentById, courseById));
+  }
   return computePaymentsStats(scoped);
 }

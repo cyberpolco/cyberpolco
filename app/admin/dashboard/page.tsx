@@ -103,12 +103,13 @@ export default async function DashboardPage() {
     role === "super_admin" || role === "technician" ? await getStarlinkStats() : undefined;
 
   // Same domain-scoping as the Financial Transactions tab (app/admin/financial-transactions/page.tsx):
-  // technician sees Starlink money only, teacher sees Academy money only.
+  // technician sees Starlink money only, teacher sees only the Academy fees
+  // for courses they created.
   const paymentsScope =
     role === "technician" ? "starlink_subscription" : role === "teacher" ? "academy_fee" : undefined;
   const paymentsStats =
     role === "super_admin" || role === "technician" || role === "teacher"
-      ? await getPaymentsStats(paymentsScope)
+      ? await getPaymentsStats(paymentsScope, role === "teacher" ? session?.userId : undefined)
       : undefined;
 
   return (
