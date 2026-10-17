@@ -4,17 +4,17 @@ import { Lock, BookOpen, FileDown } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmissionsForEnrollment } from "@/lib/db/academy";
-import { getPawaPayTransactionsForReference } from "@/lib/db/payments";
+import { getPawaPayTransactionsForReference, IN_PROGRESS_STATUSES } from "@/lib/db/payments";
 import { getReceiptsForReference } from "@/lib/db/receipts";
 import { progressPercent } from "@/lib/academy/progress";
-import { formatUsdCents } from "@/lib/content/money";
+import { courseHasFee, offeredLearningModes, LEARNING_MODE_LABELS } from "@/lib/academy/pricing";
 import { initiateAcademyDepositAction, refreshAcademyDepositStatusAction } from "@/lib/actions/academy";
-import PayWithMobileMoneyButton from "@/app/admin/_components/PayWithMobileMoneyButton";
 import PaymentHistoryList from "@/app/admin/_components/PaymentHistoryList";
 import ReceiptsList from "@/app/admin/_components/ReceiptsList";
 import BackLink from "@/app/admin/_components/BackLink";
 import QuizStatusCard from "@/app/admin/academy/_components/QuizStatusCard";
 import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
+import LearningModePayment from "@/app/admin/academy/_components/LearningModePayment";
 
 export default async function CourseDetailPage({
   params,
@@ -33,11 +33,12 @@ export default async function CourseDetailPage({
 
   const submissionByQuizId = new Map(submissions.map((s) => [s.quizId, s]));
   const percent = progressPercent(enrollment, course);
-  const locked = !!course.enrollmentFeeCents && !enrollment.feePaid;
+  const hasFee = courseHasFee(course);
+  const locked = hasFee && !enrollment.feePaid;
 
   // Fetched whenever this course has a fee at all (not just while locked),
   // so a student can still see past payments after unlocking.
-  const paymentHistory = course.enrollmentFeeCents
+  const paymentHistory = hasFee
     ? await getPawaPayTransactionsForReference("academy_fee", enrollment.id)
     : [];
   const receipts = await getReceiptsForReference("academy_fee", enrollment.id);
@@ -63,26 +64,34 @@ export default async function CourseDetailPage({
         </div>
 
         {locked && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-4">
-            <p className="flex items-center gap-2 text-sm font-medium text-brand-dark dark:text-white">
+          <div className="mt-4 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-4">
+            <p className="mb-3 flex items-center gap-2 text-sm font-medium text-brand-dark dark:text-white">
               <Lock size={16} className="text-brand-yellow" />
-              This course requires a one-time enrollment fee of {formatUsdCents(course.enrollmentFeeCents!)} before
-              you can open its modules.
+              Choose how you&apos;d like to take this course and pay its one-time fee to open its modules.
             </p>
-            <PayWithMobileMoneyButton
-              fieldName="enrollmentId"
-              fieldValue={enrollment.id}
-              priceLabel={formatUsdCents(course.enrollmentFeeCents!)}
+            <LearningModePayment
+              enrollmentId={enrollment.id}
+              options={offeredLearningModes(course)}
+              initialMode={enrollment.learningMode}
               defaultPhone={enrollment.phone}
               pendingDeposit={pendingDeposit}
+              paymentInFlight={paymentHistory.some((t) => IN_PROGRESS_STATUSES.has(t.status))}
               action={initiateAcademyDepositAction}
               refreshAction={refreshAcademyDepositStatusAction}
-              triggerClassName="flex items-center justify-center gap-2 rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
             />
           </div>
         )}
 
-        {!!course.enrollmentFeeCents && <PaymentHistoryList transactions={paymentHistory} />}
+        {hasFee && enrollment.feePaid && enrollment.learningMode && (
+          <p className="mt-4 text-sm text-brand-gray dark:text-white/60">
+            Learning option:{" "}
+            <span className="font-medium text-brand-dark dark:text-white">
+              {LEARNING_MODE_LABELS[enrollment.learningMode]}
+            </span>
+          </p>
+        )}
+
+        {hasFee && <PaymentHistoryList transactions={paymentHistory} />}
         <ReceiptsList receipts={receipts} />
       </div>
 

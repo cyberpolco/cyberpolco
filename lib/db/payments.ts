@@ -188,7 +188,7 @@ export async function getAllPawaPayTransactions(): Promise<PawaPayTransaction[]>
 }
 
 const COMPLETED_STATUSES = new Set(["COMPLETED"]);
-const IN_PROGRESS_STATUSES = new Set(["PENDING", "ACCEPTED", "PROCESSING", "IN_RECONCILIATION"]);
+export const IN_PROGRESS_STATUSES = new Set(["PENDING", "ACCEPTED", "PROCESSING", "IN_RECONCILIATION"]);
 const FAILED_STATUSES = new Set(["FAILED", "REJECTED"]);
 
 export type PaymentsStats = {

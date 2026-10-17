@@ -8,6 +8,7 @@ import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BackLink from "@/app/admin/_components/BackLink";
 import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
 import NextStepLink from "@/app/admin/academy/_components/NextStepLink";
+import { courseHasFee } from "@/lib/academy/pricing";
 
 export default async function LessonDetailPage({
   params,
@@ -23,7 +24,7 @@ export default async function LessonDetailPage({
 
   // Fee lock is enforced at the course level (my-courses/[enrollmentId]) —
   // re-check here too so a direct link can't bypass it.
-  if (course.enrollmentFeeCents && !enrollment.feePaid) redirect(`/admin/academy/my-courses/${enrollment.id}`);
+  if (courseHasFee(course) && !enrollment.feePaid) redirect(`/admin/academy/my-courses/${enrollment.id}`);
 
   const courseModule = course.modules.find((m) => m.id === moduleId);
   if (!courseModule) notFound();

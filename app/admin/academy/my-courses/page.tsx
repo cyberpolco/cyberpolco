@@ -4,7 +4,7 @@ import { GraduationCap, Lock, Award } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { getAcademyEnrollmentById, getEnrollmentsByStudentId, getAcademyCourses } from "@/lib/db/academy";
 import { progressPercent } from "@/lib/academy/progress";
-import { formatUsdCents } from "@/lib/content/money";
+import { courseHasFee, formatCoursePricing } from "@/lib/academy/pricing";
 import { selfEnrollAction } from "@/lib/actions/academy";
 import SubmitButton from "@/app/admin/_components/SubmitButton";
 
@@ -33,7 +33,7 @@ export default async function MyCoursesPage() {
         {enrollments.map((enrollment) => {
           const course = courseById.get(enrollment.courseId);
           const percent = progressPercent(enrollment, course);
-          const locked = !!course?.enrollmentFeeCents && !enrollment.feePaid;
+          const locked = courseHasFee(course) && !enrollment.feePaid;
 
           return (
             <Link
@@ -93,9 +93,7 @@ export default async function MyCoursesPage() {
               <h3 className="font-semibold">{course.en.title}</h3>
             </div>
             <p className="mt-1 text-sm text-brand-gray dark:text-white/60">{course.en.description}</p>
-            <p className="mt-2 text-xs text-brand-gray dark:text-white/60">
-              {course.enrollmentFeeCents ? `Enrollment fee: ${formatUsdCents(course.enrollmentFeeCents)}` : "Free"}
-            </p>
+            <p className="mt-2 text-xs text-brand-gray dark:text-white/60">{formatCoursePricing(course)}</p>
             <form action={selfEnrollAction} className="mt-3">
               <input type="hidden" name="courseId" value={course.id} />
               <SubmitButton variant="subtle" pendingLabel="Enrolling...">

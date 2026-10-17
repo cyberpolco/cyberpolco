@@ -7,8 +7,9 @@ import SubmitButton from "@/app/admin/_components/SubmitButton";
 import BlobFileField from "@/app/admin/_components/BlobFileField";
 import { COURSE_ID_PREFIX_PATTERN } from "@/lib/content/academy-options";
 import { formatUsdCents } from "@/lib/content/money";
+import { LEARNING_MODE_LABELS, CLASSROOM_TIMETABLE_NOTE } from "@/lib/academy/pricing";
 import QuizEditor from "./QuizEditor";
-import type { AcademyCourse, Lesson, Module } from "@/lib/db/academy";
+import type { AcademyCourse, LearningMode, Lesson, Module } from "@/lib/db/academy";
 
 type LessonRow = {
   key: string;
@@ -17,6 +18,12 @@ type LessonRow = {
   materialFileName: string;
 };
 type ModuleRow = { key: string; module?: Module; lessonRows: LessonRow[] };
+
+// Field names match what upsertAcademyCourseAction reads.
+const PRICE_FIELDS: { name: string; mode: LearningMode; cents: (c?: AcademyCourse) => number | null }[] = [
+  { name: "selfPacedFeeUsd", mode: "self_paced", cents: (c) => c?.selfPacedFeeCents ?? null },
+  { name: "classroomFeeUsd", mode: "classroom", cents: (c) => c?.classroomFeeCents ?? null },
+];
 
 export default function CourseForm({
   course,
@@ -135,34 +142,47 @@ export default function CourseForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">
-          Enrollment fee (USD)
-        </label>
+        <p className="mb-1 block text-sm font-medium text-brand-dark dark:text-white">Pricing options (USD)</p>
         {isSuperAdmin ? (
           <>
-            <div className="flex items-center gap-2">
-              <span className="text-brand-gray dark:text-white/60">$</span>
-              <input
-                name="enrollmentFeeUsd"
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={
-                  course?.enrollmentFeeCents != null ? (course.enrollmentFeeCents / 100).toFixed(2) : ""
-                }
-                placeholder="0.00"
-                className="w-32 rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              {PRICE_FIELDS.map(({ name, mode, cents }) => (
+                <label key={name} className="block">
+                  <span className="text-sm text-brand-dark dark:text-white">{LEARNING_MODE_LABELS[mode]}</span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-brand-gray dark:text-white/60">$</span>
+                    <input
+                      name={name}
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      defaultValue={cents(course) != null ? (cents(course)! / 100).toFixed(2) : ""}
+                      placeholder="0.00"
+                      className="w-32 rounded-lg border border-black/10 dark:border-white/15 px-4 py-2.5 dark:bg-white/5 dark:text-white"
+                    />
+                  </div>
+                  {mode === "classroom" && (
+                    <span className="mt-1 block text-xs text-brand-gray dark:text-white/60">
+                      {CLASSROOM_TIMETABLE_NOTE}
+                    </span>
+                  )}
+                </label>
+              ))}
             </div>
-            <p className="mt-1 text-xs text-brand-gray dark:text-white/60">
-              Leave blank for a free course. Students must pay this before they can open lesson materials.
+            <p className="mt-2 text-xs text-brand-gray dark:text-white/60">
+              Leave an option blank to not offer it, or both blank for a free course. Students pick an option and
+              pay before they can open lesson materials.
             </p>
           </>
         ) : (
-          <p className="text-sm text-brand-gray dark:text-white/60">
-            {course?.enrollmentFeeCents ? formatUsdCents(course.enrollmentFeeCents) : "Free"} — only a super admin
-            can change this.
-          </p>
+          <ul className="space-y-1 text-sm text-brand-gray dark:text-white/60">
+            {PRICE_FIELDS.map(({ name, mode, cents }) => (
+              <li key={name}>
+                {LEARNING_MODE_LABELS[mode]}: {cents(course) ? formatUsdCents(cents(course)!) : "Not offered"}
+              </li>
+            ))}
+            <li className="text-xs">Only a super admin can change pricing.</li>
+          </ul>
         )}
       </div>
 

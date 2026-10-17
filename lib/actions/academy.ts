@@ -22,6 +22,7 @@ import {
   updateQuizAnswerReview,
   recomputeSubmissionScore,
   getQuizAnswerById,
+  setEnrollmentLearningMode,
   type AcademyCourse,
   type AcademyEnrollment,
   type Module,
@@ -29,10 +30,12 @@ import {
   type Quiz,
   type QuizQuestion,
   type QuizAnswer,
+  type LearningMode,
 } from "@/lib/db/academy";
 import { isValidCourseIdPrefix } from "@/lib/content/academy-options";
 import { parseUsdToCents } from "@/lib/content/money";
 import { progressPercent } from "@/lib/academy/progress";
+import { courseHasFee, learningModeFeeCents } from "@/lib/academy/pricing";
 import {
   isQuizAvailable,
   scoreMultipleChoice,
@@ -47,12 +50,24 @@ import { initiateDeposit, predictProvider, checkDepositStatus } from "@/lib/pawa
 import {
   createPendingPawaPayTransaction,
   getPawaPayTransactionByPawaPayId,
+  getPawaPayTransactionsForReference,
   markPawaPayTransactionStatus,
+  IN_PROGRESS_STATUSES,
 } from "@/lib/db/payments";
 import { applyDepositOutcome } from "@/lib/pawapay/reconcile";
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) || "");
+}
+
+// Blank = that learning mode isn't offered (null); anything else must be a
+// valid USD amount.
+function parseFeeField(formData: FormData, name: string, label: string): number | null {
+  const raw = field(formData, name).trim();
+  if (!raw) return null;
+  const cents = parseUsdToCents(raw);
+  if (cents === null) throw new Error(`Invalid ${label} "${raw}" — expected a USD amount like 49.99.`);
+  return cents > 0 ? cents : null;
 }
 
 function slugify(input: string) {
@@ -177,18 +192,14 @@ export async function upsertAcademyCourseAction(formData: FormData) {
     }
   }
 
-  // Enrollment fee: super_admin-only, same rule as the Course ID prefix
-  // above — a teacher's submitted value is ignored, not just hidden in the UI.
-  let enrollmentFeeCents = existing?.enrollmentFeeCents ?? null;
+  // Learning-mode prices: super_admin-only, same rule as the Course ID
+  // prefix above — a teacher's submitted values are ignored, not just hidden
+  // in the UI. A blank field means that mode isn't offered.
+  let selfPacedFeeCents = existing?.selfPacedFeeCents ?? null;
+  let classroomFeeCents = existing?.classroomFeeCents ?? null;
   if (session.role === "super_admin") {
-    const rawFee = field(formData, "enrollmentFeeUsd").trim();
-    if (rawFee) {
-      const cents = parseUsdToCents(rawFee);
-      if (cents === null) {
-        throw new Error(`Invalid enrollment fee "${rawFee}" — expected a USD amount like 49.99.`);
-      }
-      enrollmentFeeCents = cents;
-    }
+    selfPacedFeeCents = parseFeeField(formData, "selfPacedFeeUsd", "self-paced price");
+    classroomFeeCents = parseFeeField(formData, "classroomFeeUsd", "classroom price");
   }
 
   const course: AcademyCourse = {
@@ -198,7 +209,8 @@ export async function upsertAcademyCourseAction(formData: FormData) {
     fr: { title: titleFr, description: field(formData, "description_fr") },
     en: { title: titleEn, description: field(formData, "description_en") },
     modules: parseModules(formData),
-    enrollmentFeeCents,
+    selfPacedFeeCents,
+    classroomFeeCents,
     finalExam: parseQuiz(formData, "finalExam"),
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     createdBy: existing ? existing.createdBy : session.userId,
@@ -265,6 +277,7 @@ export async function createEnrollmentAction(formData: FormData) {
     certificateFileUrl: null,
     feePaid: false,
     feePaidAt: null,
+    learningMode: null,
     createdAt: new Date().toISOString(),
     createdBy: session.userId,
   };
@@ -368,8 +381,13 @@ export async function initiateAcademyDepositAction(
   if (!enrollment || enrollment.studentId !== studentId) redirect("/admin/academy/my-courses");
 
   const course = await getAcademyCourseById(enrollment.courseId);
-  if (!course?.enrollmentFeeCents) redirect(`/admin/academy/my-courses/${enrollment.id}`);
+  if (!course || !courseHasFee(course)) redirect(`/admin/academy/my-courses/${enrollment.id}`);
   if (enrollment.feePaid) redirect(`/admin/academy/my-courses/${enrollment.id}`);
+
+  const learningMode = field(formData, "learningMode") as LearningMode;
+  const feeCents =
+    learningMode === "self_paced" || learningMode === "classroom" ? learningModeFeeCents(course, learningMode) : null;
+  if (!feeCents) return { ok: false, message: "Choose one of this course's pricing options." };
 
   const phoneNumber = field(formData, "phoneNumber").trim();
   if (!PHONE_REGEX.test(phoneNumber)) {
@@ -387,7 +405,16 @@ export async function initiateAcademyDepositAction(
     return { ok: false, message: "Mobile money payment is currently only available for Congolese (+243) numbers." };
   }
 
-  const amount = (course.enrollmentFeeCents / 100).toFixed(2);
+  // The chosen mode is recorded on the enrollment (not the transaction), so
+  // it must not change while an earlier deposit could still complete —
+  // otherwise that deposit would unlock the course under the wrong mode.
+  const history = await getPawaPayTransactionsForReference("academy_fee", enrollment.id);
+  if (history.some((t) => IN_PROGRESS_STATUSES.has(t.status))) {
+    return { ok: false, message: "A payment for this course is already awaiting approval on your phone." };
+  }
+  await setEnrollmentLearningMode(enrollment.id, learningMode);
+
+  const amount = (feeCents / 100).toFixed(2);
   const depositId = crypto.randomUUID();
 
   await createPendingPawaPayTransaction({
@@ -475,8 +502,7 @@ export async function updateOwnProgressAction(formData: FormData) {
   if (!enrollment || enrollment.studentId !== studentId) redirect("/admin/academy/my-courses");
 
   const course = await getAcademyCourseById(enrollment.courseId);
-  const feeCents = course?.enrollmentFeeCents ?? 0;
-  if (feeCents > 0 && !enrollment.feePaid) redirect("/admin/academy/my-courses");
+  if (courseHasFee(course) && !enrollment.feePaid) redirect("/admin/academy/my-courses");
 
   const lessonId = field(formData, "lessonId");
   const completed = field(formData, "completed") === "true";
@@ -523,6 +549,7 @@ export async function selfEnrollAction(formData: FormData) {
     certificateFileUrl: null,
     feePaid: false,
     feePaidAt: null,
+    learningMode: null,
     createdAt: new Date().toISOString(),
     createdBy: session.userId,
   };

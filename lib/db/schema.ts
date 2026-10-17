@@ -274,9 +274,12 @@ export const academyCourses = pgTable("academy_courses", {
   fr: jsonb("fr").$type<LocalizedCourseText>().notNull(),
   en: jsonb("en").$type<LocalizedCourseText>().notNull(),
   modules: jsonb("modules").$type<AcademyModule[]>().notNull(),
-  // In USD cents, super_admin-only. Nullable/0 means no enrollment fee — the
-  // student dashboard only paywalls lesson materials when this is set.
-  enrollmentFeeCents: integer("enrollment_fee_cents"),
+  // The two learning-mode prices, in USD cents, super_admin-only. Each is
+  // nullable/0 = that mode isn't offered; the course is free only when
+  // neither is set (see courseHasFee in lib/academy/pricing.ts). The student
+  // picks one when paying — see academyEnrollments.learningMode.
+  selfPacedFeeCents: integer("self_paced_fee_cents"),
+  classroomFeeCents: integer("classroom_fee_cents"),
   // The course-wide exam, taken after every module — same shape/rules as a
   // per-module test above. Nullable: most existing courses won't have one.
   finalExam: jsonb("final_exam").$type<AcademyQuiz | null>(),
@@ -373,6 +376,11 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   // no payment gateway is involved. See feePaidAt for when.
   feePaid: boolean("fee_paid").notNull().default(false),
   feePaidAt: text("fee_paid_at"),
+  // The pricing option the student chose, set when they start a payment
+  // (initiateAcademyDepositAction) — can't change while a deposit is in
+  // flight, so once feePaid flips this is the mode they paid for. Null for
+  // free courses and for enrollments that haven't started paying yet.
+  learningMode: text("learning_mode", { enum: ["self_paced", "classroom"] }),
   createdAt: text("created_at").notNull(),
   // Nullable — see starlinkClients.createdBy above; same reasoning.
   createdBy: text("created_by"),

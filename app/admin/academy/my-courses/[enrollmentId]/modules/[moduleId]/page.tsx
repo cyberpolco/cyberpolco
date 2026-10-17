@@ -6,6 +6,7 @@ import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmissionsForEnrollment } from "@/lib/db/academy";
 import BackLink from "@/app/admin/_components/BackLink";
 import QuizStatusCard from "@/app/admin/academy/_components/QuizStatusCard";
+import { courseHasFee } from "@/lib/academy/pricing";
 
 export default async function ModuleDetailPage({
   params,
@@ -24,7 +25,7 @@ export default async function ModuleDetailPage({
 
   // Fee lock is enforced at the course level (my-courses/[enrollmentId]) —
   // re-check here too so a direct link can't bypass it.
-  if (course.enrollmentFeeCents && !enrollment.feePaid) redirect(`/admin/academy/my-courses/${enrollment.id}`);
+  if (courseHasFee(course) && !enrollment.feePaid) redirect(`/admin/academy/my-courses/${enrollment.id}`);
 
   const courseModule = course.modules.find((m) => m.id === moduleId);
   if (!courseModule) notFound();

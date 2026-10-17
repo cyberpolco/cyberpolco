@@ -1,0 +1,1 @@
+ALTER TABLE "academy_courses" DROP COLUMN "enrollment_fee_cents";

@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { put } from "@vercel/blob";
 import { getStarlinkClientBySiteId } from "@/lib/db/starlink";
 import { getAcademyEnrollmentById, getAcademyCourseById } from "@/lib/db/academy";
+import { LEARNING_MODE_LABELS } from "@/lib/academy/pricing";
 import { createReceipt, getReceiptByPawapayTransactionId } from "@/lib/db/receipts";
 import { formatDateTime } from "@/lib/utils/date-format";
 import type { DepositTransaction } from "@/lib/pawapay/reconcile";
@@ -19,7 +20,11 @@ async function resolveAcademyContext(enrollmentId: string): Promise<ReceiptConte
   const enrollment = await getAcademyEnrollmentById(enrollmentId);
   if (!enrollment) return undefined;
   const course = await getAcademyCourseById(enrollment.courseId);
-  return { payerName: enrollment.studentName, productLabel: course?.en.title ?? "Academy enrollment" };
+  const title = course?.en.title ?? "Academy enrollment";
+  return {
+    payerName: enrollment.studentName,
+    productLabel: enrollment.learningMode ? `${title} — ${LEARNING_MODE_LABELS[enrollment.learningMode]}` : title,
+  };
 }
 
 // Plain one-page text summary — no branding/logo, matching the "summary

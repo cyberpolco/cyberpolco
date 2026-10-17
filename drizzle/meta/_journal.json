@@ -176,6 +176,20 @@
       "when": 1788942555155,
       "tag": "0024_conscious_gabe_jones",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792241005944,
+      "tag": "0025_parched_sue_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792241013356,
+      "tag": "0026_majestic_blizzard",
+      "breakpoints": true
     }
   ]
 }

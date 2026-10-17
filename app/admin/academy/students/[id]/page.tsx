@@ -9,6 +9,7 @@ import ResetLinkedPasswordButton from "@/app/admin/_components/ResetLinkedPasswo
 import ReceiptsList from "@/app/admin/_components/ReceiptsList";
 import ReceiptUploadForm from "@/app/admin/_components/ReceiptUploadForm";
 import StudentProgressForm from "./StudentProgressForm";
+import { courseHasFee, LEARNING_MODE_LABELS } from "@/lib/academy/pricing";
 
 export default async function StudentDetailPage({
   params,
@@ -46,7 +47,7 @@ export default async function StudentDetailPage({
       )}
 
       <div className="mt-6 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
-        {!!course?.enrollmentFeeCents && (
+        {courseHasFee(course) && (
           <div className="mb-4 flex items-center justify-between text-sm">
             <span className="font-medium text-brand-dark dark:text-white">Enrollment fee</span>
             <span
@@ -57,6 +58,15 @@ export default async function StudentDetailPage({
               }
             >
               {enrollment.feePaid ? "Paid" : "Unpaid"}
+            </span>
+          </div>
+        )}
+        {courseHasFee(course) && enrollment.learningMode && (
+          <div className="mb-4 flex items-center justify-between text-sm">
+            <span className="font-medium text-brand-dark dark:text-white">Learning option</span>
+            <span className="text-brand-gray dark:text-white/60">
+              {LEARNING_MODE_LABELS[enrollment.learningMode]}
+              {!enrollment.feePaid && " (chosen, not yet paid)"}
             </span>
           </div>
         )}

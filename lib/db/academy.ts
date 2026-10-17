@@ -53,6 +53,8 @@ export type Quiz = {
 export type Module = { id: string; title: string; lessons: Lesson[]; test: Quiz | null };
 export type LocalizedCourseText = { title: string; description: string };
 
+export type LearningMode = "self_paced" | "classroom";
+
 export type AcademyCourse = {
   id: string;
   courseId: string | null;
@@ -60,7 +62,8 @@ export type AcademyCourse = {
   fr: LocalizedCourseText;
   en: LocalizedCourseText;
   modules: Module[];
-  enrollmentFeeCents: number | null;
+  selfPacedFeeCents: number | null;
+  classroomFeeCents: number | null;
   finalExam: Quiz | null;
   createdAt: string;
   createdBy: string | null;
@@ -119,6 +122,7 @@ export type AcademyEnrollment = {
   certificateFileUrl: string | null;
   feePaid: boolean;
   feePaidAt: string | null;
+  learningMode: LearningMode | null;
   createdAt: string;
   createdBy: string | null;
 };
@@ -330,6 +334,12 @@ export async function markEnrollmentFeePaid(id: string): Promise<void> {
     .update(academyEnrollmentsTable)
     .set({ feePaid: true, feePaidAt: new Date().toISOString() })
     .where(eq(academyEnrollmentsTable.id, id));
+}
+
+// A targeted update rather than saveAcademyEnrollment's full-row upsert, so
+// recording the chosen mode can't clobber a concurrent progress write.
+export async function setEnrollmentLearningMode(id: string, learningMode: LearningMode): Promise<void> {
+  await db.update(academyEnrollmentsTable).set({ learningMode }).where(eq(academyEnrollmentsTable.id, id));
 }
 
 export async function deleteAcademyEnrollment(id: string): Promise<void> {

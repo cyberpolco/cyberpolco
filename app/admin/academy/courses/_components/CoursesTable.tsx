@@ -6,7 +6,7 @@ import { Search, Pencil } from "lucide-react";
 import DeleteButton from "@/app/admin/_components/DeleteButton";
 import { deleteAcademyCourseAction } from "@/lib/actions/academy";
 import { isValidCourseId } from "@/lib/content/academy-options";
-import { formatUsdCents } from "@/lib/content/money";
+import { formatCoursePricing } from "@/lib/academy/pricing";
 import type { AcademyCourse } from "@/lib/db/academy";
 
 // Length of a fully-formed course id (3 letters + a letter/digit + 2-digit
@@ -57,7 +57,7 @@ export default function CoursesTable({
                 <th className="px-5 py-3">Slug</th>
                 <th className="px-5 py-3">Modules</th>
                 <th className="px-5 py-3">Lessons</th>
-                <th className="px-5 py-3">Fee</th>
+                <th className="px-5 py-3">Pricing</th>
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -79,7 +79,7 @@ export default function CoursesTable({
                     {c.modules.reduce((n, m) => n + m.lessons.length, 0)}
                   </td>
                   <td className="px-5 py-3 text-brand-gray dark:text-white/60">
-                    {c.enrollmentFeeCents ? formatUsdCents(c.enrollmentFeeCents) : "Free"}
+                    {formatCoursePricing(c)}
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-3">

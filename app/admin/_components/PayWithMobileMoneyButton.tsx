@@ -26,6 +26,7 @@ const DEFAULT_TRIGGER_CLASS =
 export default function PayWithMobileMoneyButton({
   fieldName,
   fieldValue,
+  extraFields,
   priceLabel,
   defaultPhone,
   pendingDeposit,
@@ -35,6 +36,8 @@ export default function PayWithMobileMoneyButton({
 }: {
   fieldName: string;
   fieldValue: string;
+  // Any further form fields the action reads (e.g. Academy's learningMode).
+  extraFields?: Record<string, string>;
   priceLabel: string;
   defaultPhone: string;
   pendingDeposit: { pawapayId: string; status: string } | null;
@@ -73,6 +76,7 @@ export default function PayWithMobileMoneyButton({
     startTransition(async () => {
       const formData = new FormData();
       formData.set(fieldName, fieldValue);
+      for (const [name, value] of Object.entries(extraFields ?? {})) formData.set(name, value);
       formData.set("phoneNumber", phone);
       // The action returns a result rather than throwing for expected
       // failures — see the comment on initiateStarlinkDepositAction for why
