@@ -8,6 +8,7 @@ import BlobFileField from "@/app/admin/_components/BlobFileField";
 import { COURSE_ID_PREFIX_PATTERN } from "@/lib/content/academy-options";
 import { formatUsdCents } from "@/lib/content/money";
 import { LEARNING_MODE_LABELS, CLASSROOM_TIMETABLE_NOTE } from "@/lib/academy/pricing";
+import { toDatetimeLocalValue } from "@/lib/academy/quiz";
 import QuizEditor from "./QuizEditor";
 import type { AcademyCourse, LearningMode, Lesson, Module } from "@/lib/db/academy";
 
@@ -334,6 +335,16 @@ export default function CourseForm({
                         className="mt-1 w-full text-xs text-brand-gray dark:text-white/60"
                       />
                     </div>
+                    <label className="mt-2 flex flex-wrap items-center gap-2 text-xs text-brand-gray dark:text-white/60">
+                      Classroom availability
+                      <input
+                        type="datetime-local"
+                        name={`module_${i}_lesson_${j}_availableAt`}
+                        defaultValue={toDatetimeLocalValue(lrow.lesson?.availableAt ?? null)}
+                        className="rounded-lg border border-black/10 dark:border-white/15 px-2 py-1 text-xs dark:bg-white/5 dark:text-white"
+                      />
+                      <span>Blank = open now. Self-paced students always have every lesson unless set per student.</span>
+                    </label>
                   </div>
                 ))}
                 <button

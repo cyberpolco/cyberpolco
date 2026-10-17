@@ -36,6 +36,7 @@ import { isValidCourseIdPrefix } from "@/lib/content/academy-options";
 import { parseUsdToCents } from "@/lib/content/money";
 import { progressPercent } from "@/lib/academy/progress";
 import { courseHasFee, learningModeFeeCents } from "@/lib/academy/pricing";
+import { lessonAvailability } from "@/lib/academy/availability";
 import {
   isQuizAvailable,
   scoreMultipleChoice,
@@ -151,6 +152,7 @@ function parseModules(formData: FormData): Module[] {
         description: field(formData, `module_${i}_lesson_${j}_description`),
         materialUrl: field(formData, `module_${i}_lesson_${j}_materialUrl`) || null,
         materialFileName: field(formData, `module_${i}_lesson_${j}_materialFileName`) || null,
+        availableAt: fromDatetimeLocalValue(field(formData, `module_${i}_lesson_${j}_availableAt`)),
       });
     }
 
@@ -278,6 +280,7 @@ export async function createEnrollmentAction(formData: FormData) {
     feePaid: false,
     feePaidAt: null,
     learningMode: null,
+    lessonAvailability: {},
     createdAt: new Date().toISOString(),
     createdBy: session.userId,
   };
@@ -336,6 +339,58 @@ export async function updateEnrollmentProgressAction(formData: FormData) {
 
   revalidatePath(`/admin/academy/students/${id}`);
   revalidatePath("/admin/academy/students");
+  redirect(`/admin/academy/students/${id}`);
+}
+
+// Per-student lesson availability overrides — see lib/academy/availability.ts.
+// Each lesson's `lesson_<id>_mode` is "default" (no override), "open"
+// (available now), "scheduled" (available from `lesson_<id>_at`) or
+// "locked". Lesson ids come from the course, never the form, so a stale or
+// forged field can't add keys for lessons that don't exist. Same approval
+// rule as updateEnrollmentProgressAction above.
+export async function updateLessonAvailabilityAction(formData: FormData) {
+  const session = await requireRole(["super_admin", "teacher"]);
+
+  const id = field(formData, "id");
+  const enrollment = await getAcademyEnrollmentById(id);
+  if (!enrollment) redirect("/admin/academy/students");
+  const course = await getAcademyCourseById(enrollment.courseId);
+  if (!course) redirect(`/admin/academy/students/${id}`);
+
+  const now = new Date().toISOString();
+  const lessonAvailability: Record<string, string | null> = {};
+  for (const lesson of course.modules.flatMap((m) => m.lessons)) {
+    const mode = field(formData, `lesson_${lesson.id}_mode`);
+    if (mode === "locked") {
+      lessonAvailability[lesson.id] = null;
+    } else if (mode === "open") {
+      // Keep an existing past date rather than bumping it on every save.
+      const previous = enrollment.lessonAvailability[lesson.id];
+      lessonAvailability[lesson.id] = previous && previous <= now ? previous : now;
+    } else if (mode === "scheduled") {
+      const at = fromDatetimeLocalValue(field(formData, `lesson_${lesson.id}_at`));
+      if (!at) throw new Error(`Pick a date for "${lesson.title}", or choose a different option.`);
+      lessonAvailability[lesson.id] = at;
+    }
+  }
+
+  const updated: AcademyEnrollment = { ...enrollment, lessonAvailability };
+
+  if (
+    needsApproval({ existingRecord: enrollment, sessionUserId: session.userId, sessionRole: session.role })
+  ) {
+    await addPendingChange({
+      targetTable: "academy_enrollment",
+      targetId: enrollment.id,
+      proposedData: updated,
+      proposedBy: session.userId,
+    });
+    redirect(`/admin/academy/students/${id}?pending=1`);
+  }
+
+  await saveAcademyEnrollment(updated);
+  revalidatePath(`/admin/academy/students/${id}`);
+  revalidatePath("/admin/academy/my-courses");
   redirect(`/admin/academy/students/${id}`);
 }
 
@@ -505,6 +560,10 @@ export async function updateOwnProgressAction(formData: FormData) {
   if (courseHasFee(course) && !enrollment.feePaid) redirect("/admin/academy/my-courses");
 
   const lessonId = field(formData, "lessonId");
+  const lesson = course?.modules.flatMap((m) => m.lessons).find((l) => l.id === lessonId);
+  if (!lesson || !lessonAvailability(enrollment, lesson, new Date()).available) {
+    redirect(`/admin/academy/my-courses/${enrollment.id}`);
+  }
   const completed = field(formData, "completed") === "true";
   const completedLessonIds = completed
     ? Array.from(new Set([...enrollment.completedLessonIds, lessonId]))
@@ -550,6 +609,7 @@ export async function selfEnrollAction(formData: FormData) {
     feePaid: false,
     feePaidAt: null,
     learningMode: null,
+    lessonAvailability: {},
     createdAt: new Date().toISOString(),
     createdBy: session.userId,
   };

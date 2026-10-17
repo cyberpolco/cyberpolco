@@ -9,6 +9,7 @@ import BackLink from "@/app/admin/_components/BackLink";
 import LessonMaterialViewer from "@/app/admin/academy/_components/LessonMaterialViewer";
 import NextStepLink from "@/app/admin/academy/_components/NextStepLink";
 import { courseHasFee } from "@/lib/academy/pricing";
+import { lessonAvailability } from "@/lib/academy/availability";
 
 export default async function LessonDetailPage({
   params,
@@ -31,9 +32,12 @@ export default async function LessonDetailPage({
 
   const lesson = courseModule.lessons.find((l) => l.id === lessonId);
   if (!lesson) notFound();
+  // Same direct-link guard as the fee lock above — the module page only
+  // links to lessons that are available.
+  if (!lessonAvailability(enrollment, lesson, new Date()).available) redirect(modulePathFor(enrollment.id, moduleId));
 
   const isDone = enrollment.completedLessonIds.includes(lesson.id);
-  const modulePath = `/admin/academy/my-courses/${enrollment.id}/modules/${moduleId}`;
+  const modulePath = modulePathFor(enrollment.id, moduleId);
   const lessonPath = `${modulePath}/lessons/${lesson.id}`;
 
   return (
@@ -61,4 +65,8 @@ export default async function LessonDetailPage({
       </div>
     </div>
   );
+}
+
+function modulePathFor(enrollmentId: string, moduleId: string): string {
+  return `/admin/academy/my-courses/${enrollmentId}/modules/${moduleId}`;
 }

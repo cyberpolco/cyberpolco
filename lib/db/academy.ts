@@ -16,6 +16,8 @@ export type Lesson = {
   description: string;
   materialUrl: string | null;
   materialFileName: string | null;
+  // Class schedule; see the schema comment and lib/academy/availability.ts.
+  availableAt?: string | null;
 };
 
 type QuizQuestionBase = { id: string; text: string };
@@ -123,6 +125,7 @@ export type AcademyEnrollment = {
   feePaid: boolean;
   feePaidAt: string | null;
   learningMode: LearningMode | null;
+  lessonAvailability: Record<string, string | null>;
   createdAt: string;
   createdBy: string | null;
 };

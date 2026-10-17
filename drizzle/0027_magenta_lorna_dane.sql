@@ -1,0 +1,1 @@
+ALTER TABLE "academy_enrollments" ADD COLUMN "lesson_availability" jsonb DEFAULT '{}'::jsonb NOT NULL;

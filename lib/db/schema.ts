@@ -247,6 +247,12 @@ type AcademyLesson = {
   description: string;
   materialUrl: string | null;
   materialFileName: string | null;
+  // The class schedule — when this lesson opens for classroom (and
+  // free-course) students. Null/absent = open, matching lessons' original
+  // open-unless-gated default. Self-paced students ignore it; any student
+  // can be overridden individually via academyEnrollments.lessonAvailability.
+  // See lib/academy/availability.ts.
+  availableAt?: string | null;
 };
 // Shared shape for a module's test and the course's final exam.
 // availableAt is a datetime set by super_admin/teacher — null (never
@@ -381,6 +387,12 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   // flight, so once feePaid flips this is the mode they paid for. Null for
   // free courses and for enrollments that haven't started paying yet.
   learningMode: text("learning_mode", { enum: ["self_paced", "classroom"] }),
+  // Per-student lesson availability overrides set by a teacher/super_admin,
+  // keyed by lesson id: an ISO datetime = available from then (a past one =
+  // open now), null = locked until changed. A lesson with no key follows
+  // the default for the student's learning mode — see
+  // lib/academy/availability.ts.
+  lessonAvailability: jsonb("lesson_availability").$type<Record<string, string | null>>().notNull().default({}),
   createdAt: text("created_at").notNull(),
   // Nullable — see starlinkClients.createdBy above; same reasoning.
   createdBy: text("created_by"),

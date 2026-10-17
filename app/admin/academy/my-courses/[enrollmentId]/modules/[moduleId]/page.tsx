@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CircleCheckBig, Circle } from "lucide-react";
+import { CircleCheckBig, Circle, Lock } from "lucide-react";
 import { getSession } from "@/lib/auth/rbac";
 import { requireOwnEnrollmentPage } from "@/lib/academy/access";
 import { getAcademyCourseById, getQuizSubmissionsForEnrollment } from "@/lib/db/academy";
 import BackLink from "@/app/admin/_components/BackLink";
 import QuizStatusCard from "@/app/admin/academy/_components/QuizStatusCard";
 import { courseHasFee } from "@/lib/academy/pricing";
+import { lessonAvailability } from "@/lib/academy/availability";
+import { formatDateTime } from "@/lib/utils/date-format";
 
 export default async function ModuleDetailPage({
   params,
@@ -31,6 +33,7 @@ export default async function ModuleDetailPage({
   if (!courseModule) notFound();
 
   const completed = new Set(enrollment.completedLessonIds);
+  const now = new Date();
 
   return (
     <div className="max-w-2xl">
@@ -41,6 +44,21 @@ export default async function ModuleDetailPage({
       <div className="mt-6 space-y-3">
         {courseModule.lessons.map((l) => {
           const isDone = completed.has(l.id);
+          const availability = lessonAvailability(enrollment, l, now);
+          if (!availability.available) {
+            return (
+              <div
+                key={l.id}
+                className="flex items-center gap-2 rounded-xl border border-dashed border-black/10 dark:border-white/15 p-4 text-sm text-brand-gray dark:text-white/50"
+              >
+                <Lock size={16} className="text-black/30 dark:text-white/30" />
+                <span className="flex-1">{l.title}</span>
+                <span className="text-xs">
+                  {availability.opensAt ? `Available ${formatDateTime(availability.opensAt)}` : "Not available yet"}
+                </span>
+              </div>
+            );
+          }
           return (
             <Link
               key={l.id}

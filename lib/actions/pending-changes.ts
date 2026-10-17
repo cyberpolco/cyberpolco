@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/rbac";
 import { getPendingChangeById, resolvePendingChange } from "@/lib/db/pending-changes";
 import { saveStarlinkClient, type StarlinkClient } from "@/lib/db/starlink";
-import { saveAcademyCourse, saveAcademyEnrollment, type AcademyCourse, type AcademyEnrollment } from "@/lib/db/academy";
+import {
+  saveAcademyCourse,
+  saveAcademyEnrollment,
+  getAcademyEnrollmentById,
+  type AcademyCourse,
+  type AcademyEnrollment,
+} from "@/lib/db/academy";
 import { getSettings, saveSettings, type SiteSettings } from "@/lib/db/settings";
 import { saveArticle, deleteArticle, type Article } from "@/lib/db/articles";
 import { saveTeamMember, type TeamMember } from "@/lib/db/team";
@@ -36,11 +42,24 @@ export async function approvePendingChangeAction(formData: FormData) {
       await saveAcademyCourse(change.proposedData as AcademyCourse);
       revalidatePath("/admin/academy/courses");
       break;
-    case "academy_enrollment":
-      await saveAcademyEnrollment(change.proposedData as AcademyEnrollment);
+    case "academy_enrollment": {
+      // Only the staff-editable fields are taken from the proposal — the
+      // rest of proposedData is a snapshot from proposal time, and copying
+      // it wholesale would revert anything the student did since (lesson
+      // progress, paying the fee).
+      const current = await getAcademyEnrollmentById(change.targetId);
+      if (!current) break;
+      const proposed = change.proposedData as AcademyEnrollment;
+      await saveAcademyEnrollment({
+        ...current,
+        certificateIssued: proposed.certificateIssued,
+        certificateFileUrl: proposed.certificateFileUrl,
+        lessonAvailability: proposed.lessonAvailability ?? current.lessonAvailability,
+      });
       revalidatePath("/admin/academy/students");
       revalidatePath(`/admin/academy/students/${change.targetId}`);
       break;
+    }
     case "starlink_pricing": {
       const current = await getSettings();
       await saveSettings({ ...current, starlinkPricing: change.proposedData as SubscriptionPricingCents });

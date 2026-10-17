@@ -9,6 +9,9 @@ import ResetLinkedPasswordButton from "@/app/admin/_components/ResetLinkedPasswo
 import ReceiptsList from "@/app/admin/_components/ReceiptsList";
 import ReceiptUploadForm from "@/app/admin/_components/ReceiptUploadForm";
 import StudentProgressForm from "./StudentProgressForm";
+import LessonAvailabilityForm, { type AvailabilityRow } from "./LessonAvailabilityForm";
+import { lessonAvailability } from "@/lib/academy/availability";
+import { formatDateTime } from "@/lib/utils/date-format";
 import { courseHasFee, LEARNING_MODE_LABELS } from "@/lib/academy/pricing";
 
 export default async function StudentDetailPage({
@@ -25,6 +28,32 @@ export default async function StudentDetailPage({
   const course = await getAcademyCourseById(enrollment.courseId);
   const percent = progressPercent(enrollment, course);
   const receipts = await getReceiptsForReference("academy_fee", enrollment.id);
+
+  // "Default" for this student: self-paced = every lesson open, otherwise
+  // the class schedule — see lib/academy/availability.ts.
+  const now = new Date();
+  const isSelfPaced = enrollment.learningMode === "self_paced";
+  const availabilityModules = (course?.modules ?? []).map((m) => ({
+    id: m.id,
+    title: m.title,
+    rows: m.lessons.map((l): AvailabilityRow => {
+      const defaultLabel = isSelfPaced
+        ? "open (self-paced)"
+        : l.availableAt && new Date(l.availableAt) > now
+          ? `class schedule, opens ${formatDateTime(l.availableAt)}`
+          : "open (class schedule)";
+      const hasOverride = Object.hasOwn(enrollment.lessonAvailability, l.id);
+      const override = enrollment.lessonAvailability[l.id] ?? null;
+      const current = lessonAvailability(enrollment, l, now);
+      return {
+        lessonId: l.id,
+        title: l.title,
+        defaultLabel,
+        initialMode: !hasOverride ? "default" : override === null ? "locked" : current.available ? "open" : "scheduled",
+        initialAt: override,
+      };
+    }),
+  }));
 
   const users = await getUsers();
   const hasLinkedAccount = users.some((u) => u.linkedId === enrollment.id);
@@ -87,6 +116,18 @@ export default async function StudentDetailPage({
           certificateIssued={enrollment.certificateIssued}
           certificateFileUrl={enrollment.certificateFileUrl}
         />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-brand-dark dark:text-white">
+          Lesson availability
+        </h2>
+        <p className="mt-1 text-sm text-brand-gray dark:text-white/60">
+          {isSelfPaced
+            ? "Self-paced: every lesson is open by default. Override individual lessons for this student below."
+            : "Follows the class schedule set on the course by default. Override individual lessons for this student below."}
+        </p>
+        <LessonAvailabilityForm enrollmentId={enrollment.id} modules={availabilityModules} />
       </div>
 
       <div className="mt-6 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-dark-2 p-6">
