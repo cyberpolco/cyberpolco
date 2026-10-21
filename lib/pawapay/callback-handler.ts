@@ -48,7 +48,7 @@ export async function handlePawaPayCallback(
 
   const rawBody = await req.text();
 
-  if (!verifyPawaPayCallback(req, rawBody)) {
+  if (!(await verifyPawaPayCallback(req, rawBody))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -21,13 +21,13 @@ function makeRequest(body: unknown) {
 describe("POST /api/pawapay/payouts/callback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(verifyPawaPayCallback).mockReturnValue(true);
+    vi.mocked(verifyPawaPayCallback).mockResolvedValue(true);
     vi.mocked(upsertPawaPayTransaction).mockResolvedValue(undefined);
     vi.mocked(checkRateLimit).mockResolvedValue({ success: true, remaining: 29 });
   });
 
   it("returns 401 when signature verification fails", async () => {
-    vi.mocked(verifyPawaPayCallback).mockReturnValue(false);
+    vi.mocked(verifyPawaPayCallback).mockResolvedValue(false);
     const res = await POST(makeRequest({ payoutId: "pay-1", status: "COMPLETED" }));
     expect(res.status).toBe(401);
   });

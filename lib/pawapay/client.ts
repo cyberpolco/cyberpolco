@@ -226,3 +226,28 @@ export async function checkDepositStatus(depositId: string): Promise<CheckDeposi
 
   return parsed.data.status === "FOUND" ? { found: true, deposit: parsed.data.data } : { found: false };
 }
+
+const publicKeysResponseSchema = z.array(z.object({ id: z.string(), key: z.string() }));
+
+export type PawaPayPublicKey = z.infer<typeof publicKeysResponseSchema>[number];
+
+// PawaPay's own keys for verifying signed callbacks (lib/pawapay/verify.ts).
+// https://docs.pawapay.io/v2/api-reference/toolkit/public-keys
+export async function getPawaPayPublicKeys(): Promise<PawaPayPublicKey[]> {
+  const url = `${getBaseUrl()}/v2/public-key/http`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { ...authHeaders(), ...(await signedRequestHeaders(url, "GET")) },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`PawaPay public keys request failed with HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  const parsed = publicKeysResponseSchema.safeParse(await res.json());
+  if (!parsed.success) {
+    throw new Error(`PawaPay public keys returned an unexpected response shape: ${parsed.error.message}`);
+  }
+  return parsed.data;
+}

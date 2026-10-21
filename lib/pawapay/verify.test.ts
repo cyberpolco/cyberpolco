@@ -1,74 +1,101 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import crypto from "crypto";
 import { NextRequest } from "next/server";
-import { verifyPawaPayCallback } from "./verify";
+import { httpbis } from "http-message-signatures";
 
-const ORIGINAL_ENV = { ...process.env };
+vi.mock("./client", () => ({ getPawaPayPublicKeys: vi.fn() }));
 
-function makeRequest(headers: Record<string, string> = {}) {
-  return new NextRequest("http://localhost/api/pawapay/deposits/callback", {
+const { getPawaPayPublicKeys } = await import("./client");
+const { verifyPawaPayCallback, resetPublicKeyCache } = await import("./verify");
+
+const CALLBACK_URL = "https://www.cyberpolco.com/api/pawapay/deposits/callback";
+
+const pawapayKeys = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+const otherKeys = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+
+function publicPem(keys: crypto.KeyPairKeyObjectResult) {
+  return keys.publicKey.export({ type: "spki", format: "pem" }).toString();
+}
+
+function digest(body: string) {
+  return `sha-512=:${crypto.createHash("sha512").update(body).digest("base64")}:`;
+}
+
+// Mirrors PawaPay's documented callback: sig-pp over method, authority,
+// path, signature-date, content-digest and content-type.
+async function signedRequest(
+  body: string,
+  { signingKeys = pawapayKeys, contentDigest = digest(body), created = new Date() } = {}
+) {
+  const headers: Record<string, string> = {
+    "content-type": "application/json; charset=UTF-8",
+    "content-digest": contentDigest,
+    "signature-date": created.toISOString(),
+    host: "www.cyberpolco.com",
+  };
+  const signed = await httpbis.signMessage(
+    {
+      key: {
+        id: "CUSTOMER_TEST_KEY",
+        alg: "ecdsa-p256-sha256",
+        sign: async (data: Buffer) => crypto.sign("sha256", data, signingKeys.privateKey),
+      },
+      name: "sig-pp",
+      fields: ["@method", "@authority", "@path", "signature-date", "content-digest", "content-type"],
+      params: ["created", "expires", "keyid", "alg"],
+      paramValues: { created, expires: new Date(created.getTime() + 60_000) },
+    },
+    { method: "POST", url: CALLBACK_URL, headers }
+  );
+  return new NextRequest(CALLBACK_URL, {
     method: "POST",
-    headers,
-    body: "{}",
+    headers: signed.headers as Record<string, string>,
+    body,
   });
 }
 
 describe("verifyPawaPayCallback", () => {
+  const body = '{"depositId":"dep-1","status":"COMPLETED"}';
+
   beforeEach(() => {
-    process.env = { ...ORIGINAL_ENV };
+    vi.clearAllMocks();
+    resetPublicKeyCache();
+    vi.mocked(getPawaPayPublicKeys).mockResolvedValue([{ id: "HTTP_EC_P256_KEY:1", key: publicPem(pawapayKeys) }]);
   });
 
-  afterEach(() => {
-    process.env = { ...ORIGINAL_ENV };
+  it("accepts a callback signed with PawaPay's published key", async () => {
+    expect(await verifyPawaPayCallback(await signedRequest(body), body)).toBe(true);
   });
 
-  it("fails closed when PAWAPAY_WEBHOOK_AUTH_MODE is unset", () => {
-    delete process.env.PAWAPAY_WEBHOOK_AUTH_MODE;
-    delete process.env.PAWAPAY_WEBHOOK_SECRET;
-    expect(verifyPawaPayCallback(makeRequest(), "{}")).toBe(false);
+  it("rejects an unsigned callback without fetching keys", async () => {
+    const req = new NextRequest(CALLBACK_URL, { method: "POST", headers: { "content-digest": digest(body) }, body });
+    expect(await verifyPawaPayCallback(req, body)).toBe(false);
+    expect(getPawaPayPublicKeys).not.toHaveBeenCalled();
   });
 
-  describe("bearer mode", () => {
-    beforeEach(() => {
-      process.env.PAWAPAY_WEBHOOK_AUTH_MODE = "bearer";
-      process.env.PAWAPAY_WEBHOOK_SECRET = "test-secret";
-    });
-
-    it("accepts a matching bearer token", () => {
-      const req = makeRequest({ authorization: "Bearer test-secret" });
-      expect(verifyPawaPayCallback(req, "{}")).toBe(true);
-    });
-
-    it("rejects a mismatched bearer token", () => {
-      const req = makeRequest({ authorization: "Bearer wrong" });
-      expect(verifyPawaPayCallback(req, "{}")).toBe(false);
-    });
-
-    it("rejects a missing authorization header", () => {
-      expect(verifyPawaPayCallback(makeRequest(), "{}")).toBe(false);
-    });
+  it("rejects a body that doesn't match Content-Digest", async () => {
+    const req = await signedRequest(body);
+    expect(await verifyPawaPayCallback(req, '{"depositId":"dep-1","status":"FAILED"}')).toBe(false);
   });
 
-  describe("hmac mode", () => {
-    beforeEach(() => {
-      process.env.PAWAPAY_WEBHOOK_AUTH_MODE = "hmac";
-      process.env.PAWAPAY_WEBHOOK_SECRET = "test-secret";
-    });
+  it("rejects a signature from a key PawaPay didn't publish", async () => {
+    expect(await verifyPawaPayCallback(await signedRequest(body, { signingKeys: otherKeys }), body)).toBe(false);
+  });
 
-    it("accepts a valid HMAC signature over the raw body", () => {
-      const rawBody = '{"depositId":"dep-1"}';
-      const signature = crypto.createHmac("sha256", "test-secret").update(rawBody).digest("hex");
-      const req = makeRequest({ "x-pawapay-signature": signature });
-      expect(verifyPawaPayCallback(req, rawBody)).toBe(true);
-    });
+  it("rejects an expired signature", async () => {
+    const req = await signedRequest(body, { created: new Date(Date.now() - 10 * 60_000) });
+    expect(await verifyPawaPayCallback(req, body)).toBe(false);
+  });
 
-    it("rejects a mismatched signature", () => {
-      const req = makeRequest({ "x-pawapay-signature": "deadbeef" });
-      expect(verifyPawaPayCallback(req, "{}")).toBe(false);
-    });
+  it("fails closed when the public keys can't be fetched", async () => {
+    vi.mocked(getPawaPayPublicKeys).mockRejectedValue(new Error("network down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await verifyPawaPayCallback(await signedRequest(body), body)).toBe(false);
+  });
 
-    it("rejects a missing signature header", () => {
-      expect(verifyPawaPayCallback(makeRequest(), "{}")).toBe(false);
-    });
+  it("caches the public keys between callbacks", async () => {
+    await verifyPawaPayCallback(await signedRequest(body), body);
+    await verifyPawaPayCallback(await signedRequest(body), body);
+    expect(getPawaPayPublicKeys).toHaveBeenCalledTimes(1);
   });
 });

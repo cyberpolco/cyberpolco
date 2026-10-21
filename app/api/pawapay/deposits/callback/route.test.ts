@@ -35,7 +35,7 @@ function makeRequest(body: unknown) {
 describe("POST /api/pawapay/deposits/callback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(verifyPawaPayCallback).mockReturnValue(true);
+    vi.mocked(verifyPawaPayCallback).mockResolvedValue(true);
     vi.mocked(upsertPawaPayTransaction).mockResolvedValue(undefined);
     vi.mocked(getPawaPayTransactionByPawaPayId).mockResolvedValue(undefined);
     vi.mocked(applyDepositOutcome).mockResolvedValue(undefined);
@@ -51,7 +51,7 @@ describe("POST /api/pawapay/deposits/callback", () => {
   });
 
   it("returns 401 and never touches the DB when signature verification fails", async () => {
-    vi.mocked(verifyPawaPayCallback).mockReturnValue(false);
+    vi.mocked(verifyPawaPayCallback).mockResolvedValue(false);
     const res = await POST(makeRequest(validPayload));
     expect(res.status).toBe(401);
     expect(upsertPawaPayTransaction).not.toHaveBeenCalled();
