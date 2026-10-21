@@ -4,6 +4,8 @@
  * development without any external account set up.
  */
 
+import { appendSignature } from "./signature";
+
 type SendEmailInput = {
   to: string;
   subject: string;
@@ -11,9 +13,10 @@ type SendEmailInput = {
   from?: string;
 };
 
-export async function sendEmail({ to, subject, html, from: fromOverride }: SendEmailInput) {
+export async function sendEmail({ to, subject, html: body, from: fromOverride }: SendEmailInput) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = fromOverride || process.env.EMAIL_FROM || "Cyber PolCo <notifications@cyberpolco.com>";
+  const html = appendSignature(body, from);
 
   if (!apiKey) {
     console.log("[email:dev-fallback] RESEND_API_KEY not set — logging instead of sending.");
