@@ -13,10 +13,12 @@ import { httpbis, type SigningKey } from "http-message-signatures";
  * are rejected with HTTP 401 HTTP_SIGNATURE_ERROR once that's turned on.
  */
 
-const SANDBOX_BASE_URL = "https://api.sandbox.pawapay.io";
+// Live by default; point PAWAPAY_BASE_URL at https://api.sandbox.pawapay.io
+// (with a sandbox PAWAPAY_API_KEY) to test without moving real money.
+const PRODUCTION_BASE_URL = "https://api.pawapay.io";
 
 function getBaseUrl(): string {
-  return process.env.PAWAPAY_BASE_URL || SANDBOX_BASE_URL;
+  return process.env.PAWAPAY_BASE_URL || PRODUCTION_BASE_URL;
 }
 
 function getApiKey(): string {

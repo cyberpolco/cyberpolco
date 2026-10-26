@@ -31,14 +31,14 @@ describe("pawapay client", () => {
       await expect(initiateDeposit(input)).rejects.toThrow(/PAWAPAY_API_KEY is not set/);
     });
 
-    it("posts to the sandbox base URL with a bearer token by default", async () => {
+    it("posts to the production base URL with a bearer token by default", async () => {
       const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ depositId: input.depositId, status: "ACCEPTED" }));
       vi.stubGlobal("fetch", fetchMock);
 
       await initiateDeposit(input);
 
       const [url, options] = fetchMock.mock.calls[0];
-      expect(url).toBe("https://api.sandbox.pawapay.io/v2/deposits");
+      expect(url).toBe("https://api.pawapay.io/v2/deposits");
       expect(options.method).toBe("POST");
       expect(options.headers.Authorization).toBe("Bearer test-key");
       expect(JSON.parse(options.body)).toEqual({
@@ -139,7 +139,7 @@ describe("pawapay client", () => {
       await checkDepositStatus(depositId);
 
       const [url, options] = fetchMock.mock.calls[0];
-      expect(url).toBe(`https://api.sandbox.pawapay.io/v2/deposits/${depositId}`);
+      expect(url).toBe(`https://api.pawapay.io/v2/deposits/${depositId}`);
       expect(options.method).toBe("GET");
       expect(options.headers.Authorization).toBe("Bearer test-key");
     });
@@ -195,7 +195,7 @@ describe("pawapay client", () => {
       const result = await predictProvider("+243 973 456 789");
 
       const [url, options] = fetchMock.mock.calls[0];
-      expect(url).toBe("https://api.sandbox.pawapay.io/v2/predict-provider");
+      expect(url).toBe("https://api.pawapay.io/v2/predict-provider");
       expect(options.method).toBe("POST");
       expect(JSON.parse(options.body)).toEqual({ phoneNumber: "+243 973 456 789" });
       expect(result).toEqual({ country: "COD", provider: "AIRTEL_COD", phoneNumber: "243973456789" });
