@@ -47,7 +47,7 @@ const COMPANY = {
     "CD/MJM/RCCM/25-A-00430",
   ],
   emails: "info@cyberpolco.com / support@cyberpolco.com / sales@cyberpolco.com",
-  phone: "+243 82 811 77 10",
+  phone: "+243 82 811 77 10 / +264 81 23 14 352",
   website: "www.cyberpolco.com",
 };
 
