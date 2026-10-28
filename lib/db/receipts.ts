@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "./client";
 import { receipts as receiptsTable } from "./schema";
 import type { PaymentReferenceType } from "./payments";
@@ -7,6 +7,7 @@ export type ReceiptSource = "auto_generated" | "staff_uploaded";
 
 export type Receipt = {
   id: string;
+  receiptNumber: string | null;
   referenceType: PaymentReferenceType;
   referenceId: string;
   pawapayTransactionId: string | null;
@@ -20,6 +21,7 @@ export type Receipt = {
 };
 
 export async function createReceipt(input: {
+  receiptNumber?: string | null;
   referenceType: PaymentReferenceType;
   referenceId: string;
   pawapayTransactionId?: string | null;
@@ -32,6 +34,7 @@ export async function createReceipt(input: {
 }): Promise<void> {
   await db.insert(receiptsTable).values({
     id: crypto.randomUUID(),
+    receiptNumber: input.receiptNumber ?? null,
     referenceType: input.referenceType,
     referenceId: input.referenceId,
     pawapayTransactionId: input.pawapayTransactionId ?? null,
@@ -68,4 +71,17 @@ export async function getReceiptByPawapayTransactionId(pawapayTransactionId: str
     .from(receiptsTable)
     .where(eq(receiptsTable.pawapayTransactionId, pawapayTransactionId));
   return row as Receipt | undefined;
+}
+
+const RECEIPT_NUMBER_SEQUENCES: Record<PaymentReferenceType, { prefix: string; sequence: string }> = {
+  starlink_subscription: { prefix: "REC-CPC-SL", sequence: "starlink_receipt_number_seq" },
+  academy_fee: { prefix: "REC-CPC-ACAD", sequence: "academy_receipt_number_seq" },
+};
+
+// Next number in the product line's own sequence (see the sequences above
+// the receipts table in schema.ts), e.g. "REC-CPC-SL-26000".
+export async function nextReceiptNumber(referenceType: PaymentReferenceType): Promise<string> {
+  const { prefix, sequence } = RECEIPT_NUMBER_SEQUENCES[referenceType];
+  const result = await db.execute(sql`select nextval(${sequence}) as n`);
+  return `${prefix}-${result.rows[0].n}`;
 }

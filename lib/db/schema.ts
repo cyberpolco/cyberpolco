@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, jsonb, integer } from "drizzle-orm/pg-core";
+import { pgTable, pgSequence, text, boolean, jsonb, integer } from "drizzle-orm/pg-core";
 import type { TextAlign } from "@/lib/types/text-align";
 
 type LocalizedArticle = {
@@ -451,8 +451,18 @@ export const pawapayTransactions = pgTable("pawapay_transactions", {
 // historical/offline payment with no PawaPay transaction at all). Unlike
 // academyEnrollments.certificateFileUrl (a single column), this is its own
 // table because a site/enrollment can accumulate many receipts over time.
+// One counter per product line for receipt numbers (REC-CPC-SL-26000,
+// REC-CPC-ACAD-26000, …). Postgres sequences rather than max()+1 so the
+// webhook and the status-poll fallback can never mint the same number; a
+// failed generation may leave a gap, which is acceptable for receipts.
+export const starlinkReceiptNumberSeq = pgSequence("starlink_receipt_number_seq", { startWith: 26000 });
+export const academyReceiptNumberSeq = pgSequence("academy_receipt_number_seq", { startWith: 26000 });
+
 export const receipts = pgTable("receipts", {
   id: text("id").primaryKey(),
+  // e.g. "REC-CPC-SL-26000" — set only for auto-generated receipts; staff
+  // uploads carry whatever numbering is printed on their own file.
+  receiptNumber: text("receipt_number").unique(),
   referenceType: text("reference_type", { enum: ["starlink_subscription", "academy_fee"] }).notNull(),
   referenceId: text("reference_id").notNull(),
   // Set only for an auto-generated receipt — lets generateReceiptForDeposit

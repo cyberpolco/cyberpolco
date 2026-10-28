@@ -2,7 +2,8 @@ export type TemplateKey =
   | "contact_ack"
   | "apply_ack"
   | "starlink_reminder"
-  | "starlink_help_notify_technician";
+  | "starlink_help_notify_technician"
+  | "payment_receipt";
 
 type LocalizedTemplateContent = { subject: string; body: string };
 
@@ -19,6 +20,7 @@ export const TEMPLATE_KEYS: TemplateKey[] = [
   "apply_ack",
   "starlink_reminder",
   "starlink_help_notify_technician",
+  "payment_receipt",
 ];
 
 // Single source of truth for which templates exist. The admin list page
@@ -109,6 +111,26 @@ export const TEMPLATE_REGISTRY: Record<TemplateKey, TemplateDefinition> = {
     defaultEn: {
       subject: "New Starlink assistance request",
       body: `<p>{{clientName}} ({{clientId}}) needs assistance at site <strong>{{siteName}}</strong>.</p>`,
+    },
+  },
+  payment_receipt: {
+    label: "Payment receipt",
+    description:
+      "Sent to the payer with their PDF receipt attached the moment a mobile money payment completes (Starlink or Academy). Sent in English.",
+    variables: ["payerName", "receiptNumber", "productLabel", "amount"],
+    defaultFr: {
+      subject: "Votre reçu {{receiptNumber}}",
+      body: `<h2>Merci, {{payerName}}</h2>
+        <p>Nous avons bien reçu votre paiement de <strong>{{amount}}</strong> pour <strong>{{productLabel}}</strong>.</p>
+        <p>Votre reçu <strong>{{receiptNumber}}</strong> est joint à cet e-mail.</p>
+        <p>— L'équipe Cyber PolCo</p>`,
+    },
+    defaultEn: {
+      subject: "Your receipt {{receiptNumber}}",
+      body: `<h2>Thank you, {{payerName}}</h2>
+        <p>We've received your payment of <strong>{{amount}}</strong> for <strong>{{productLabel}}</strong>.</p>
+        <p>Your receipt <strong>{{receiptNumber}}</strong> is attached to this email.</p>
+        <p>— The Cyber PolCo team</p>`,
     },
   },
 };

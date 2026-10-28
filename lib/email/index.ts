@@ -14,16 +14,18 @@ type SendEmailInput = {
   to: string;
   subject: string;
   html: string;
+  // Resend takes attachment content as base64.
+  attachments?: { filename: string; content: string }[];
 };
 
-export async function sendEmail({ to, subject, html: body }: SendEmailInput) {
+export async function sendEmail({ to, subject, html: body, attachments }: SendEmailInput) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = FROM;
   const html = appendSignature(body, from);
 
   if (!apiKey) {
     console.log("[email:dev-fallback] RESEND_API_KEY not set — logging instead of sending.");
-    console.log({ to, subject, html });
+    console.log({ to, subject, html, attachments: attachments?.map((a) => a.filename) });
     return { simulated: true };
   }
 
@@ -33,7 +35,7 @@ export async function sendEmail({ to, subject, html: body }: SendEmailInput) {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from, to, subject, html }),
+    body: JSON.stringify({ from, to, subject, html, attachments }),
   });
 
   if (!res.ok) {
