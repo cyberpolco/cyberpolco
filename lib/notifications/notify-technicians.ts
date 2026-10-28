@@ -22,7 +22,6 @@ export async function notifyTechniciansOfHelpRequest(vars: {
       await sendTemplatedEmail({
         key: "starlink_help_notify_technician",
         to: email,
-        from: "Cyber PolCo <notify@cyberpolco.com>",
         locale: "fr",
         vars: safeVars,
       });

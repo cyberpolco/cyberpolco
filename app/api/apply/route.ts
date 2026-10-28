@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       name: escapeHtml(name),
       jobTitle: escapeHtml(jobTitle),
     });
-    await sendEmail({ to: email, from: "Cyber PolCo <noreply@cyberpolco.com>", subject, html });
+    await sendEmail({ to: email, subject, html });
   } catch (err) {
     console.error("Failed to send application acknowledgement email:", err);
   }

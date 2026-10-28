@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
           { clientName, siteName, expiryDate },
           { clientName, siteName, expiryDate }
         );
-        await sendEmail({ to: client.email, from: "Cyber PolCo <noreply@cyberpolco.com>", subject, html });
+        await sendEmail({ to: client.email, subject, html });
         sent++;
       } catch (err) {
         console.error(`Failed to send subscription reminder for site ${site.id}:`, err);

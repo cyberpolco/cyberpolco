@@ -48,10 +48,9 @@ export async function renderBilingualTemplate(
 export async function sendTemplatedEmail(input: {
   key: TemplateKey;
   to: string;
-  from?: string;
   locale: "fr" | "en";
   vars: Record<string, string>;
 }) {
   const { subject, html } = await renderTemplate(input.key, input.locale, input.vars);
-  return sendEmail({ to: input.to, from: input.from, subject, html });
+  return sendEmail({ to: input.to, subject, html });
 }

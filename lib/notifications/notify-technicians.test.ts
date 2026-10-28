@@ -24,7 +24,6 @@ describe("notifyTechniciansOfHelpRequest", () => {
       expect.objectContaining({
         key: "starlink_help_notify_technician",
         to: "tech1@example.com",
-        from: "Cyber PolCo <notify@cyberpolco.com>",
       })
     );
     expect(sendTemplatedEmail).toHaveBeenCalledWith(

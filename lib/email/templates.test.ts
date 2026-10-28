@@ -84,7 +84,6 @@ describe("sendTemplatedEmail", () => {
     await sendTemplatedEmail({
       key: "contact_ack",
       to: "ada@example.com",
-      from: "Cyber PolCo <noreply@cyberpolco.com>",
       locale: "en",
       vars: { firstName: "Ada", subject: "Billing" },
     });
@@ -92,7 +91,6 @@ describe("sendTemplatedEmail", () => {
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "ada@example.com",
-        from: "Cyber PolCo <noreply@cyberpolco.com>",
         subject: "We've received your message",
       })
     );

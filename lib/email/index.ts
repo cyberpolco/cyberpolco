@@ -6,16 +6,19 @@
 
 import { appendSignature } from "./signature";
 
+// Every email the app sends is automated, so they all go out from noreply@
+// (an alias of info@ — replies still land in the info@ inbox).
+const FROM = "Cyber PolCo <noreply@cyberpolco.com>";
+
 type SendEmailInput = {
   to: string;
   subject: string;
   html: string;
-  from?: string;
 };
 
-export async function sendEmail({ to, subject, html: body, from: fromOverride }: SendEmailInput) {
+export async function sendEmail({ to, subject, html: body }: SendEmailInput) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = fromOverride || process.env.EMAIL_FROM || "Cyber PolCo <notifications@cyberpolco.com>";
+  const from = FROM;
   const html = appendSignature(body, from);
 
   if (!apiKey) {
