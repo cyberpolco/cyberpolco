@@ -15,6 +15,14 @@ const IN_FLIGHT_STATUSES = new Set(["PENDING", "ACCEPTED", "PROCESSING", "IN_REC
 // dev with no public HTTPS URL).
 const POLL_INTERVAL_MS = 4000;
 
+// Keeps the number in the one shape PawaPay and PHONE_REGEX accept,
+// "+243828117710": digits only, always behind a single leading "+" —
+// spaces, dashes and anything else are dropped as they're typed or pasted.
+function normalizePhone(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  return digits ? `+${digits}` : "";
+}
+
 const DEFAULT_TRIGGER_CLASS =
   "mt-4 w-full rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-brand-dark hover:bg-black/5 dark:border-white/15 dark:text-white dark:hover:bg-white/10";
 
@@ -46,7 +54,7 @@ export default function PayWithMobileMoneyButton({
   triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [phone, setPhone] = useState(defaultPhone);
+  const [phone, setPhone] = useState(() => normalizePhone(defaultPhone));
   const [isPending, startTransition] = useTransition();
   const { push } = useToast();
   const router = useRouter();
@@ -120,11 +128,15 @@ export default function PayWithMobileMoneyButton({
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+243991234567"
+              onChange={(e) => setPhone(normalizePhone(e.target.value))}
+              placeholder="+243828117710"
+              inputMode="tel"
               disabled={isPending}
               className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 text-sm text-brand-dark disabled:opacity-50 dark:border-white/15 dark:text-white"
             />
+            <span className="mt-1 block text-xs text-brand-gray dark:text-white/50">
+              Country code and number with no spaces, e.g. +243828117710
+            </span>
           </label>
         </ConfirmDialog>
       )}
